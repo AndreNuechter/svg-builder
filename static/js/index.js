@@ -715,7 +715,6 @@ svg.addEventListener('mousedown', (e) => {
             mode: session.mode
         };
 
-        styleLayer();
         mkPoint(layer[layer.length - 1], layer.length - 1);
     } else if (session.mode === 'rect') {
         if (layer.length) return;
@@ -726,8 +725,6 @@ svg.addEventListener('mousedown', (e) => {
         drawingRect = true;
         [rectStart.x, rectStart.y] = [x, y];
 
-        styleLayer();
-
         svg.onmousemove = (ev) => {
             // TODO: allow stopping rect-creation by pressing esc
             // TODO: make this wotk w setDOfLayer
@@ -737,6 +734,7 @@ svg.addEventListener('mousedown', (e) => {
         };
     }
 
+    styleLayer();
     setDOfLayer();
 }, false);
 
