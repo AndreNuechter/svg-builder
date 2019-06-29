@@ -18,21 +18,31 @@ import {
     trim
 } from './transformations.js';
 
+// Layers fieldset
 const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer');
 const addLayerBtn = document.getElementById('add-layer');
 const delLayerBtn = document.getElementById('del-layer');
 const clearAllBtn = document.getElementById('clear-all');
 const undoBtn = document.getElementById('undo');
-const width = document.getElementById('width');
-const height = document.getElementById('height');
 
+// Dimensions fieldset
+const width = document.getElementById('width'); // TODO: rename to ...setter
+const height = document.getElementById('height'); // TODO: rename to ...setter
+
+// Modes fieldset and enum of allowed values
+const modeSelector = document.getElementsByName('modes');
+const modes = ['path', 'arc', 'rect'];
+
+// SVG
 const ns = 'http://www.w3.org/2000/svg';
-const svg = document.getElementById('target');
+const svg = document.getElementById('target'); // TODO: give this id to a group
 const overlay = document.getElementById('overlay');
 const paths = svg.getElementsByTagName('path');
 const circleCPs = document.getElementsByTagName('circle');
 const rectCPs = document.getElementsByTagName('rect');
+
+// Coords display (visible when hovering svg) and the cb to manage that
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
     const [x, y] = getMousePos(svg, e);
@@ -40,17 +50,36 @@ const coordToolTips = (e) => {
     coords.style.left = `${e.pageX + 16}px`;
     coords.style.top = `${e.pageY - 32}px`;
 };
-const output = document.getElementById('output');
 
-const modeSelector = document.getElementsByName('modes');
-const modes = ['path', 'arc', 'rect'];
-
+// Path commands (visible when in 'path' mode) and enum of allowed values
 const commands = document.getElementById('commands');
 const cmdSelect = document.getElementsByName('command');
 const cmds = ['M', 'L', 'Q', 'C'];
 
+// Fill & Stroke fieldset
+const strokeColorSetter = document.getElementById('stroke-color');
+const strokeOpacitySetter = document.getElementById('stroke-opacity');
+const fillColorSetter = document.getElementById('fill-color');
+const fillOpacitySetter = document.getElementById('fill-opacity');
+const strokeWidthSetter = document.getElementById('stroke-width');
+const fillRuleSetter = document.getElementById('fill-rule');
+const fillChk = document.getElementById('fill');
+const closeChk = document.getElementById('close');
+
+// Transformations fieldset
+const scalingFactor = document.getElementById('scaling-factor');
+const deg = document.getElementById('deg');
+const reflection = document.getElementById('reflect');
+const trimChk = document.getElementById('trim-check');
+const transformBtn = document.getElementById('transform');
+
+// Target for svg markup
+const output = document.getElementById('output');
+
+const rectStart = {};
+let drawingRect = false;
 // NOTE: currLayer is the 1-based ordinal of the current layer, label/val of layerSelector and Id of corresponding layer/config object
-// id in paths[] and layerSelector is (currLayer - 1)
+// id in paths[] and layerSelectors is (currLayer - 1)
 let currLayer = 1;
 
 const session = new Proxy({
@@ -117,19 +146,7 @@ const svgObserver = new MutationObserver((mutationsList, observer) => {
 });
 svgObserver.observe(svg, { childList: true, attributes: true });
 
-const strokeColorSetter = document.getElementById('stroke-color');
-const strokeOpacitySetter = document.getElementById('stroke-opacity');
-const fillColorSetter = document.getElementById('fill-color');
-const fillOpacitySetter = document.getElementById('fill-opacity');
-const strokeWidthSetter = document.getElementById('stroke-width');
-const fillRuleSetter = document.getElementById('fill-rule');
-const fillChk = document.getElementById('fill');
-const closeChk = document.getElementById('close');
-const scalingFactor = document.getElementById('scaling-factor');
-const deg = document.getElementById('deg');
-const reflection = document.getElementById('reflect');
-const trimChk = document.getElementById('trim-check');
-const transformBtn = document.getElementById('transform');
+// TODO: mov to transformations.js
 const inc = num => num + 1;
 const dec = num => num - 1;
 const moves = {
@@ -158,8 +175,8 @@ const defaultConfig = {
         fillColor: '#000000',
         fillOpacity: 1,
         fillRule: 'evenodd',
-        fillChk: false, // TODO: bad names
-        closeChk: true // TODO: bad names
+        fillChk: false, // TODO: bad names, chosen only to accord w el name
+        closeChk: true // TODO: bad names, chosen only to accord w el name
     }
 };
 let config = window.localStorage.getItem('config')
@@ -168,9 +185,6 @@ let config = window.localStorage.getItem('config')
         Object.assign({}, defaultConfig.dims),
         Object.assign({}, defaultConfig.style)
     ];
-
-const rectStart = {};
-let drawingRect = false;
 
 // adjusts the interface elements to a config
 function adjustConfigItems(conf = config[currLayer]) {

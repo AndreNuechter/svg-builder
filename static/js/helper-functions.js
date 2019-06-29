@@ -17,7 +17,7 @@ function pointToMarkup(p) {
         ? `${[p.cmd, p.xR, p.yR, p.xRot, p.large, p.sweep, p.x, p.y].join(' ')} ` // arc
         : [
             p.cmd, // command (M, L, Q or C)
-            p.x1 ? `${[p.x1, p.y1].join(' ')}', '` : '', // cp1
+            p.x1 ? `${[p.x1, p.y1].join(' ')}, ` : '', // cp1
             p.x2 ? `${[p.x2, p.y2].join(' ')}, ` : '', // cp2
             `${[p.x, p.y].join(' ')} ` // actual coord
         ].join(' ');
