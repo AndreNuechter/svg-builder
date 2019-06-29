@@ -1,0 +1,109 @@
+body {
+  font-family: arial, helvetica;
+  background: rgb(40,40,40);
+  color: rgb(150,150,140);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#main {
+  display: flex;
+}
+
+#layer-management {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-right: 8px;
+
+  #layer-select { margin-bottom: 8px; }
+
+  #layer-select, #layer-controls {
+    display: inline-flex;
+    flex-direction: column;
+
+    label {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}
+
+#dims, #modes {
+  height: 2.7em;
+  display: inline-flex;
+  justify-content: space-between;
+  padding: 0 6px 0 6px;
+
+  label { margin: 0 8px 0 0; }
+  input[type=number] { margin-left: 4px; }
+}
+
+svg#target {
+  background: lightgrey;
+  border: 2px solid white;
+  outline: 3px solid grey;
+  margin: 8px 0 8px 5px;
+  stroke-width: 2;
+  stroke: black;
+  display: block;
+}
+
+.hovered { stroke-width: 10; }
+
+.node {
+  fill: orange;
+  stroke: dimgrey;
+}
+
+#coords {
+  position: absolute;
+  left: -100px;
+  top: -100px;
+  padding: 3px;
+  border: 1px solid black;
+  min-width: 7em;
+  max-height: 1em;
+  background: rgba(255,255,255,0.7);
+  color: black;
+  text-align: center;
+  pointer-events: none;
+}
+
+#commands label { padding: 0 12px 0 0; }
+
+#config { margin-top: 8px; }
+
+#fill-and-stroke, #transformations {
+  margin-bottom: 8px;
+  display: inline-flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  input { margin-left: 2em; }
+}
+
+input[type=number] {
+  width: 5em;
+  text-align: center;
+}
+
+#output {
+  margin: 8px 0 8px 0;
+  padding: 2px;
+  max-width: 640px;
+  font-weight: 600;
+  color: slategrey;
+}
+#output::before {
+  color: lightgrey;
+  font-weight: 200;
+  content: "Output goes here => ";
+}
