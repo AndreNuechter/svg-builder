@@ -12,8 +12,6 @@ html
       fieldset#layer-management
         legend Layers
         #layer-select
-          label Layer 1
-            input(type="radio" name="layer" value=1 checked)
         #layer-controls
           button#add-layer Add layer
           button#del-layer Delete active layer
@@ -29,13 +27,13 @@ html
         fieldset#modes
           legend Modes
           label Rectangle
-            input(type="radio" name="modes" value="rect")
+            input(type="radio" name="modes" value="rect" checked)
           label Ellipse, circle or arc
             input(type="radio" name="modes" value="arc")
           label Path
             input(type="radio" name="modes" value="path")
-        svg#target(width="640" height="360")
-          path
+        svg#outer-container(width="640" height="360")
+          g#inner-container
           path#overlay(fill="transparent")
         #coords
         #commands
@@ -66,9 +64,9 @@ html
             option evenodd
             option nonzero        
         label Fill shape
-          input#fill(type="checkbox" name="fillChk")
+          input#fill-toggle(type="checkbox" name="fill")
         label Close shape
-          input#close(type="checkbox" name="closeChk" checked)
+          input#close-toggle(type="checkbox" name="close" checked)
 
       fieldset#transformations
         legend Transformations

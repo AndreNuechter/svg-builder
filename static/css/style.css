@@ -17,24 +17,29 @@ body {
   margin-right: 8px; }
   #layer-management #layer-select {
     margin-bottom: 8px; }
-  #layer-management #layer-select, #layer-management #layer-controls {
+  #layer-management #layer-select,
+  #layer-management #layer-controls {
     display: inline-flex;
     flex-direction: column; }
-    #layer-management #layer-select label, #layer-management #layer-controls label {
+    #layer-management #layer-select label,
+    #layer-management #layer-controls label {
       display: flex;
       justify-content: space-between; }
 
-#dims, #modes {
+#dims,
+#modes {
   height: 2.7em;
   display: inline-flex;
   justify-content: space-between;
   padding: 0 6px 0 6px; }
-  #dims label, #modes label {
+  #dims label,
+  #modes label {
     margin: 0 8px 0 0; }
-  #dims input[type=number], #modes input[type=number] {
+  #dims input[type=number],
+  #modes input[type=number] {
     margin-left: 4px; }
 
-svg#target {
+svg#outer-container {
   background: lightgrey;
   border: 2px solid white;
   outline: 3px solid grey;
@@ -69,15 +74,18 @@ svg#target {
 #config {
   margin-top: 8px; }
 
-#fill-and-stroke, #transformations {
+#fill-and-stroke,
+#transformations {
   margin-bottom: 8px;
   display: inline-flex;
   flex-direction: column; }
-  #fill-and-stroke label, #transformations label {
+  #fill-and-stroke label,
+  #transformations label {
     margin-bottom: 2px;
     display: flex;
     justify-content: space-between; }
-  #fill-and-stroke input, #transformations input {
+  #fill-and-stroke input,
+  #transformations input {
     margin-left: 2em; }
 
 input[type=number] {
