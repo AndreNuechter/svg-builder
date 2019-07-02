@@ -143,9 +143,10 @@ const session = new Proxy({
 });
 
 const selectorTemplate = (() => {
-    const input = document.createElement('input');
-    input.type = 'radio';
-    input.name = 'layer';
+    const input = configElement(document.createElement('input'), {
+        type: 'radio',
+        name: 'layer'
+    });
 
     return input;
 })();
@@ -155,12 +156,13 @@ const groupObserver = new MutationObserver((mutationsList, observer) => {
         if (mutation.type === 'childList') {
             if (mutation.addedNodes.length) {
                 if (mutation.addedNodes[0].nodeName === 'path') {
-                    // NOTE: we could only use configElement for the value attr, which seems kinda pointless
-                    const label = labelTemplate.cloneNode(false);
-                    label.textContent = `Layer ${layerSelect.childElementCount + 1}`;
-                    const selector = selectorTemplate.cloneNode(false);
-                    selector.value = layerSelect.childElementCount;
-                    selector.checked = session.layer === layerSelectors.length;
+                    const label = cloneFromTemplate(labelTemplate)({
+                        textContent: `Layer ${layerSelect.childElementCount + 1}`
+                    });
+                    const selector = cloneFromTemplate(selectorTemplate)({
+                        value: layerSelect.childElementCount,
+                        checked: session.layer === layerSelectors.length
+                    });
 
                     label.append(selector);
                     layerSelect.append(label);
@@ -252,8 +254,14 @@ const stopDragging = () => {
 };
 
 function configElement(element, attrs) {
+    // NOTE: the below 'exceptions' cannot be set by setAttribute (they're obj props, not node attrs)
+    const exceptions = ['checked', 'textContent', 'data'];
     Object.keys(attrs).forEach((attr) => {
-        element.setAttribute(attr, attrs[attr]);
+        if (exceptions.includes(attr)) {
+            element[attr] = attrs[attr];
+        } else {
+            element.setAttribute(attr, attrs[attr]);
+        }
     });
 
     return element;
@@ -288,9 +296,7 @@ const getShape = {
     }
 };
 
-const hilightCP = e => e.target.classList.toggle('hovered'); // TODO: can this be done w css pseudo class?
-
-// constructs a draggable point
+// constructs a draggable point for the active layer
 function mkControlPoint(x, y, pointId, shapeName, type = 0) {
     if (!Object.keys(getShape).includes(shapeName)) return;
 
@@ -299,10 +305,6 @@ function mkControlPoint(x, y, pointId, shapeName, type = 0) {
     const cp = getShape[shapeName](x, y);
 
     cp.classList.add('node');
-
-    // highlight dragable point on hover
-    cp.onmouseenter = hilightCP;
-    cp.onmouseleave = hilightCP;
 
     // determine the attribute the cp is gonna change when moved via dragging
     let xKey;
@@ -346,7 +348,6 @@ function mkPoint(point, pointId) {
     }
 }
 
-// TODO: rect
 function remLastPoint(cmd) {
     circleCPs[circleCPs.length - 1].remove();
     if (cmd === 'Q' || cmd === 'C') rectCPs[rectCPs.length - 1].remove();
@@ -381,7 +382,7 @@ function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].styl
 }
 
 // changes d attr of a layer
-function setDOfLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
+function setDOfLayer(layerId = session.layer, layer = drawing.layers[layerId]) { // TODO: rename drawLayer
     const d = layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '');
 
     configElement(paths[layerId], { d });
@@ -404,12 +405,6 @@ function generateMarkUp() {
     <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
     ${group.innerHTML}
     </svg>`;
-}
-
-// TODO: proxy or sth?
-function setDimsOfSVG() {
-    svg.style.width = `${drawing.dims.width}px`;
-    svg.style.height = `${drawing.dims.height}px`;
 }
 
 window.onload = () => { // TODO: onDOMContentloaded?
@@ -733,9 +728,15 @@ svg.addEventListener('mouseleave', () => {
     };
 });
 
+// TODO: proxy or sth?
+function setDimsOfSVG() {
+    svg.style.width = `${drawing.dims.width}px`;
+    svg.style.height = `${drawing.dims.height}px`;
+}
+
 // Dimensions of canvas
 const setDims = () => {
-    drawing.dims.width = widthSetter.value || defaultConfig.dims.width;
+    drawing.dims.width = widthSetter.value || defaultConfig.dims.width; // TODO: 2nd option for itself
     drawing.dims.height = heightSetter.value || defaultConfig.dims.height;
     setDimsOfSVG();
     save();

@@ -55,6 +55,9 @@ svg#outer-container {
   fill: orange;
   stroke: dimgrey; }
 
+.node:hover {
+  stroke-width: 10; }
+
 #coords {
   position: absolute;
   left: -100px;
