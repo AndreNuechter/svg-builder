@@ -11,25 +11,11 @@ function getMousePos(target, event) {
     return [+(event.clientX - rect.left).toFixed(), +(event.clientY - rect.top).toFixed()];
 }
 
-// function pointToMarkup(p) {
-//     // TODO: include rects
-//     return p.cmd === 'A'
-//         ? `${[p.cmd, p.xR, p.yR, p.xRot, p.large, p.sweep, p.x, p.y].join(' ')} ` // arc
-//         : [
-//             p.cmd, // command (M, L, Q or C)
-//             p.x1 ? `${[p.x1, p.y1].join(' ')}, ` : '', // cp1
-//             p.x2 ? `${[p.x2, p.y2].join(' ')}, ` : '', // cp2
-//             `${[p.x, p.y].join(' ')} ` // actual coord
-//         ].join(' ');
-// }
 function pointToMarkup(point) {
     const args = [];
 
     /* eslint-disable */
     switch (point.cmd) {
-        case 'M':
-            args.push(point.x, point.y);
-            break;
         case 'H':
             args.push(point.x);
             break;
@@ -45,23 +31,23 @@ function pointToMarkup(point) {
                 point.x,
                 point.y);
             break;
-        case 'L':
-            args.push(point.x,
+        case 'Q':
+            args.push(point.x1,
+                point.y1,
+                point.x,
                 point.y);
             break;
-        case 'Q':
-            args.push(point.x,
-                point.y,
-                point.x1,
-                point.y1);
-            break;
         case 'C':
-            args.push(point.x,
-                point.y,
-                point.x1,
+            args.push(point.x1,
                 point.y1,
                 point.x2,
-                point.y2);
+                point.y2,
+                point.x,
+                point.y);
+            break;
+        case 'M':
+        case 'L':
+            args.push(point.x, point.y);
             break;
         default:
             throw Error('WTF!');

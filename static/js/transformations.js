@@ -3,14 +3,26 @@ import {
     getMinNMax
 } from './helper-functions.js';
 
+
+const inc = num => num + 1;
+const dec = num => num - 1;
+const moves = {
+    ArrowUp: ['y', dec],
+    ArrowDown: ['y', inc],
+    ArrowLeft: ['x', dec],
+    ArrowRight: ['x', inc]
+};
+
 // moves a layer l/r/u/d when pressing an arrow key
-// TODO: the definition is quite opaque. it'd be easier to parse if moves were defined here too
-// TODO: cps for dragging are not affected
-function move(action, points) {
+// TODO: cps are not affected
+function move(key, points) {
     points.forEach((p) => {
-        p[action[0]] = action[1](p[action[0]]);
-        p[action[0] + 1] = action[1](p[action[0] + 1]); // cp1
-        p[action[0] + 2] = action[1](p[action[0] + 1]); // cp2
+        const prop = moves[key][0];
+        const action = moves[key][1];
+
+        p[prop] = action(p[prop]);
+        p[prop + 1] = action(p[prop + 1]); // cp1
+        p[prop + 2] = action(p[prop + 2]); // cp2
     });
 }
 
@@ -64,6 +76,7 @@ function trim(points, config, wElmnt, hElmnt) {
 }
 
 export {
+    moves,
     move,
     scale,
     rotate,

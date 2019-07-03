@@ -4,8 +4,7 @@ body {
   color: #96968c;
   padding: 8px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start; }
+  flex-direction: column; }
 
 #main {
   display: flex; }
@@ -17,23 +16,24 @@ body {
   margin-right: 8px; }
   #layer-management #layer-select {
     margin-bottom: 8px; }
+    #layer-management #layer-select label {
+      display: flex;
+      justify-content: space-between; }
   #layer-management #layer-select,
   #layer-management #layer-controls {
     display: inline-flex;
     flex-direction: column; }
-    #layer-management #layer-select label,
-    #layer-management #layer-controls label {
-      display: flex;
-      justify-content: space-between; }
 
 #dims,
 #modes {
-  height: 2.7em;
+  min-height: 2.7em;
   display: inline-flex;
-  justify-content: space-between;
+  flex-direction: row;
+  justify-content: center;
   padding: 0 6px 0 6px; }
   #dims label,
   #modes label {
+    display: inline-block;
     margin: 0 8px 0 0; }
   #dims input[type=number],
   #modes input[type=number] {
@@ -48,15 +48,15 @@ svg#outer-container {
   stroke: black;
   display: block; }
 
-.hovered {
-  stroke-width: 10; }
-
 .node {
   fill: orange;
   stroke: dimgrey; }
 
 .node:hover {
   stroke-width: 10; }
+
+.node:last-of-type {
+  fill: red; }
 
 #coords {
   position: absolute;
