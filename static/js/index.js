@@ -145,6 +145,10 @@ const selectorTemplate = (() => {
     return input;
 })();
 const labelTemplate = document.createElement('label');
+const pathTemplate = document.createElementNS(ns, 'path');
+const rectTemplate = document.createElementNS(ns, 'rect');
+const circleTemplate = document.createElementNS(ns, 'circle');
+
 const groupObserver = new MutationObserver((mutationsList, observer) => {
     mutationsList.forEach((mutation) => {
         if (mutation.type === 'childList') {
@@ -206,8 +210,6 @@ function adjustConfigItems(conf = drawing.layers[session.layer].style) {
     closeToggle.checked = conf.close;
 }
 
-const pathTemplate = document.createElementNS(ns, 'path');
-
 // TODO: refactor type param. its confusing and probably not future proof
 // highlights segments affected by dragged cp
 // configs overlay to coincide w affected segment and highlights that fact
@@ -252,7 +254,7 @@ function dragging(layerId, pointId, type, cp, xKey, yKey) {
         hilightSegment(drawing.layers[layerId], pointId, type);
 
         // move the cp
-        if (type) { // TODO: forego branching...close over/capture changed attrs?
+        if (type) { // TODO: forego branching...close over/capture changed attrs? can they be read off cp?
             cp.setAttribute('x', x);
             cp.setAttribute('y', y);
         } else {
@@ -276,8 +278,6 @@ const stopDragging = () => {
     overlay.setAttribute('d', '');
 };
 
-const rectTemplate = document.createElementNS(ns, 'rect');
-const circleTemplate = document.createElementNS(ns, 'circle');
 const getShape = {
     // we use rects for cps and circles for regular points
     circle(x, y) {
@@ -367,7 +367,7 @@ function remLastPoint(cmd) {
     if (cmd === 'C') rectCPs[rectCPs.length - 1].remove();
 }
 // TODO: should rem a single point incl cps, but rn duz so for every cp
-function remPoint() {
+function remPoints() {
     // TODO: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly removed...its easy to do, but maybe unnecesary, so set it up and compare perf
     [...circleCPs, ...rectCPs].forEach(c => c.remove());
 }
@@ -400,14 +400,14 @@ function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
     save();
 }
 
-function save() {
-    window.localStorage.setItem('drawing', JSON.stringify(drawing));
-}
-
-// draws a layer
+// draws and styles a layer
 function draw(layerId = session.layer, layer = drawing.layers[layerId]) {
     styleLayer(layerId);
     drawLayer(layerId, layer);
+}
+
+function save() {
+    window.localStorage.setItem('drawing', JSON.stringify(drawing));
 }
 
 // outputs the entire markup
@@ -480,7 +480,7 @@ layerSelect.onchange = (e) => {
     if (e.target.type !== 'radio') return;
 
     // rem cps for current layer
-    remPoint();
+    remPoints();
 
     session.layer = +e.target.value;
     session.mode = drawing.layers[session.layer].mode || session.mode;
@@ -494,7 +494,7 @@ layerSelect.onchange = (e) => {
 
 addLayerBtn.onclick = () => {
     // rem cps as we're implicitly switching layer
-    remPoint();
+    remPoints();
 
     // create path and selector
     group.append(pathTemplate.cloneNode(false));
@@ -514,23 +514,27 @@ delLayerBtn.onclick = () => {
     if (!paths.length) return;
 
     // rem cps
-    remPoint();
+    remPoints();
 
     // NOTE: we dont want to remove a path thats only gonna be added again, so we just reset the first path, layer and config
     if (paths.length === 1) {
-        paths[0].setAttribute('d', '');
+        // delete points data
         drawing.layers[0].points.length = 0;
+        // clear path markup
+        paths[0].setAttribute('d', '');
+        // reset the style data
         drawing.layers[0].style = Object.assign({}, defaultConfig.style);
-        adjustConfigItems();
+        // apply style to path
         styleLayer();
-        generateMarkUp();
+        // apply style to interface
+        adjustConfigItems();
         return;
     }
 
-    // remove path, selector and data of layer
+    // remove layer data, path and selector
+    drawing.layers.splice(session.layer, 1);
     paths[session.layer].remove();
     layerSelect.children[session.layer].remove();
-    drawing.layers.splice(session.layer, 1);
 
     // commit the change
     save();
@@ -560,7 +564,7 @@ delLayerBtn.onclick = () => {
 
 clearAllBtn.onclick = () => {
     // rem CPs
-    remPoint();
+    remPoints();
 
     // remove all paths incl selectors excl 1st
     [...paths].forEach((path, i) => {
@@ -689,8 +693,7 @@ svg.addEventListener('mousedown', (e) => {
 
         layer.mode = session.mode;
         // TODO: arc func
-        // NOTE: args in order: x-radius in px, y-radius in px, x-rotation in deg, large-arc bool, sweep bool, x- and y-coords
-        // TODO: how to control those?
+        // TODO: how to control props?
         // TODO: rethink defaults
         layer.points.push({
             cmd: 'M',
@@ -738,11 +741,12 @@ svg.addEventListener('mouseleave', () => {
 // Commands (only visible when in path mode)
 [...cmdSelect].forEach((cmd) => {
     cmd.onchange = () => {
-        session.cmd = cmds[cmds.indexOf(cmd.value)] || cmds[1];
+        session.cmd = cmds[cmds.indexOf(cmd.value)] || cmds[0];
     };
 });
 
 // TODO: proxy or sth? would need to be on drawing and defined in onload.
+// we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync
 function setDimsOfSVG() {
     svg.style.width = `${drawing.dims.width}px`;
     svg.style.height = `${drawing.dims.height}px`;

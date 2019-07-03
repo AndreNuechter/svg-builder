@@ -7,6 +7,10 @@ body {
     flex-direction: column;
 }
 
+input:checked {
+    box-shadow: 0 0 0 2px orange;
+}
+
 #main {
     display: flex;
 }

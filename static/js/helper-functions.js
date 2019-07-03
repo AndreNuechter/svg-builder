@@ -1,7 +1,7 @@
 function hexToRGB(hex) {
     return hex
         .slice(1) // cut off hash-symbol
-        .match(/\w{2}/g) // split into pairs of word-chars
+        .match(/\w{2}/g) // split into pairs of word-chars (= hex nums)
         .map(e => parseInt(e, 16)) // parse em to base 10
         .join(',');
 }

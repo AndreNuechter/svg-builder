@@ -22,18 +22,23 @@ html
       #canvas
         fieldset#dims
           legend Dimensions
-          label Width:
+          label 
+            span Width:
             input#width(type="number" min=1 value=640)
-          label Height:
+          label 
+            span Height:
             input#height(type="number" min=1 value=360)
 
         fieldset#modes
           legend Modes
-          label Rectangle
+          label 
+            span Rectangle
             input(type="radio" name="modes" value="rect" checked)
-          label Ellipse, circle or arc
+          label 
+            span Ellipse, circle or arc
             input(type="radio" name="modes" value="arc")
-          label Path
+          label 
+            span Path
             input(type="radio" name="modes" value="path")
 
         svg#outer-container(width="640" height="360")
@@ -43,49 +48,65 @@ html
         #coords
 
         #commands
-          label Move to (M)
+          label 
+            span Move to (M)
             input(type="radio" name="command" value="M" checked)
-          label Line to (L)
+          label 
+            span Line to (L)
             input(type="radio" name="command" value="L")
-          label Quadratic curve to (Q)
+          label 
+            span Quadratic curve to (Q)
             input(type="radio" name="command" value="Q")
-          label Cubic curve to (C)
+          label 
+            span Cubic curve to (C)
             input(type="radio" name="command" value="C")
         
     #config
       fieldset#fill-and-stroke
         legend Fill &amp; Stroke
-        label Stroke-color:
+        label 
+          span Stroke-color:
           input#stroke-color(type="color" name="strokeColor")
-        label Stroke-opacity:
+        label 
+          span Stroke-opacity:
           input#stroke-opacity(type="number" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
-        label Stroke-width:
+        label 
+          span Stroke-width:
           input#stroke-width(type="number" min=0.1 max=10 step=0.1 value=2 name="strokeWidth")
-        label Fill-color:
+        label 
+          span Fill-color:
           input#fill-color(type="color" name="fillColor")
-        label Fill-opacity:
+        label 
+          span Fill-opacity:
           input#fill-opacity(type="number" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
-        label Fill-rule:
+        label 
+          span Fill-rule:
           select#fill-rule(name="fillRule")
             option evenodd
             option nonzero
-        label Fill shape
+        label 
+          span Fill shape
           input#fill-toggle(type="checkbox" name="fill")
-        label Close shape
+        label 
+          span Close shape
           input#close-toggle(type="checkbox" name="close" checked)
 
       fieldset#transformations
         legend Transformations
-        label Scale by factor of
+        label 
+          span Scale by factor of
           input#scaling-factor(type="number" min=0.2 max=4.0 step=0.1 value=1)
-        label Rotate by (deg)
+        label 
+          span Rotate by (deg)
           input#deg(type="number" min=-360 max=360 step=0.1 value=0)
-        label Reflect shape
+        label 
+          span Reflect shape
           select#reflect
             option 
             option Vertically
             option Horizontally
-        label Trim whitespace
+        label 
+          span Trim whitespace
           input#trim-check(type="checkbox")
         button#transform Transform
         
