@@ -27,11 +27,10 @@ fs.writeFile(
 );
 
 app.get('/', (req, res) => {
-    /*res.send(
+    /* res.send(
       pug.renderFile(path.join(__dirname, '/pug/index.pug'), { cache: true })
     ); */
 });
 
 app.listen(port,
-    () => console.log('Build that SVG!')
-);
+    () => console.log('Build that SVG!'));

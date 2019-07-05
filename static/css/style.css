@@ -23,6 +23,7 @@ input:checked {
       display: flex;
       justify-content: space-between; }
   #layer-management #layer-select,
+  #layer-management #add,
   #layer-management #layer-controls {
     display: inline-flex;
     flex-direction: column; }
@@ -74,8 +75,13 @@ svg#outer-container {
   text-align: center;
   pointer-events: none; }
 
-#commands label {
-  padding: 0 12px 0 0; }
+#commands {
+  display: flex;
+  flex-wrap: wrap;
+  width: 42em; }
+  #commands label {
+    width: 12em;
+    padding: 0 12px 0 0; }
 
 #config {
   margin-top: 8px; }

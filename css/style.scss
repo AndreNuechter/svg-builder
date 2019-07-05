@@ -31,6 +31,7 @@ input:checked {
     }
 
     #layer-select,
+    #add,
     #layer-controls {
         display: inline-flex;
         flex-direction: column;
@@ -92,8 +93,15 @@ svg#outer-container {
     pointer-events: none;
 }
 
-#commands label {
-    padding: 0 12px 0 0;
+#commands {
+    display: flex;
+    flex-wrap: wrap;
+    width: 42em;
+
+    label {
+        width: 12em;
+        padding: 0 12px 0 0;
+    }
 }
 
 #config {

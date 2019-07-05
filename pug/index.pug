@@ -1,6 +1,7 @@
 doctype html
 html
   head
+    meta(charset="UTF-8")
     title SVG Builder
     link(rel="stylesheet" href="/css/style.css")
     script(src="/js/index.js" type="module" defer)
@@ -11,12 +12,15 @@ html
     #main
       fieldset#layer-management
         legend Layers
-        #layer-select
+
+        #no-layer-msg No layer, yet...
+        
+        #layer-select          
         
         #layer-controls
           button#add-layer Add layer
           button#del-layer Delete active layer
-          button#clear-all Clear all layers
+          button#clear-all Delete all layers
           button#undo Delete last point
 
       #canvas
@@ -32,14 +36,14 @@ html
         fieldset#modes
           legend Modes
           label 
-            span Rectangle
-            input(type="radio" name="modes" value="rect" checked)
-          label 
-            span Ellipse, circle or arc
-            input(type="radio" name="modes" value="arc")
-          label 
             span Path
-            input(type="radio" name="modes" value="path")
+            input(type="radio" name="modes" value="path" checked)
+          label 
+            span Rectangle
+            input(type="radio" name="modes" value="rect")
+          label 
+            span Circle or ellipse
+            input(type="radio" name="modes" value="ellipse")
 
         svg#outer-container(width="640" height="360")
           g#inner-container
@@ -55,11 +59,21 @@ html
             span Line to (L)
             input(type="radio" name="command" value="L")
           label 
+            span Horizontal line to (H)
+            input(type="radio" name="command" value="H")
+          label 
+            span Vertical line to (V)
+            input(type="radio" name="command" value="V")
+          label 
             span Quadratic curve to (Q)
             input(type="radio" name="command" value="Q")
           label 
             span Cubic curve to (C)
             input(type="radio" name="command" value="C")
+          label 
+            span Arc (A)
+            input(type="radio" name="command" value="A")
+          
         
     #config
       fieldset#fill-and-stroke
