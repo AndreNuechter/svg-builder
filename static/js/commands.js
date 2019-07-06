@@ -1,3 +1,4 @@
+// TODO: for quad and cube, return objects that can be inserted directly
 // TODO: can we abstract the creation of cp?
 
 // returns a single cp for the quad cmd
