@@ -1,3 +1,8 @@
+/**
+ * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB values.
+ * @param { string } hex The hexadecimal representation to be converted.
+ * @returns { string }
+ */
 function hexToRGB(hex) {
     return hex
         .slice(1) // cut off hash-symbol
@@ -6,11 +11,25 @@ function hexToRGB(hex) {
         .join(',');
 }
 
+/**
+ * Gives the mouse's x- and y-coordinates within the target.
+ * @param { HTMLElement } target The element over which the mouse is moving.
+ * @param { Event } event The event triggering this (most likely mouseover)
+ * @returns { Array }
+ */
 function getMousePos(target, event) {
     const rect = target.getBoundingClientRect();
-    return [+(event.clientX - rect.left).toFixed(), +(event.clientY - rect.top).toFixed()];
+    return [
+        +(event.clientX - rect.left).toFixed(),
+        +(event.clientY - rect.top).toFixed()
+    ];
 }
 
+/**
+ * Turns a single point object into a string that may be inserted into a path's d-attribute.
+ * @param { Object } point The point we are trying to draw.
+ * @returns { string }
+ */
 function pointToMarkup(point) {
     const args = [];
 
@@ -57,6 +76,11 @@ function pointToMarkup(point) {
     return [point.cmd, ...args].join(' ');
 }
 
+/**
+ * Gives an array of the lowest and highest x- and y-components.
+ * @param { Object } points A set of points belonging to a single layer.
+ * @returns { Array }
+ */
 function getMinNMax(points) {
     const xs = points.map(p => p.x);
     const ys = points.map(p => p.y);

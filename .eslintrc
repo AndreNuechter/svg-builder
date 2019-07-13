@@ -12,6 +12,7 @@
             "functions": false
         }],
         "eol-last": ["error", "never"],
-        "no-param-reassign": ["error", { "props": false }]
+        "no-param-reassign": ["error", { "props": false }],
+        "import/extensions": false
     }
 }

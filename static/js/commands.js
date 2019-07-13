@@ -1,7 +1,12 @@
 // TODO: for quad and cube, return objects that can be inserted directly
-// TODO: can we abstract the creation of cp?
+// TODO: can we abstract the creation of a cp?
 
-// returns a single cp for the quad cmd
+/**
+ * Returns somewhat ok default coords for a cp for the quad cmd.
+ * @param { Array } end An array containing x- and y-coordinates of the cmds target.
+ * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
+ * @returns { Object }
+ */
 function quad(end, prior) {
     const [x, y] = end;
     const distX = Math.abs(prior.x - x);
@@ -26,7 +31,12 @@ function quad(end, prior) {
     };
 }
 
-// returns a set of two cps for the cube cmd
+/**
+ * Returns a set of somewhat ok default coords for the cps for the cube cmd.
+ * @param { Array } end An array containing x- and y-coordinates of the cmds target.
+ * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
+ * @returns { Object }
+ */
 function cube(end, prior) {
     const [x, y] = end;
     const distX = Math.abs(prior.x - x);
