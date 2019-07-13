@@ -260,7 +260,7 @@ function configElement(element, keyValPairs) {
 
 /**
  * Clones the provided element and returns a partially applied version of configElement
- * @param { HTMLElement } template
+ * @param { HTMLElement } template The element to be cloned.
  * @returns { Function }
  */
 function configClone(template) {
@@ -269,7 +269,7 @@ function configClone(template) {
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given config.
- * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. If none is provided, the one of the active layer is used.
+ * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. Defaults to the one of the active layer.
  */
 function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
     strokeColorSetter.value = conf.strokeColor;
