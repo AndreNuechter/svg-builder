@@ -2,9 +2,11 @@
 
 An app to help with the creation of complex svg markup that can be used directly in HTML or with a little fiddling in a [Path2d object](https://developer.mozilla.org/en-US/docs/Web/API/Path2D/Path2D).
 
+__NOTE:__ The markupt is output when clicking on the text, "output goes here". Double-clicking the markup copies it to the clipboard.
+
 ## Getting started
 
-To try it out clone this repo and initialize it via NPM. Then execute eg `node app` and navigate to localhost:3000, preferably using Firefox (it works in at least Chrome too, but looks worse, since the CSS is differently interpreted and I haven't quite figured out in what way).
+To try it out clone this repo and initialize it via NPM. Then execute eg `node app` and navigate to localhost:3000.
 
 ## Layers
 

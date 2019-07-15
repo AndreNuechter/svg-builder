@@ -41,7 +41,7 @@ const group = svg.getElementById('inner-container');
 const layers = group.children;
 const overlay = svg.getElementById('overlay');
 const circleCPs = svg.getElementsByTagName('circle');
-const rectCPs = svg.getElementsByClassName('rectCp'); // TODO: rename
+const rectCPs = svg.getElementsByClassName('rectCp'); // TODO: rename...combine w above and call that controlPoints
 // Coords display (visible when hovering svg) and the cb to manage that
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
@@ -96,7 +96,7 @@ const controlPointTypes = [
     ],
     // lower left corner of rect
     [
-        { key: 'width', callback: (x, y, layer, pointId) => Math.abs(x - layer.points[pointId].x) },
+        { key: 'width', callback: (x, y, layer, pointId) => Math.abs(x - layer.points[pointId].x) }, // TODO: shorten to pass point along
         { key: 'height', callback: (x, y, layer, pointId) => Math.abs(y - layer.points[pointId].y) }
     ],
     // controlling width of ellipse
@@ -329,10 +329,12 @@ addLayerBtn.onclick = () => {
         }) - 1;
     save();
 
-    // create layer and selector in HTML
+    // config the appropriate shape
     const shape = configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layer
     });
+
+    // append the shape to the drawing
     group.append(shape);
 };
 
@@ -528,7 +530,8 @@ commands.onchange = ({ target }) => {
     session.cmd = cmds[cmds.indexOf(target.value)] || cmds[0];
 };
 
-// NOTE: we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync... best way may be to never actually do the below, make svg comfortably large and only use dims on markup?!
+// NOTE: we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync...
+// best way may be to never actually do the below, make svg comfortably large and only use dims on markup?!
 function setDimsOfSVG() {
     svg.style.width = `${drawing.dims.width}px`;
     svg.style.height = `${drawing.dims.height}px`;
@@ -692,8 +695,6 @@ const stopDragging = () => {
  * @param { number } pointId The ordinal number of the point within its layer (needed for highlighting).
  */
 function mkPoint(point, pointId) {
-    // NOTE: types are [0: point, 1: cp1, 2: cp2], since quadratic or cubic curves have 1 or 2 cps (this func is called trice for a cubic curve, excluding the first moveTo)...enumerate types: cp1, cp2, xy, x, y, ry, rx...?
-    // for rects and ellipses this may need to change just one prop like width, height or x-rotation
     // regular point (eg moveTo)
     if (session.mode === 'path') {
         // TODO: duz this make sense w H and V? it looks weird
@@ -726,9 +727,6 @@ function mkPoint(point, pointId) {
     }
 }
 
-// FIXME: the idea behind this seems half baked; c type param too...it's rather awkward...how to better phrase that? interactions w layer?
-// sketch: this should take x and y coords and draw a specified shape there.
-// Further it should register eventhandlers on it that will affect the current layers attrs in an appropriate way on drag
 /**
  * Constructs a single draggable point to control some prop(s) of the active layer
  * @param { number } x The x-ccordinate of the cp.
@@ -737,28 +735,24 @@ function mkPoint(point, pointId) {
  * @param { number } [type=0] the "type" of cp we want to create.
  */
 function mkControlPoint(x, y, pointId, type = 0) {
-    // NOTE: not necessary since we are restricting to one layer, BUT allows cps to work even when switching layers
-    const layerId = session.layer;
+    const layer = drawing.layers[session.layer];
 
-    // TODO: improve cp classNames
+    // TODO: improve cp classNames...store in controlPointTypes?
     const cp = configClone(circleTemplate)({
         cx: x,
         cy: y,
         r: 3,
-        class: `node ${type ? 'rect' : 'circle'}Cp`
+        class: `node${type ? ' rectCp' : ''}`
     });
 
     // start dragging on mousedown
-    // NOTE: actual mutations are triggered by svg.onmousemove
     cp.onmousedown = (e) => {
         // prevent triggering svg.onmousedown and adding another point to the current path
         e.stopPropagation();
         // so the hilight is shown prior to movement
-        hilightSegment(drawing.layers[layerId], pointId, type > 0);
+        hilightSegment(layer, pointId, type > 0);
         // update dragged point on mousemove
-        svg.onmousemove = dragging(
-            drawing.layers[layerId], pointId, type, cp
-        );
+        svg.onmousemove = dragging(layer, pointId, type, cp);
         svg.onmouseleave = stopDragging;
         svg.onmouseup = stopDragging;
     };
@@ -820,12 +814,14 @@ function hilightSegment({ points } = drawing.layers[session.layer], pointId, typ
  */
 function dragging(layer, pointId, type, cp) {
     return (e) => {
+        // TODO: it feels wrong to keep repeating the checks everytime
         // TODO: store pos in object and pass that to callback to facilitate destructuring?
         const [x, y] = getMousePos(svg, e);
         const args = controlPointTypes[type];
+        const point = layer.points[pointId];
 
         // update the dragged points data
-        args.forEach(arg => Object.assign(layer.points[pointId], {
+        args.forEach(arg => Object.assign(point, {
             [arg.key]: arg.callback(x, y, layer, pointId)
         }));
 
@@ -838,22 +834,30 @@ function dragging(layer, pointId, type, cp) {
         // move the cp
         // NOTE: for H, V, rx or cy, y or x of the cp should keep steady
         // TODO: this is not enuff
-        if (layer.points[pointId].cmd !== 'V' && type !== 6) {
+        if (point.cmd !== 'V' && type !== 6) {
             // FIXME: this highlighting is quite weird
             cp.setAttribute('cx', x);
             // TODO: move cp for counterpart
         }
-        if (layer.points[pointId].cmd !== 'H' && type !== 5) {
+        if (point.cmd !== 'H' && type !== 5) {
             cp.setAttribute('cy', y);
             // TODO: move cp for counterpart
         }
 
-        // if we move the anchor of a rect, the cp for width and height should move too
-        // TODO: anchor of ellipse
+        // if we move the anchor of a rect or ellipse,its other cp(s) should be moved too
         if (session.mode === 'rect' && args[0].key === 'x') {
             configElement(rectCPs[0], {
-                cx: (x + layer.points[pointId].width),
-                cy: (y + layer.points[pointId].height)
+                cx: x + point.width,
+                cy: y + point.height
+            });
+        } else if (session.mode === 'ellipse' && args[0].key === 'cx') {
+            configElement(rectCPs[1], {
+                cx: point.cx - point.rx,
+                cy: point.cy
+            });
+            configElement(rectCPs[2], {
+                cx: point.cx,
+                cy: point.cy - point.ry
             });
         }
     };
