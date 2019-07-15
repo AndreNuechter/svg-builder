@@ -24,26 +24,27 @@ html
           button#undo Delete last point
 
       #canvas
-        fieldset#dims
-          legend Dimensions
-          label 
-            span Width:
-            input#width(type="number" min=1 value=640)
-          label 
-            span Height:
-            input#height(type="number" min=1 value=360)
+        #dims-and-modes
+          fieldset#dims
+            legend Dimensions
+            label 
+              span Width:
+              input#width(type="number" min=1 value=640)
+            label 
+              span Height:
+              input#height(type="number" min=1 value=360)
 
-        fieldset#modes
-          legend Modes
-          label 
-            span Path
-            input(type="radio" name="modes" value="path" checked)
-          label 
-            span Rectangle
-            input(type="radio" name="modes" value="rect")
-          label 
-            span Circle or ellipse
-            input(type="radio" name="modes" value="ellipse")
+          fieldset#modes
+            legend Modes
+            label 
+              span Path
+              input(type="radio" name="modes" value="path" checked)
+            label 
+              span Rectangle
+              input(type="radio" name="modes" value="rect")
+            label 
+              span Circle or ellipse
+              input(type="radio" name="modes" value="ellipse")
 
         svg#outer-container(width="640" height="360")
           g#inner-container
@@ -83,16 +84,16 @@ html
           input#stroke-color(type="color" name="strokeColor")
         label 
           span Stroke-opacity:
-          input#stroke-opacity(type="number" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
+          input#stroke-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
         label 
           span Stroke-width:
-          input#stroke-width(type="number" min=0.1 max=10 step=0.1 value=2 name="strokeWidth")
+          input#stroke-width(type="range" min=0.1 max=10 step=0.1 value=2 name="strokeWidth")
         label 
           span Fill-color:
           input#fill-color(type="color" name="fillColor")
         label 
           span Fill-opacity:
-          input#fill-opacity(type="number" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
+          input#fill-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
         label 
           span Fill-rule:
           select#fill-rule(name="fillRule")

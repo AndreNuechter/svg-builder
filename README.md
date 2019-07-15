@@ -49,7 +49,7 @@ I'm meaning to use actual svg transforms eventually.
 
 ## Dimensions
 
-Adjust the dimensions of the svg via the "Dimensions" titled fieldset.
+Adjust the dimensions of the drawing via the "Dimensions" titled fieldset.
 
 ## Coming soon...
 

@@ -38,6 +38,10 @@ input:checked {
     }
 }
 
+#dims-and-modes {
+    display: flex;
+}
+
 #dims,
 #modes {
     min-height: 2.7em;
@@ -106,6 +110,7 @@ svg#outer-container {
 
 #config {
     margin-top: 8px;
+    display: flex;
 }
 
 #fill-and-stroke,

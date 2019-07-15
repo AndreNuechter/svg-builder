@@ -5,7 +5,9 @@ import {
     cube
 } from './commands.js';
 import {
-    hexToRGB,
+    configElement,
+    configClone,
+    parseLayerStyle,
     getMousePos,
     pointToMarkup
 } from './helper-functions.js';
@@ -19,6 +21,7 @@ import {
 } from './transformations.js';
 
 // Layers fieldset
+const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer');
 const addLayerBtn = document.getElementById('add-layer');
@@ -38,7 +41,7 @@ const group = svg.getElementById('inner-container');
 const layers = group.children;
 const overlay = svg.getElementById('overlay');
 const circleCPs = svg.getElementsByTagName('circle');
-const rectCPs = svg.getElementsByClassName('rectCp');
+const rectCPs = svg.getElementsByClassName('rectCp'); // TODO: rename
 // Coords display (visible when hovering svg) and the cb to manage that
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
@@ -69,6 +72,43 @@ const transformBtn = document.getElementById('transform');
 // Target for svg markup
 const output = document.getElementById('output');
 
+// determines the props of the affected point the cp is gonna change when moved via dragging
+const controlPointTypes = [
+    // regular point/upper right corner of rect
+    [
+        { key: 'x', callback: x => x },
+        { key: 'y', callback: (x, y) => y }
+    ],
+    // cp1
+    [
+        { key: 'x1', callback: x => x },
+        { key: 'y1', callback: (x, y) => y }
+    ],
+    // cp2
+    [
+        { key: 'x2', callback: x => x },
+        { key: 'y2', callback: (x, y) => y }
+    ],
+    // center of an ellipse
+    [
+        { key: 'cx', callback: x => x },
+        { key: 'cy', callback: (x, y) => y }
+    ],
+    // lower left corner of rect
+    [
+        { key: 'width', callback: (x, y, layer, pointId) => Math.abs(x - layer.points[pointId].x) },
+        { key: 'height', callback: (x, y, layer, pointId) => Math.abs(y - layer.points[pointId].y) }
+    ],
+    // controlling width of ellipse
+    [
+        { key: 'rx', callback: (x, y, layer, pointId) => Math.abs(x - layer.points[pointId].cx) }
+    ],
+    // controlling height of ellipse
+    [
+        { key: 'ry', callback: (x, y, layer, pointId) => Math.abs(y - layer.points[pointId].cy) }
+    ]
+];
+
 const defaultConfig = {
     dims: {
         width: 640,
@@ -86,19 +126,7 @@ const defaultConfig = {
     }
 };
 
-const drawing = { dims: {} };
-
-const dimSynchronizer = new Proxy(drawing.dims, {
-    set(obj, key, val) {
-        if (['width', 'height'].includes(key)) {
-            obj[key] = val;
-            svg.style[key] = `${val}px`;
-            return true;
-        }
-
-        return false;
-    }
-});
+const drawing = {};
 
 // partially initialize session and define a trap on set
 const session = new Proxy({
@@ -147,6 +175,7 @@ const session = new Proxy({
     }
 });
 
+// create and organize used elements
 const selectorTemplate = (() => configElement(document.createElement('input'), {
     type: 'radio',
     name: 'layer'
@@ -161,14 +190,8 @@ const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseT
 
 // watch for addition and removal of layers and do some synchronisation
 new MutationObserver((mutationsList) => {
-    // NOTE: observing duznt block the mutations
-
     // hide/show a message when no layers exist
-    // TODO: move to top
-    document
-        .getElementById('no-layer-msg')
-        .style
-        .display = group.children.length ? 'none' : 'initial';
+    vacancyMsgStyle.display = group.children.length ? 'none' : 'initial';
 
     mutationsList.forEach((mutation) => {
         // deal w addition of layer (add a corresponding selector)
@@ -236,339 +259,13 @@ new MutationObserver((mutationsList) => {
     });
 }).observe(group, { childList: true });
 
-
-/**
- * Applies attributes and properties to an HTMLElement.
- * @param { HTMLElement } element The element to be configured.
- * @param { Object } keyValPairs The attributes and properties to be applied to the element.
- * @returns { HTMLElement }
- */
-function configElement(element, keyValPairs) {
-    // NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not node attrs
-    const exceptions = ['checked', 'textContent', 'data'];
-
-    Object.keys(keyValPairs).forEach((key) => {
-        if (exceptions.includes(key)) {
-            element[key] = keyValPairs[key];
-        } else {
-            element.setAttribute(key, keyValPairs[key]);
-        }
-    });
-
-    return element;
-}
-
-/**
- * Clones the provided element and returns a partially applied version of configElement
- * @param { HTMLElement } template The element to be cloned.
- * @returns { Function }
- */
-function configClone(template) {
-    return attrs => configElement(template.cloneNode(false), attrs);
-}
-
-/**
- * Adjusts the Fill & Stroke fieldset to a given config.
- * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. Defaults to the one of the active layer.
- */
-function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
-    strokeColorSetter.value = conf.strokeColor;
-    strokeOpacitySetter.value = conf.strokeOpacity;
-    fillColorSetter.value = conf.fillColor;
-    fillOpacitySetter.value = conf.fillOpacity;
-    strokeWidthSetter.value = conf.strokeWidth;
-    [...fillRuleSetter.children].forEach((child) => {
-        child.selected = (child.value === conf.fillRule);
-    });
-    fillToggle.checked = conf.fill;
-    closeToggle.checked = conf.close;
-}
-
-/**
- * Changes the style-related attributess of a layer (a svg path, rect oir ellipse).
- * @param { number } [layerId=session.layer] The ordinal number of the affected Layer. Defaults to the active layer.
- * @param { Object } [conf=drawing.layers[layerId].style] The container of style-related attributes of the affected layer.
- */
-function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].style) {
-    const attrs = parseLayerStyle(conf);
-
-    configElement(layers[layerId], attrs);
-    save();
-}
-
-/**
- * Prepares a style config to be usable in configElement, since the fill and stroke attributes are computed.
- * @param { Object } [conf=drawing.layers[session.layer].style] The config that should be parsed. Defaults to the active layer's one.
- * @returns { Object }
- */
-function parseLayerStyle(conf = drawing.layers[session.layer].style) {
-    return {
-        'fill-rule': conf.fillRule,
-        fill: conf.fill
-            ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
-            : 'transparent',
-        stroke: `rgba(${[hexToRGB(conf.strokeColor), conf.strokeOpacity].join(',')})`,
-        'stroke-width': conf.strokeWidth
-    };
-}
-
-/**
- * Syncs geometry attributes of a layer w the data
- * @param { number } [layerId=session.layer] The ordinal number of the affected layer. Defaults to the current.
- * @param { Object } [layer=drawing.layers[layerId]] The affected layer. Defaults to the current.
- */
-// TODO: is the first param superfluous?
-function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
-    const attrs = {};
-
-    if (layer.mode === 'path') {
-        Object.assign(attrs, {
-            d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
-        });
-    } else if (layer.mode === 'ellipse') {
-        Object.assign(attrs, {
-            cx: layer.points[0].cx,
-            cy: layer.points[0].cy,
-            rx: layer.points[0].rx,
-            ry: layer.points[0].ry
-        });
-    } else if (layer.mode === 'rect') {
-        Object.assign(attrs, {
-            x: layer.points[0].x,
-            y: layer.points[0].y,
-            width: layer.points[0].width,
-            height: layer.points[0].height
-        });
-    }
-
-    configElement(layers[layerId], attrs);
-    save();
-}
-
-function remLastControlPoint(cmd) {
-    circleCPs[circleCPs.length - 1].remove();
-    if (cmd === 'Q' || cmd === 'C') rectCPs[rectCPs.length - 1].remove();
-    if (cmd === 'C') rectCPs[rectCPs.length - 1].remove();
-}
-// TODO: should rem a single point incl cps, but rn duz so for every cp
-function remControlPoints() {
-    // TODO: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly removed...its easy to do, but maybe unnecesary, so set it up and compare perf
-    [...circleCPs, ...rectCPs].forEach(c => c.remove());
-}
-
-const stopDragging = () => {
-    svg.onmousemove = '';
-    svg.onmouseleave = '';
-    svg.onmouseup = '';
-    overlay.setAttribute('d', '');
-};
-
-/**
- * The interface for control point (cp) creation (callback for on layerswitch and load; also called for a single point on mousedown)
- * @param { Object } point The point that should be controlled.
- * @param { number } pointId The ordinal number of the point within its layer (needed for highlighting).
- */
-function mkPoint(point, pointId) {
-    // NOTE: types are [0: point, 1: cp1, 2: cp2], since quadratic or cubic curves have 1 or 2 cps (this func is called trice for a cubic curve, excluding the first moveTo)...enumerate types: cp1, cp2, xy, x, y, ry, rx...?
-    // for rects and ellipses this may need to change just one prop like width, height or x-rotation
-    // regular point (eg moveTo)
-    if (session.mode === 'path') {
-        // TODO: duz this make sense w H and V? it looks weird
-        mkControlPoint(point.x, point.y, pointId);
-
-        // control point for Q and first one for C
-        if (point.cmd === 'Q' || point.cmd === 'C') {
-            mkControlPoint(point.x1, point.y1, pointId, 1);
-        }
-
-        // 2nd cp for C
-        if (point.cmd === 'C') {
-            mkControlPoint(point.x2, point.y2, pointId, 2);
-        }
-
-        // TODO: A cmd
-    } else if (session.mode === 'rect') {
-        // one to change x and y
-        mkControlPoint(point.x, point.y, pointId);
-        // one to change width and height
-        mkControlPoint(point.x + point.width, point.y + point.height, pointId, 4);
-    } else if (session.mode === 'ellipse') {
-        // one to change cx and cy
-        mkControlPoint(point.cx, point.cy, pointId, 3);
-        // one to change rx
-        // one to change ry
-        // only one to control rx and ry like for rect?
-    }
-}
-
-// FIXME: the idea behind this seems half baked; c type param too...it's rather awkward...how to better phrase that? interactions w layer?
-// sketch: this should take x and y coords and draw a specified shape there.
-// Further it should register eventhandlers on it that will affect the current layers attrs in an appropriate way on drag
-/**
- * Constructs a single draggable point to control some prop(s) of the active layer
- * @param { number } x The x-ccordinate of the cp.
- * @param { number } y The y-ccordinate of the cp.
- * @param { number } pointId The ordinal number of the point within its layer.
- * @param {number} [type=0] the "type" of cp we want to create.
- */
-function mkControlPoint(x, y, pointId, type = 0) {
-    // NOTE: not necessary since we are restricting to one layer, BUT allows cps to work even when switching layers
-    const layerId = session.layer;
-
-    const cp = configClone(circleTemplate)({
-        cx: x,
-        cy: y,
-        r: 3
-    });
-
-    // TODO: improve classNames
-    cp.classList.add('node', `${type ? 'rect' : 'circle'}Cp`);
-
-    // determine the props of the affected point the cp is gonna change when moved via dragging
-    let xKey;
-    let yKey;
-    if (type === 0) { // regular point
-        [xKey, yKey] = ['x', 'y'];
-    } else if (type === 1) { // cp1
-        [xKey, yKey] = ['x1', 'y1'];
-    } else if (type === 2) { // cp2
-        [xKey, yKey] = ['x2', 'y2'];
-    } else if (type === 3) { // center of an ellipse
-        [xKey, yKey] = ['cx', 'cy'];
-    } else if (type === 4) { // cp2
-        [xKey, yKey] = ['width', 'height'];
-    }
-
-    // start dragging on mousedown
-    // NOTE: actual mutations are triggered by svg.onmousemove
-    cp.onmousedown = (e) => {
-        // prevent triggering svg.onmousedown and adding another point to the current path
-        e.stopPropagation();
-        // so the hilight is shown prior to movement
-        hilightSegment(drawing.layers[layerId], pointId, type > 0);
-        // update dragged point on mousemove
-        svg.onmousemove = dragging(drawing.layers[layerId], pointId, type, cp, xKey, yKey);
-        svg.onmouseleave = stopDragging;
-        svg.onmouseup = stopDragging;
-    };
-
-    // stop dragging on mouseup
-    cp.onmouseup = stopDragging;
-
-    // add cp to the outer container to keep it out of the markup output
-    svg.append(cp);
-}
-
-// TODO: duz this make sense for modes besides path? for rects we can highlight opposing sides; for ellipses diameters...the logic needs to change quite drastically for that
-/**
- * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s).
- * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer (extracted from the layer).
- * @param { number } pointId The ordinal number of the point within its layer.
- * @param { number } type The "type" of cp being dragged (it's a wack param)
- * @returns
- */
-function hilightSegment({ points } = drawing.layers[session.layer], pointId, type) {
-    if (points.length <= 1) return;
-
-    let d;
-
-    // TODO: check if shape is closed and highlight that part as well
-    // what can we tell about the dragged point?
-    if (pointId === points.length - 1 || type) {
-        // it's the last point or not a regular point (eg cps for x1 and y1 only affect one segment no matter what)
-        // mov to prev point and draw path to curr
-        d = `M ${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-         ${pointToMarkup(points[pointId])}`;
-    } else if (pointId === 0) {
-        // it's the first point of the layer
-        // mov to point and draw path to next
-        d = `M ${[points[0].x, points[0].y].join(' ')}
-         ${pointToMarkup(points[1])}`;
-    } else {
-        // it's a point in between
-        // mov to prev point and draw path over curr to next
-        d = `M ${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-         ${pointToMarkup(points[pointId])}
-         ${pointToMarkup(points[pointId + 1])}`;
-    }
-
-    configElement(overlay, {
-        stroke: 'orange', // TODO: if we're not changing this, it might as well be set in the HTML
-        'stroke-width': +drawing.layers[session.layer].style.strokeWidth + 4,
-        d
-    });
-}
-
-/**
- * The eventHandler-factory for dragging a cp.
- * @param { Object } layer The layer the dragged cp affects.
- * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
- * @param { number } type The "type" of cp we're dealing with.
- * @param { SVGCircleElement } cp The cp.
- * @param { string } xKey A string representing a prop of the point, dragging will affect.
- * @param { string } yKey A string representing a prop of the point, dragging will affect.
- * @returns { Function }
- */
-function dragging(layer, pointId, type, cp, xKey, yKey) {
-    return (e) => {
-        const [x, y] = getMousePos(svg, e);
-
-        // visualize affected path segment
-        hilightSegment(layer, pointId, type);
-
-        // move the cp
-        // NOTE: for H and V cmds y or x should keep steady
-        // TODO: this is not be enuff
-        if (layer.points[pointId].cmd !== 'V') {
-            // FIXME: highlighting is quite weird for this
-            cp.setAttribute('cx', x);
-            // TODO: move cp for counterpart
-        }
-        if (layer.points[pointId].cmd !== 'H') {
-            cp.setAttribute('cy', y);
-            // TODO: move cp for counterpart
-        }
-
-        // if we move the anchor of a rect, the cp for width and height should move too
-        if (session.mode === 'rect' && xKey === 'x') {
-            configElement(rectCPs[0], {
-                cx: (x + layer.points[pointId].width),
-                cy: (y + layer.points[pointId].height)
-            });
-        }
-
-        // update the dragged points data and visual representation
-        Object.assign(layer.points[pointId], {
-            [xKey]: (xKey === 'width') ? Math.abs(x - layer.points[pointId].x) : x,
-            [yKey]: (yKey === 'height') ? Math.abs(y - layer.points[pointId].y) : y
-        });
-        drawLayer();
-    };
-}
-
-/**
- * Generates and outputs the markup of the created svg (the content of group).
- */
-function generateMarkUp() {
-    output.textContent = `
-    <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
-    ${group.innerHTML}
-    </svg>`;
-}
-
-/**
- * Saves the svg.
- */
-function save() {
-    window.localStorage.setItem('drawing', JSON.stringify(drawing));
-}
-
 window.addEventListener('DOMContentLoaded', () => {
     // if there's a saved drawing, use it, else use defaults
     const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
-    // NOTE: splitted assignment as we dont want to overwrite the proxy on dims
-    Object.assign(drawing.dims, src.dims || defaultConfig.dims);
-    drawing.layers = src.layers || [];
+    Object.assign(drawing, {
+        dims: src.dims || defaultConfig.dims,
+        layers: src.layers || []
+    });
 
     // initialize mode to that of the first layer or the default
     session.mode = (drawing.layers[0] && drawing.layers[0].mode)
@@ -580,36 +277,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // create layers incl selectors and config ea
     drawing.layers.forEach((layer, i) => {
-        const attrs = { 'data-layer-id': i };
-        let shape;
-
-        // TODO: get dryer...make use of svgTemplates... trigger addLayerBtn.click()?...that pushes to drawing.layers tho...split functionality to be able to reuse adding?
-        if (layer.mode === 'path') {
-            // collect attrs of path representing the layer
-            Object.assign(attrs, {
-                d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
-            }, parseLayerStyle(layer.style));
-            // create shape and apply attrs
-            shape = configClone(pathTemplate)(attrs);
-        } else if (layer.mode === 'ellipse') {
-            Object.assign(attrs,
-                layer.points[0] || {},
+        const shape = svgTemplates[layer.mode];
+        const attrs = Object
+            .assign({ 'data-layer-id': i },
+                layer.mode === 'path' ? {
+                    d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
+                } : layer.points[0] || {},
                 parseLayerStyle(layer.style));
-            shape = configClone(ellipseTemplate)(attrs);
-        } else if (layer.mode === 'rect') {
-            Object.assign(attrs,
-                layer.points[0] || {},
-                parseLayerStyle(layer.style));
-            shape = configClone(rectTemplate)(attrs);
-        }
 
-        // add shape to the html
-        group.append(shape);
+        // add configured shape to the html
+        group.append(configClone(shape)(attrs));
     });
 
-    // dims
+    // adjust inputs for changing the dimensions of the drawing
     widthSetter.value = drawing.dims.width;
     heightSetter.value = drawing.dims.height;
+
+    // possibly resize the canvas
     setDimsOfSVG();
 });
 
@@ -641,7 +325,7 @@ addLayerBtn.onclick = () => {
         .push({
             mode: session.mode,
             points: [],
-            style: Object.assign({}, defaultConfig.style) // FIXME: what if the user configs style before drawing?
+            style: Object.assign({}, defaultConfig.style) // FIXME: when triggered by eg mode switch, what if the user configs style before drawing?
         }) - 1;
     save();
 
@@ -844,7 +528,7 @@ commands.onchange = ({ target }) => {
     session.cmd = cmds[cmds.indexOf(target.value)] || cmds[0];
 };
 
-// TODO: proxy or sth? would need to be on drawing...we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync... never actually do that...make svg comfortably large and only use dims on markup?!
+// NOTE: we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync... best way may be to never actually do the below, make svg comfortably large and only use dims on markup?!
 function setDimsOfSVG() {
     svg.style.width = `${drawing.dims.width}px`;
     svg.style.height = `${drawing.dims.height}px`;
@@ -861,7 +545,7 @@ modeSelector.onchange = ({ target }) => {
     session.mode = modes.includes(target.value) ? target.value : session.mode;
 
     // if we change the mode on an existing layer, we add a new layer
-    // if the layer has not bee edited yet, we replace the shape and the mode
+    // if the layer has not been edited yet, we replace the shape and the mode
     if (layers[session.layer]) {
         if (drawing.layers[session.layer].points.length) {
             addLayerBtn.click();
@@ -876,7 +560,7 @@ modeSelector.onchange = ({ target }) => {
 };
 
 // Fill & Stroke
-styleConfig.onchange = ({ target }) => {
+styleConfig.oninput = ({ target }) => {
     drawing
         .layers[session.layer]
         .style[target.name] = target[
@@ -922,3 +606,272 @@ output.ondblclick = () => {
     window.getSelection().addRange(range);
     document.execCommand('copy');
 };
+
+/**
+ * Adjusts the Fill & Stroke fieldset to a given config.
+ * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. Defaults to the one of the active layer.
+ */
+function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
+    strokeColorSetter.value = conf.strokeColor;
+    strokeOpacitySetter.value = conf.strokeOpacity;
+    fillColorSetter.value = conf.fillColor;
+    fillOpacitySetter.value = conf.fillOpacity;
+    strokeWidthSetter.value = conf.strokeWidth;
+    [...fillRuleSetter.children].forEach((child) => {
+        child.selected = (child.value === conf.fillRule);
+    });
+    fillToggle.checked = conf.fill;
+    closeToggle.checked = conf.close;
+}
+
+/**
+ * Changes the style-related attributess of a layer (a svg path, rect or ellipse).
+ * @param { number } [layerId=session.layer] The ordinal number of the affected Layer. Defaults to the active layer.
+ * @param { Object } [conf=drawing.layers[layerId].style] The container of style-related attributes of the affected layer.
+ */
+function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].style) {
+    const attrs = parseLayerStyle(conf);
+
+    configElement(layers[layerId], attrs);
+    save();
+}
+
+/**
+ * Syncs geometry attributes of a layers representation w the data
+ * @param { number } [layerId=session.layer] The ordinal number of the affected layer. Defaults to the current.
+ * @param { Object } [layer=drawing.layers[layerId]] The affected layer. Defaults to the current.
+ */
+function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
+    const attrs = {};
+
+    if (layer.mode === 'path') {
+        Object.assign(attrs, {
+            d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
+        });
+    } else if (layer.mode === 'ellipse') {
+        Object.assign(attrs, {
+            cx: layer.points[0].cx,
+            cy: layer.points[0].cy,
+            rx: layer.points[0].rx,
+            ry: layer.points[0].ry
+        });
+    } else if (layer.mode === 'rect') {
+        Object.assign(attrs, {
+            x: layer.points[0].x,
+            y: layer.points[0].y,
+            width: layer.points[0].width,
+            height: layer.points[0].height
+        });
+    }
+
+    configElement(layers[layerId], attrs);
+    save();
+}
+
+function remLastControlPoint(cmd) {
+    circleCPs[circleCPs.length - 1].remove();
+    if (cmd === 'Q' || cmd === 'C') rectCPs[rectCPs.length - 1].remove();
+    if (cmd === 'C') rectCPs[rectCPs.length - 1].remove();
+}
+// TODO: should rem a single point incl cps, but rn duz so for every cp
+function remControlPoints() {
+    // TODO: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly removed...its easy to do, but maybe unnecesary, so set it up and compare perf
+    [...circleCPs, ...rectCPs].forEach(c => c.remove());
+}
+
+const stopDragging = () => {
+    svg.onmousemove = '';
+    svg.onmouseleave = '';
+    svg.onmouseup = '';
+    overlay.setAttribute('d', '');
+};
+
+/**
+ * The interface for control point (cp) creation (callback for on layerswitch and load; also called for a single point on mousedown)
+ * @param { Object } point The point that should be controlled.
+ * @param { number } pointId The ordinal number of the point within its layer (needed for highlighting).
+ */
+function mkPoint(point, pointId) {
+    // NOTE: types are [0: point, 1: cp1, 2: cp2], since quadratic or cubic curves have 1 or 2 cps (this func is called trice for a cubic curve, excluding the first moveTo)...enumerate types: cp1, cp2, xy, x, y, ry, rx...?
+    // for rects and ellipses this may need to change just one prop like width, height or x-rotation
+    // regular point (eg moveTo)
+    if (session.mode === 'path') {
+        // TODO: duz this make sense w H and V? it looks weird
+        mkControlPoint(point.x, point.y, pointId);
+
+        // control point for Q and first one for C
+        if (point.cmd === 'Q' || point.cmd === 'C') {
+            mkControlPoint(point.x1, point.y1, pointId, 1);
+        }
+
+        // 2nd cp for C
+        if (point.cmd === 'C') {
+            mkControlPoint(point.x2, point.y2, pointId, 2);
+        }
+
+        // TODO: A cmd
+    } else if (session.mode === 'rect') {
+        // one to change x and y
+        mkControlPoint(point.x, point.y, pointId);
+        // one to change width and height
+        mkControlPoint(point.x + point.width, point.y + point.height, pointId, 4);
+    } else if (session.mode === 'ellipse') {
+        // one to change cx and cy
+        mkControlPoint(point.cx, point.cy, pointId, 3);
+        // one to change rx
+        mkControlPoint(point.cx - point.rx, point.cy, pointId, 5);
+        // one to change ry
+        mkControlPoint(point.cx, point.cy - point.ry, pointId, 6);
+        // only one to control rx and ry like for rect?
+    }
+}
+
+// FIXME: the idea behind this seems half baked; c type param too...it's rather awkward...how to better phrase that? interactions w layer?
+// sketch: this should take x and y coords and draw a specified shape there.
+// Further it should register eventhandlers on it that will affect the current layers attrs in an appropriate way on drag
+/**
+ * Constructs a single draggable point to control some prop(s) of the active layer
+ * @param { number } x The x-ccordinate of the cp.
+ * @param { number } y The y-ccordinate of the cp.
+ * @param { number } pointId The ordinal number of the point within its layer.
+ * @param { number } [type=0] the "type" of cp we want to create.
+ */
+function mkControlPoint(x, y, pointId, type = 0) {
+    // NOTE: not necessary since we are restricting to one layer, BUT allows cps to work even when switching layers
+    const layerId = session.layer;
+
+    // TODO: improve cp classNames
+    const cp = configClone(circleTemplate)({
+        cx: x,
+        cy: y,
+        r: 3,
+        class: `node ${type ? 'rect' : 'circle'}Cp`
+    });
+
+    // start dragging on mousedown
+    // NOTE: actual mutations are triggered by svg.onmousemove
+    cp.onmousedown = (e) => {
+        // prevent triggering svg.onmousedown and adding another point to the current path
+        e.stopPropagation();
+        // so the hilight is shown prior to movement
+        hilightSegment(drawing.layers[layerId], pointId, type > 0);
+        // update dragged point on mousemove
+        svg.onmousemove = dragging(
+            drawing.layers[layerId], pointId, type, cp
+        );
+        svg.onmouseleave = stopDragging;
+        svg.onmouseup = stopDragging;
+    };
+
+    // stop dragging on mouseup
+    cp.onmouseup = stopDragging;
+
+    // add cp to the outer container to keep it out of the markup output
+    svg.append(cp);
+}
+
+// TODO: duz this make sense for modes besides path? for rects we can highlight opposing sides; for ellipses diameters...the logic needs to change quite drastically for that
+/**
+ * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s).
+ * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer (extracted from the layer).
+ * @param { number } pointId The ordinal number of the point within its layer.
+ * @param { number } type The "type" of cp being dragged (it's a wack param)
+ */
+function hilightSegment({ points } = drawing.layers[session.layer], pointId, type) {
+    if (points.length <= 1) return;
+
+    let d;
+
+    // TODO: check if shape is closed and highlight that part as well
+    // what can we tell about the dragged point?
+    if (pointId === points.length - 1 || type) {
+        // it's the last point or not a regular point (eg cps for x1 and y1 only affect one segment no matter what)
+        // mov to prev point and draw path to curr
+        d = `M ${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
+         ${pointToMarkup(points[pointId])}`;
+    } else if (pointId === 0) {
+        // it's the first point of the layer
+        // mov to point and draw path to next
+        d = `M ${[points[0].x, points[0].y].join(' ')}
+         ${pointToMarkup(points[1])}`;
+    } else {
+        // it's a point in between
+        // mov to prev point and draw path over curr to next
+        d = `M ${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
+         ${pointToMarkup(points[pointId])}
+         ${pointToMarkup(points[pointId + 1])}`;
+    }
+
+    configElement(overlay, {
+        stroke: 'orange', // TODO: if we're not changing this, it might as well be set in the HTML
+        'stroke-width': +drawing.layers[session.layer].style.strokeWidth + 4,
+        d
+    });
+}
+
+/**
+ * The eventHandler-factory for dragging a cp.
+ * @param { Object } layer The layer the dragged cp affects.
+ * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
+ * @param { number } type The "type" of cp we're dealing with.
+ * @param { SVGCircleElement } cp The cp that's to be dragged.
+ * @param { Object[] } args An array of key-names and callbacks constituting the effect of dragging.
+ * @returns { Function }
+ */
+function dragging(layer, pointId, type, cp) {
+    return (e) => {
+        // TODO: store pos in object and pass that to callback to facilitate destructuring?
+        const [x, y] = getMousePos(svg, e);
+        const args = controlPointTypes[type];
+
+        // update the dragged points data
+        args.forEach(arg => Object.assign(layer.points[pointId], {
+            [arg.key]: arg.callback(x, y, layer, pointId)
+        }));
+
+        // update the dragged point's visual representation
+        drawLayer();
+
+        // visualize affected path segment
+        hilightSegment(layer, pointId, type);
+
+        // move the cp
+        // NOTE: for H, V, rx or cy, y or x of the cp should keep steady
+        // TODO: this is not enuff
+        if (layer.points[pointId].cmd !== 'V' && type !== 6) {
+            // FIXME: this highlighting is quite weird
+            cp.setAttribute('cx', x);
+            // TODO: move cp for counterpart
+        }
+        if (layer.points[pointId].cmd !== 'H' && type !== 5) {
+            cp.setAttribute('cy', y);
+            // TODO: move cp for counterpart
+        }
+
+        // if we move the anchor of a rect, the cp for width and height should move too
+        // TODO: anchor of ellipse
+        if (session.mode === 'rect' && args[0].key === 'x') {
+            configElement(rectCPs[0], {
+                cx: (x + layer.points[pointId].width),
+                cy: (y + layer.points[pointId].height)
+            });
+        }
+    };
+}
+
+/**
+ * Generates and outputs the markup of the created drawing (the content of group).
+ */
+function generateMarkUp() {
+    output.textContent = `
+    <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
+    ${group.innerHTML}
+    </svg>`;
+}
+
+/**
+ * Saves the drawing.
+ */
+function save() {
+    window.localStorage.setItem('drawing', JSON.stringify(drawing));
+}

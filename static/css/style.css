@@ -28,6 +28,9 @@ input:checked {
     display: inline-flex;
     flex-direction: column; }
 
+#dims-and-modes {
+  display: flex; }
+
 #dims,
 #modes {
   min-height: 2.7em;
@@ -84,7 +87,8 @@ svg#outer-container {
     padding: 0 12px 0 0; }
 
 #config {
-  margin-top: 8px; }
+  margin-top: 8px;
+  display: flex; }
 
 #fill-and-stroke,
 #transformations {

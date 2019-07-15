@@ -1,4 +1,50 @@
 /**
+ * Applies attributes and properties to an HTMLElement.
+ * @param { HTMLElement } element The element to be configured.
+ * @param { Object } keyValPairs The attributes and properties to be applied to the element.
+ * @returns { HTMLElement }
+ */
+function configElement(element, keyValPairs) {
+    // NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not node attrs
+    const exceptions = ['checked', 'textContent', 'data'];
+
+    Object.keys(keyValPairs).forEach((key) => {
+        if (exceptions.includes(key)) {
+            element[key] = keyValPairs[key];
+        } else {
+            element.setAttribute(key, keyValPairs[key]);
+        }
+    });
+
+    return element;
+}
+
+/**
+ * Clones the provided element and returns a partially applied version of configElement
+ * @param { HTMLElement } template The element to be cloned.
+ * @returns { Function }
+ */
+function configClone(template) {
+    return attrs => configElement(template.cloneNode(false), attrs);
+}
+
+/**
+ * Prepares a style config to be usable in configElement, since the fill and stroke attributes are computed.
+ * @param { Object } conf The config that should be parsed.
+ * @returns { Object }
+ */
+function parseLayerStyle(conf) {
+    return {
+        'fill-rule': conf.fillRule,
+        fill: conf.fill
+            ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
+            : 'transparent',
+        stroke: `rgba(${[hexToRGB(conf.strokeColor), conf.strokeOpacity].join(',')})`,
+        'stroke-width': conf.strokeWidth
+    };
+}
+
+/**
  * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB values.
  * @param { string } hex The hexadecimal representation to be converted.
  * @returns { string }
@@ -77,7 +123,7 @@ function pointToMarkup(point) {
 }
 
 /**
- * Gives an array of the lowest and highest x- and y-components.
+ * Gives an array of the lowest and highest x- and y-components from a set of points.
  * @param { Object } points A set of points belonging to a single layer.
  * @returns { Array }
  */
@@ -92,6 +138,9 @@ function getMinNMax(points) {
 }
 
 export {
+    configElement,
+    configClone,
+    parseLayerStyle,
     hexToRGB,
     getMousePos,
     pointToMarkup,
