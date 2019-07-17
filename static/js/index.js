@@ -37,6 +37,7 @@ const modeSelector = document.getElementById('modes');
 const modes = ['path', 'rect', 'ellipse'];
 // SVG
 const svg = document.getElementById('outer-container');
+const svgBoundingRect = svg.getBoundingClientRect();
 const group = svg.getElementById('inner-container');
 const layers = group.children;
 const overlay = svg.getElementById('overlay');
@@ -45,7 +46,7 @@ const rectCPs = svg.getElementsByClassName('rectCp'); // TODO: rename...combine 
 // Coords display (visible when hovering svg) and the cb to manage that
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
-    const [x, y] = getMousePos(svg, e);
+    const [x, y] = getMousePos(svgBoundingRect, e);
     coords.textContent = `x: ${x}, y: ${y}`;
     coords.style.left = `${e.pageX + 16}px`;
     coords.style.top = `${e.pageY - 32}px`;
@@ -96,16 +97,16 @@ const controlPointTypes = [
     ],
     // lower left corner of rect
     [
-        { key: 'width', callback: (x, y, layer, pointId) => Math.abs(x - layer.points[pointId].x) }, // TODO: shorten to pass point along
-        { key: 'height', callback: (x, y, layer, pointId) => Math.abs(y - layer.points[pointId].y) }
+        { key: 'width', callback: (x, y, point) => Math.abs(x - point.x) },
+        { key: 'height', callback: (x, y, point) => Math.abs(y - point.y) }
     ],
     // controlling width of ellipse
     [
-        { key: 'rx', callback: (x, y, layer, pointId) => Math.abs(x - layer.points[pointId].cx) }
+        { key: 'rx', callback: (x, y, point) => Math.abs(x - point.cx) }
     ],
     // controlling height of ellipse
     [
-        { key: 'ry', callback: (x, y, layer, pointId) => Math.abs(y - layer.points[pointId].cy) }
+        { key: 'ry', callback: (x, y, point) => Math.abs(y - point.cy) }
     ]
 ];
 
@@ -147,7 +148,7 @@ const session = new Proxy({
         if (key === 'cmd' && cmds.includes(val)) {
             obj[key] = val;
             // check cmd selector
-            document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
+            document.querySelector(`option[value="${val}"]`).selected = true;
             return true;
         }
 
@@ -267,7 +268,7 @@ window.addEventListener('DOMContentLoaded', () => {
         layers: src.layers || []
     });
 
-    // initialize mode to that of the first layer or the default
+    // initialize session.mode to that of the first layer or the default
     session.mode = (drawing.layers[0] && drawing.layers[0].mode)
         ? drawing.layers[0].mode
         : 'path';
@@ -373,7 +374,7 @@ undoBtn.onclick = () => {
 svg.addEventListener('mousedown', (e) => {
     if (!layers.length) addLayerBtn.click();
 
-    const [x, y] = getMousePos(svg, e);
+    const [x, y] = getMousePos(svgBoundingRect, e);
     const layer = drawing.layers[session.layer];
 
     // drawing a rect or ellipse
@@ -422,7 +423,7 @@ svg.addEventListener('mousedown', (e) => {
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
         svg.onmousemove = (ev) => {
-            const [x1, y1] = getMousePos(svg, ev);
+            const [x1, y1] = getMousePos(svgBoundingRect, ev);
 
             configElement(rect, {
                 x: Math.min(x, x1),
@@ -444,7 +445,7 @@ svg.addEventListener('mousedown', (e) => {
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
         svg.onmousemove = (ev) => {
-            const [x1, y1] = getMousePos(svg, ev);
+            const [x1, y1] = getMousePos(svgBoundingRect, ev);
 
             configElement(ellipse, {
                 rx: Math.abs(x - x1),
@@ -500,7 +501,7 @@ svg.addEventListener('mousedown', (e) => {
                 y2: cp2.y
             });
         } else if (session.cmd === 'A') {
-            // TODO: arc func...how to control props? rethink defaults
+            // TODO: arc func, rethink defaults
 
             Object.assign(layer.points[layer.points.length - 1], {
                 xR: 50,
@@ -765,11 +766,12 @@ function mkControlPoint(x, y, pointId, type = 0) {
 }
 
 // TODO: duz this make sense for modes besides path? for rects we can highlight opposing sides; for ellipses diameters...the logic needs to change quite drastically for that
+// TODO: c 3rd param, is that clearer?
 /**
  * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s).
  * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer (extracted from the layer).
  * @param { number } pointId The ordinal number of the point within its layer.
- * @param { number } type The "type" of cp being dragged (it's a wack param)
+ * @param { boolean } isCp The "type" of cp being dragged (it's kinda missleading)
  */
 function hilightSegment({ points } = drawing.layers[session.layer], pointId, type) {
     if (points.length <= 1) return;
@@ -797,7 +799,6 @@ function hilightSegment({ points } = drawing.layers[session.layer], pointId, typ
     }
 
     configElement(overlay, {
-        stroke: 'orange', // TODO: if we're not changing this, it might as well be set in the HTML
         'stroke-width': +drawing.layers[session.layer].style.strokeWidth + 4,
         d
     });
@@ -809,20 +810,54 @@ function hilightSegment({ points } = drawing.layers[session.layer], pointId, typ
  * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
  * @param { number } type The "type" of cp we're dealing with.
  * @param { SVGCircleElement } cp The cp that's to be dragged.
- * @param { Object[] } args An array of key-names and callbacks constituting the effect of dragging.
  * @returns { Function }
  */
 function dragging(layer, pointId, type, cp) {
+    const args = controlPointTypes[type];
+    const point = layer.points[pointId];
+    const cps = [{ ref: cp, fx: [] }];
+
+    // collect the affected cps and the effects applied to them
+    if (point.cmd !== 'V' && type !== 6) {
+        cps[0].fx.push(x => ({ cx: x }));
+    }
+
+    if (point.cmd !== 'H' && type !== 5) {
+        cps[0].fx.push((x, y) => ({ cy: y }));
+    }
+
+    // if the dragged cp is the anchor of a rect or ellipse, we want to move the other cp(s) too
+    if (session.mode === 'rect' && args[0].key === 'x') {
+        cps.push({
+            ref: rectCPs[0],
+            fx: [
+                x => ({ cx: x + point.width }),
+                (x, y) => ({ cy: y + point.height })
+            ]
+        });
+    } else if (session.mode === 'ellipse' && args[0].key === 'cx') {
+        cps.push({
+            ref: rectCPs[1],
+            fx: [
+                () => ({ cx: point.cx - point.rx }),
+                () => ({ cy: point.cy })
+            ]
+        });
+        cps.push({
+            ref: rectCPs[2],
+            fx: [
+                () => ({ cx: point.cx }),
+                () => ({ cy: point.cy - point.ry })
+            ]
+        });
+    }
+
     return (e) => {
-        // TODO: it feels wrong to keep repeating the checks everytime
-        // TODO: store pos in object and pass that to callback to facilitate destructuring?
-        const [x, y] = getMousePos(svg, e);
-        const args = controlPointTypes[type];
-        const point = layer.points[pointId];
+        const [x, y] = getMousePos(svgBoundingRect, e);
 
         // update the dragged points data
         args.forEach(arg => Object.assign(point, {
-            [arg.key]: arg.callback(x, y, layer, pointId)
+            [arg.key]: arg.callback(x, y, point)
         }));
 
         // update the dragged point's visual representation
@@ -831,35 +866,12 @@ function dragging(layer, pointId, type, cp) {
         // visualize affected path segment
         hilightSegment(layer, pointId, type);
 
-        // move the cp
-        // NOTE: for H, V, rx or cy, y or x of the cp should keep steady
-        // TODO: this is not enuff
-        if (point.cmd !== 'V' && type !== 6) {
-            // FIXME: this highlighting is quite weird
-            cp.setAttribute('cx', x);
-            // TODO: move cp for counterpart
-        }
-        if (point.cmd !== 'H' && type !== 5) {
-            cp.setAttribute('cy', y);
-            // TODO: move cp for counterpart
-        }
-
-        // if we move the anchor of a rect or ellipse,its other cp(s) should be moved too
-        if (session.mode === 'rect' && args[0].key === 'x') {
-            configElement(rectCPs[0], {
-                cx: x + point.width,
-                cy: y + point.height
-            });
-        } else if (session.mode === 'ellipse' && args[0].key === 'cx') {
-            configElement(rectCPs[1], {
-                cx: point.cx - point.rx,
-                cy: point.cy
-            });
-            configElement(rectCPs[2], {
-                cx: point.cx,
-                cy: point.cy - point.ry
-            });
-        }
+        // move the affected cp(s)
+        cps.forEach((currentCp) => {
+            configElement(currentCp.ref, currentCp
+                .fx
+                .reduce((keyValPairs, keyVal) => Object.assign(keyValPairs, keyVal(x, y)), {}));
+        });
     };
 }
 

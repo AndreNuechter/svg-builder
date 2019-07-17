@@ -60,6 +60,11 @@ input:checked {
     }
 }
 
+#commands {
+    height: 2.7em;
+    align-self: flex-end;
+}
+
 svg#outer-container {
     background: lightgrey;
     border: 2px solid white;
@@ -97,17 +102,6 @@ svg#outer-container {
     pointer-events: none;
 }
 
-#commands {
-    display: flex;
-    flex-wrap: wrap;
-    width: 42em;
-
-    label {
-        width: 12em;
-        padding: 0 12px 0 0;
-    }
-}
-
 #config {
     margin-top: 8px;
     display: flex;
@@ -136,6 +130,7 @@ input[type=number] {
 }
 
 #output {
+    cursor: grab;
     margin: 8px 0 8px 0;
     padding: 2px;
     max-width: 640px;

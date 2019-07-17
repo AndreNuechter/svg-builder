@@ -45,36 +45,21 @@ html
             label 
               span Circle or ellipse
               input(type="radio" name="modes" value="ellipse")
+              
+          select#commands
+            option(value="M" selected) Move to (M)
+            option(value="L") Line to (L)
+            option(value="H") Horizontal line to (H)
+            option(value="V") Vertical line to (V)
+            option(value="Q") Quadratic curve to (Q)
+            option(value="C") Cubic curve to (C)
+            option(value="A") Arc (A)
 
         svg#outer-container(width="640" height="360")
           g#inner-container
-          path#overlay(fill="transparent")
+          path#overlay(fill="transparent" stroke="orange")
 
         #coords
-
-        #commands
-          label 
-            span Move to (M)
-            input(type="radio" name="command" value="M" checked)
-          label 
-            span Line to (L)
-            input(type="radio" name="command" value="L")
-          label 
-            span Horizontal line to (H)
-            input(type="radio" name="command" value="H")
-          label 
-            span Vertical line to (V)
-            input(type="radio" name="command" value="V")
-          label 
-            span Quadratic curve to (Q)
-            input(type="radio" name="command" value="Q")
-          label 
-            span Cubic curve to (C)
-            input(type="radio" name="command" value="C")
-          label 
-            span Arc (A)
-            input(type="radio" name="command" value="A")
-          
         
     #config
       fieldset#fill-and-stroke

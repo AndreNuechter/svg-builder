@@ -45,7 +45,7 @@ function parseLayerStyle(conf) {
 }
 
 /**
- * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB values.
+ * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB color values.
  * @param { string } hex The hexadecimal representation to be converted.
  * @returns { string }
  */
@@ -64,10 +64,9 @@ function hexToRGB(hex) {
  * @returns { Array }
  */
 function getMousePos(target, event) {
-    const rect = target.getBoundingClientRect();
     return [
-        +(event.clientX - rect.left).toFixed(),
-        +(event.clientY - rect.top).toFixed()
+        +(event.clientX - target.left).toFixed(),
+        +(event.clientY - target.top).toFixed()
     ];
 }
 
