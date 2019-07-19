@@ -75,16 +75,16 @@ svg#outer-container {
     display: block;
 }
 
-.node {
+.control-point {
     fill: orange;
     stroke: dimgrey;
 }
 
-.node:hover {
+.control-point:hover {
     stroke-width: 10;
 }
 
-.node:last-of-type {
+.control-point:last-of-type {
     fill: red;
 }
 

@@ -41,8 +41,7 @@ const svgBoundingRect = svg.getBoundingClientRect();
 const group = svg.getElementById('inner-container');
 const layers = group.children;
 const overlay = svg.getElementById('overlay');
-const circleCPs = svg.getElementsByTagName('circle');
-const rectCPs = svg.getElementsByClassName('rectCp'); // TODO: rename...combine w above and call that controlPoints
+const controlPoints = svg.getElementsByClassName('control-point');
 // Coords display (visible when hovering svg) and the cb to manage that
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
@@ -231,19 +230,22 @@ new MutationObserver((mutationsList) => {
                 return;
             }
 
-            // if it was the newest layer that has been removed, we decrement session.layer
+            // if it was the newest layer, we decrement session.layer
             if (session.layer === layers.length) {
                 session.layer -= 1;
             } else {
-                // NOTE: if the deleted item wasnt the last, session.layer did not change, but the formerly selected layer is gone
                 // set session.mode to that of the active layer
                 session.mode = drawing.layers[session.layer].mode;
+
                 // rem cps of prev layer
                 remControlPoints();
+
                 // mk cps of current layer
                 drawing.layers[session.layer].points.forEach(mkPoint);
+
                 // config Stroke n Fill
                 setFillNStrokeFields();
+
                 // re-configure subsequent selectors and layer ordinals
                 for (let i = session.layer; i < layerSelect.children.length; i += 1) {
                     const selectorParts = [...layerSelect.children[i].childNodes];
@@ -276,7 +278,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // initialize session.layer, if there're layers
     if (drawing.layers.length) session.layer = 0;
 
-    // create layers incl selectors and config ea
+    // create layer representations incl selectors and config ea
     drawing.layers.forEach((layer, i) => {
         const shape = svgTemplates[layer.mode];
         const attrs = Object
@@ -365,6 +367,7 @@ clearAllBtn.onclick = () => {
 
 undoBtn.onclick = () => {
     if (drawing.layers[session.layer].points.length) {
+        // TODO: make this work for rects and ellipses too
         remLastControlPoint(drawing.layers[session.layer].points.pop().cmd);
         drawLayer();
     }
@@ -532,7 +535,7 @@ commands.onchange = ({ target }) => {
 };
 
 // NOTE: we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync...
-// best way may be to never actually do the below, make svg comfortably large and only use dims on markup?!
+// best way may be to never actually do the below, make svg comfortably large and only use dims on markup?! some form of movement in on the canvas might be necessary
 function setDimsOfSVG() {
     svg.style.width = `${drawing.dims.width}px`;
     svg.style.height = `${drawing.dims.height}px`;
@@ -672,15 +675,16 @@ function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
     save();
 }
 
+// TODO: refactor cmd param and make it work for other modes
 function remLastControlPoint(cmd) {
-    circleCPs[circleCPs.length - 1].remove();
-    if (cmd === 'Q' || cmd === 'C') rectCPs[rectCPs.length - 1].remove();
-    if (cmd === 'C') rectCPs[rectCPs.length - 1].remove();
+    controlPoints[controlPoints.length - 1].remove();
+    if (cmd === 'Q' || cmd === 'C') controlPoints[controlPoints.length - 1].remove();
+    if (cmd === 'C') controlPoints[controlPoints.length - 1].remove();
 }
 // TODO: should rem a single point incl cps, but rn duz so for every cp
 function remControlPoints() {
-    // TODO: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly removed...its easy to do, but maybe unnecesary, so set it up and compare perf
-    [...circleCPs, ...rectCPs].forEach(c => c.remove());
+    // NOTE: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly removed...its easy to do, but maybe unnecesary, so set it up and compare perf
+    [...controlPoints].forEach(c => c.remove());
 }
 
 const stopDragging = () => {
@@ -711,7 +715,7 @@ function mkPoint(point, pointId) {
             mkControlPoint(point.x2, point.y2, pointId, 2);
         }
 
-        // TODO: A cmd
+        // TODO: cps for A cmd
     } else if (session.mode === 'rect') {
         // one to change x and y
         mkControlPoint(point.x, point.y, pointId);
@@ -738,17 +742,16 @@ function mkPoint(point, pointId) {
 function mkControlPoint(x, y, pointId, type = 0) {
     const layer = drawing.layers[session.layer];
 
-    // TODO: improve cp classNames...store in controlPointTypes?
     const cp = configClone(circleTemplate)({
         cx: x,
         cy: y,
         r: 3,
-        class: `node${type ? ' rectCp' : ''}`
+        class: 'control-point'
     });
 
     // start dragging on mousedown
     cp.onmousedown = (e) => {
-        // prevent triggering svg.onmousedown and adding another point to the current path
+        // prevent triggering svg.onmousedown
         e.stopPropagation();
         // so the hilight is shown prior to movement
         hilightSegment(layer, pointId, type > 0);
@@ -776,24 +779,24 @@ function mkControlPoint(x, y, pointId, type = 0) {
 function hilightSegment({ points } = drawing.layers[session.layer], pointId, type) {
     if (points.length <= 1) return;
 
-    let d;
+    let d = 'M ';
 
     // TODO: check if shape is closed and highlight that part as well
     // what can we tell about the dragged point?
     if (pointId === points.length - 1 || type) {
         // it's the last point or not a regular point (eg cps for x1 and y1 only affect one segment no matter what)
         // mov to prev point and draw path to curr
-        d = `M ${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
+        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
          ${pointToMarkup(points[pointId])}`;
     } else if (pointId === 0) {
         // it's the first point of the layer
         // mov to point and draw path to next
-        d = `M ${[points[0].x, points[0].y].join(' ')}
+        d += `${[points[0].x, points[0].y].join(' ')}
          ${pointToMarkup(points[1])}`;
     } else {
         // it's a point in between
         // mov to prev point and draw path over curr to next
-        d = `M ${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
+        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
          ${pointToMarkup(points[pointId])}
          ${pointToMarkup(points[pointId + 1])}`;
     }
@@ -829,7 +832,7 @@ function dragging(layer, pointId, type, cp) {
     // if the dragged cp is the anchor of a rect or ellipse, we want to move the other cp(s) too
     if (session.mode === 'rect' && args[0].key === 'x') {
         cps.push({
-            ref: rectCPs[0],
+            ref: controlPoints[1],
             fx: [
                 x => ({ cx: x + point.width }),
                 (x, y) => ({ cy: y + point.height })
@@ -837,14 +840,13 @@ function dragging(layer, pointId, type, cp) {
         });
     } else if (session.mode === 'ellipse' && args[0].key === 'cx') {
         cps.push({
-            ref: rectCPs[1],
+            ref: controlPoints[1],
             fx: [
                 () => ({ cx: point.cx - point.rx }),
                 () => ({ cy: point.cy })
             ]
-        });
-        cps.push({
-            ref: rectCPs[2],
+        }, {
+            ref: controlPoints[2],
             fx: [
                 () => ({ cx: point.cx }),
                 () => ({ cy: point.cy - point.ry })
