@@ -18,31 +18,31 @@ html
         #layer-select
         
         #layer-controls
-          button#add-layer Add layer
-          button#del-layer Delete active layer
-          button#clear-all Delete all layers
-          button#undo Delete last point
-
+          button#add-layer(title="Add a layer") +
+          button#del-layer(title="Delete the active layer") Delete layer
+          button#undo(title="Delete the last point") Delete last
+          button#clear-all(title="Clear drawing") Clear drawing
+          
       #canvas
         #dims-and-modes
           fieldset#dims
             legend Dimensions
-            label 
+            label
               span Width:
               input#width(type="number" min=1 value=640)
-            label 
+            label
               span Height:
               input#height(type="number" min=1 value=360)
 
           fieldset#modes
             legend Modes
-            label 
+            label
               span Path
               input(type="radio" name="modes" value="path" checked)
-            label 
+            label
               span Rectangle
               input(type="radio" name="modes" value="rect")
-            label 
+            label
               span Circle or ellipse
               input(type="radio" name="modes" value="ellipse")
               
@@ -64,51 +64,50 @@ html
     #config
       fieldset#fill-and-stroke
         legend Fill &amp; Stroke
-        label 
+        label
           span Stroke-color:
           input#stroke-color(type="color" name="strokeColor")
-        label 
+        label
           span Stroke-opacity:
           input#stroke-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
-        label 
+        label
           span Stroke-width:
           input#stroke-width(type="range" min=0.1 max=50 step=0.1 value=2 name="strokeWidth")
-        label 
+        label
           span Fill-color:
           input#fill-color(type="color" name="fillColor")
-        label 
+        label
           span Fill-opacity:
           input#fill-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
-        label 
+        label
           span Fill-rule:
           select#fill-rule(name="fillRule")
             option evenodd
             option nonzero
-        label 
+        label
           span Fill shape
           input#fill-toggle(type="checkbox" name="fill")
-        label 
+        label
           span Close shape
           input#close-toggle(type="checkbox" name="close" checked)
 
       fieldset#transformations
         legend Transformations
-        label 
+        label
           span Scale by factor of
           input#scaling-factor(type="number" min=0.2 max=4.0 step=0.1 value=1)
-        label 
+        label
           span Rotate by (deg)
           input#deg(type="number" min=-360 max=360 step=0.1 value=0)
-        label 
+        label
           span Reflect shape
           select#reflect
-            option 
+            option
             option Vertically
             option Horizontally
-        label 
+        label
           span Trim whitespace
           input#trim-check(type="checkbox")
         button#transform Transform
         
     #output
-  

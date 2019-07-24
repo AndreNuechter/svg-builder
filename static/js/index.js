@@ -53,6 +53,8 @@ const coordToolTips = (e) => {
 // Path commands (visible when in 'path' mode) and enum of allowed values
 const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
+// NOTE: those are changed in onkeydown (j and k keys) and read when drawing an A cmd
+const ACmdParams = { large: true, sweep: true };
 // Fill & Stroke fieldset
 const styleConfig = document.getElementById('fill-and-stroke');
 const strokeColorSetter = document.getElementById('stroke-color');
@@ -73,6 +75,7 @@ const transformBtn = document.getElementById('transform');
 const output = document.getElementById('output');
 
 // determines the props of the affected point the cp is gonna change when moved via dragging
+// NOTE: key is the prop of the point data affected; callback states how it should be changed in relation to the current cursor position
 const controlPointTypes = [
     // regular point/upper right corner of rect
     [
@@ -107,6 +110,7 @@ const controlPointTypes = [
     [
         { key: 'ry', callback: (x, y, point) => Math.abs(y - point.cy) }
     ]
+    // TODO: A cmd...rx, ry (how to calculate position of those?), xRot (use the scroll wheel?)
 ];
 
 const defaultConfig = {
@@ -313,6 +317,10 @@ window.onkeydown = (e) => {
     } else if (!e.ctrlKey && cmds.includes(key.toUpperCase())) {
         e.preventDefault();
         session.cmd = key.toUpperCase();
+    } else if (key.toUpperCase() === 'K') {
+        ACmdParams.large = !ACmdParams.large;
+    } else if (key.toUpperCase() === 'J') {
+        ACmdParams.sweep = !ACmdParams.sweep;
     }
 };
 
@@ -366,8 +374,7 @@ clearAllBtn.onclick = () => {
 };
 
 undoBtn.onclick = () => {
-    if (drawing.layers[session.layer].points.length) {
-        // TODO: make this work for rects and ellipses too
+    if (session.mode === 'path' && drawing.layers[session.layer].points.length) {
         remLastControlPoint(drawing.layers[session.layer].points.pop().cmd);
         drawLayer();
     }
@@ -510,8 +517,8 @@ svg.addEventListener('mousedown', (e) => {
                 xR: 50,
                 yR: 50,
                 xRot: 0,
-                large: 1,
-                sweep: 1
+                large: +ACmdParams.large,
+                sweep: +ACmdParams.sweep
             });
         }
 
@@ -644,7 +651,7 @@ function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].styl
 }
 
 /**
- * Syncs geometry attributes of a layers representation w the data
+ * Syncs geometry attributes of a layers representation w the data.
  * @param { number } [layerId=session.layer] The ordinal number of the affected layer. Defaults to the current.
  * @param { Object } [layer=drawing.layers[layerId]] The affected layer. Defaults to the current.
  */
@@ -715,7 +722,7 @@ function mkPoint(point, pointId) {
             mkControlPoint(point.x2, point.y2, pointId, 2);
         }
 
-        // TODO: cps for A cmd
+        // TODO: cps for A cmd... xr, yr, xRot, sweep and large arc
     } else if (session.mode === 'rect') {
         // one to change x and y
         mkControlPoint(point.x, point.y, pointId);
@@ -862,7 +869,7 @@ function dragging(layer, pointId, type, cp) {
             [arg.key]: arg.callback(x, y, point)
         }));
 
-        // update the dragged point's visual representation
+        // update the affected layer's visual representation
         drawLayer();
 
         // visualize affected path segment
