@@ -6,9 +6,6 @@ body {
   display: flex;
   flex-direction: column; }
 
-input:checked {
-  box-shadow: 0 0 0 2px orange; }
-
 #main {
   display: flex; }
 
@@ -62,12 +59,10 @@ svg#outer-container {
 .control-point {
   fill: orange;
   stroke: dimgrey; }
-
-.control-point:hover {
-  stroke-width: 10; }
-
-.control-point:last-of-type {
-  fill: red; }
+  .control-point:hover {
+    stroke-width: 10; }
+  .control-point:last-of-type {
+    fill: red; }
 
 #coords {
   position: absolute;
@@ -104,6 +99,9 @@ input[type=number] {
   width: 5em;
   text-align: center; }
 
+input:checked {
+  box-shadow: 0 0 0 2px orange; }
+
 #output {
   cursor: grab;
   margin: 8px 0 8px 0;
@@ -111,8 +109,7 @@ input[type=number] {
   max-width: 640px;
   font-weight: 600;
   color: slategrey; }
-
-#output::before {
-  color: lightgrey;
-  font-weight: 200;
-  content: "Output goes here => "; }
+  #output::before {
+    color: lightgrey;
+    font-weight: 200;
+    content: "Output goes here => "; }

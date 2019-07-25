@@ -145,6 +145,8 @@ const session = new Proxy({
             document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
             // show/hide cmds depending on mode
             commands.style.display = val === 'path' ? 'flex' : 'none';
+            // disable checkbox for closing shape when not in path mode
+            closeToggle.disabled = (val !== 'path');
             return true;
         }
 
