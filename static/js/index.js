@@ -55,13 +55,15 @@ const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
 const aCmdConfig = document.getElementById('a-cmd-config');
 // NOTE: those are changed in onkeydown (j and k keys) and read when drawing an A cmd
+// TODO: get rid of the keydown part? add more?
 const ACmdParams = {
-    large: true,
-    sweep: true,
     xR: 50,
     yR: 50,
-    xRot: 0
+    xRot: 0,
+    large: false,
+    sweep: false
 };
+// TODO: find a way to change a A cmd wo erasing it first (there might be more than one and then how would we tell which is meant?)
 aCmdConfig.onchange = ({ target }) => {
     ACmdParams[target.name] = target[
         target.type === 'checkbox' ? 'checked' : 'value'
@@ -628,15 +630,7 @@ transformBtn.onclick = () => {
     drawLayer();
 };
 
-output.onclick = generateMarkUp;
-
-output.ondblclick = () => {
-    const range = document.createRange();
-
-    range.selectNodeContents(output);
-    window.getSelection().addRange(range);
-    document.execCommand('copy');
-};
+output.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given config.
@@ -902,10 +896,10 @@ function dragging(layer, pointId, type, cp) {
 }
 
 /**
- * Generates and outputs the markup of the created drawing (the content of group).
+ * Returns the markup of the created drawing (the content of group).
  */
 function generateMarkUp() {
-    output.textContent = `
+    return `
     <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
     ${group.innerHTML}
     </svg>`;

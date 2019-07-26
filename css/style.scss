@@ -130,7 +130,7 @@ input:checked {
 }
 
 #output {
-    cursor: grab;
+    cursor: pointer;
     margin: 8px 0 8px 0;
     padding: 2px;
     max-width: 640px;
@@ -140,6 +140,6 @@ input:checked {
     &::before {
         color: lightgrey;
         font-weight: 200;
-        content: "Output goes here => ";
+        content: "Double-click here to copy the markup to your clipboard";
     }
 }
