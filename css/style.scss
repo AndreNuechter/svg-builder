@@ -7,6 +7,21 @@ body {
     flex-direction: column;
 }
 
+#output {
+    cursor: pointer;
+    margin: 8px 0 8px 0;
+    padding: 2px;
+    max-width: 640px;
+    font-weight: 600;
+    color: slategrey;
+
+    &::before {
+        color: lightgrey;
+        font-weight: 200;
+        content: "Double-click here to copy the markup to your clipboard";
+    }
+}
+
 #main {
     display: flex;
 }
@@ -127,19 +142,4 @@ input[type=number] {
 
 input:checked {
     box-shadow: 0 0 0 2px orange;
-}
-
-#output {
-    cursor: pointer;
-    margin: 8px 0 8px 0;
-    padding: 2px;
-    max-width: 640px;
-    font-weight: 600;
-    color: slategrey;
-
-    &::before {
-        color: lightgrey;
-        font-weight: 200;
-        content: "Double-click here to copy the markup to your clipboard";
-    }
 }

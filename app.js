@@ -1,7 +1,6 @@
 const express = require('express');
 const pug = require('pug');
 const sass = require('node-sass-middleware');
-// const sass = require('express-compile-sass');
 const path = require('path');
 const fs = require('fs');
 
