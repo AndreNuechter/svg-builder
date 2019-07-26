@@ -53,8 +53,20 @@ const coordToolTips = (e) => {
 // Path commands (visible when in 'path' mode) and enum of allowed values
 const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
+const aCmdConfig = document.getElementById('a-cmd-config');
 // NOTE: those are changed in onkeydown (j and k keys) and read when drawing an A cmd
-const ACmdParams = { large: true, sweep: true };
+const ACmdParams = {
+    large: true,
+    sweep: true,
+    xR: 50,
+    yR: 50,
+    xRot: 0
+};
+aCmdConfig.onchange = ({ target }) => {
+    ACmdParams[target.name] = target[
+        target.type === 'checkbox' ? 'checked' : 'value'
+    ];
+};
 // Fill & Stroke fieldset
 const styleConfig = document.getElementById('fill-and-stroke');
 const strokeColorSetter = document.getElementById('stroke-color');
@@ -145,6 +157,8 @@ const session = new Proxy({
             document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
             // show/hide cmds depending on mode
             commands.style.display = val === 'path' ? 'flex' : 'none';
+            // same for a cmd config
+            aCmdConfig.style.display = val === 'path' ? 'flex' : 'none';
             // disable checkbox for closing shape when not in path mode
             closeToggle.disabled = (val !== 'path');
             return true;
@@ -479,6 +493,7 @@ svg.addEventListener('mousedown', (e) => {
 
         // ensure first point of a path is a moveTo command
         if (layer.points.length === 0) {
+            // TODO: instead of changing, we could just add a M close to the added point, which might be more convenient
             session.cmd = 'M';
         }
 
@@ -516,9 +531,9 @@ svg.addEventListener('mousedown', (e) => {
             // TODO: arc func, rethink defaults
 
             Object.assign(layer.points[layer.points.length - 1], {
-                xR: 50,
-                yR: 50,
-                xRot: 0,
+                xR: ACmdParams.xR,
+                yR: ACmdParams.yR,
+                xRot: ACmdParams.xRot,
                 large: +ACmdParams.large,
                 sweep: +ACmdParams.sweep
             });
