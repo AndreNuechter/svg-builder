@@ -219,15 +219,34 @@ new MutationObserver((mutationsList) => {
         // deal w addition of layer (add a corresponding selector)
         if (mutation.addedNodes.length) {
             const label = configClone(labelTemplate)({
-                textContent: `Layer ${layerSelect.childElementCount + 1}`,
-                'data-layer-id': layerSelect.childElementCount
+                'data-layer-id': layerSelect.childElementCount,
+                draggable: true
+            });
+            // TODO: clone the span
+            const labelText = configElement(document.createElement('span'), {
+                textContent: drawing.layers[layerSelect.childElementCount].label
+                    || `Layer ${layerSelect.childElementCount + 1}`,
+                contenteditable: true
             });
             const selector = configClone(selectorTemplate)({
                 value: layerSelect.childElementCount,
                 checked: session.layer === layerSelectors.length
             });
 
-            label.append(selector);
+            // enable re-ordering via dragging of label
+            label.ondragstart = (e) => {
+                e.dataTransfer.setData('text', e.target.getAttribute('data-layer-id'));
+                e.dataTransfer.effectAllowed = 'move';
+            };
+
+            // save the custom label
+            labelText.oninput = ({ target }) => {
+                // NOTE: banking on edition being necessarily preceded by selection
+                drawing.layers[session.layer].label = target.textContent;
+                save();
+            };
+
+            label.append(labelText, selector);
             layerSelect.append(label);
         }
 
@@ -271,7 +290,7 @@ new MutationObserver((mutationsList) => {
                 // re-configure subsequent selectors and layer ordinals
                 for (let i = session.layer; i < layerSelect.children.length; i += 1) {
                     const selectorParts = [...layerSelect.children[i].childNodes];
-                    selectorParts[0].data = `Layer ${i + 1}`;
+                    selectorParts[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
                     selectorParts[1].value = i;
                     layerSelect.children[i].setAttribute('data-layer-id', i);
                     layers[i].setAttribute('data-layer-id', i);
@@ -325,6 +344,9 @@ window.addEventListener('DOMContentLoaded', () => {
 window.onkeydown = (e) => {
     const { key } = e;
 
+    // to prevent interference w eg custom labeling
+    if (document.activeElement !== document.body) return;
+
     if (moves[key]) {
         e.preventDefault();
         move(key, drawing.layers[session.layer].points);
@@ -335,6 +357,7 @@ window.onkeydown = (e) => {
     } else if (!e.ctrlKey && cmds.includes(key.toUpperCase())) {
         e.preventDefault();
         session.cmd = key.toUpperCase();
+        // TODO: rem the two below?
     } else if (key.toUpperCase() === 'K') {
         ACmdParams.large = !ACmdParams.large;
     } else if (key.toUpperCase() === 'J') {
@@ -345,6 +368,46 @@ window.onkeydown = (e) => {
 // Layers
 layerSelect.onchange = ({ target }) => {
     session.layer = +target.value;
+};
+
+// re-ordering of layers via dragging of selector
+layerSelect.ondragover = e => e.preventDefault();
+layerSelect.ondrop = (e) => {
+    e.preventDefault();
+
+    // the node we're dropping on may not be a wrapper of a selector (a label) but a child of one (a radio)
+    const droppedOnNode = e.target.tagName === 'LABEL' ? e.target : e.target.parentNode;
+    const droppedOnId = droppedOnNode.getAttribute('data-layer-id');
+    const droppenOnLayer = svg.querySelector(`[data-layer-id="${droppedOnId}"]`);
+    const draggedId = e.dataTransfer.getData('text');
+    const draggedLayer = svg.querySelector(`[data-layer-id="${draggedId}"]`);
+
+    // re-order the layer data
+    const draggedLayerData = drawing.layers.splice(draggedId, 1)[0];
+    // TODO: check this isnt wrong when dragged is below dropped
+    drawing.layers.splice(droppedOnId, 0, draggedLayerData);
+    save();
+
+    console.log(`From ${draggedId} to ${droppedOnId}`);
+
+    // insert dragged layer before or after the one it's dropped on, depending on where it originated
+    // NOTE: we need to rewrite the layer-id of the item that moves towards the end of the group
+    // cuz the other is removed and then re-added, which causes the observer on group to change its layer-id
+    // FIXME: custom label may become duplicated
+    // FIXME: droppenOnLayer may be null!
+    // FIXME: sometimes a selector disappears
+    if (draggedId < droppedOnId) {
+        droppenOnLayer.after(draggedLayer);
+        configElement(draggedLayer, {
+            'data-layer-id': droppedOnId
+        });
+    } else {
+        group.insertBefore(draggedLayer, droppenOnLayer);
+        configElement(droppenOnLayer, {
+            'data-layer-id': draggedId
+        });
+    }
+    console.log(drawing.layers);
 };
 
 addLayerBtn.onclick = () => {
