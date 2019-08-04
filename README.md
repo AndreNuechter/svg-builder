@@ -2,7 +2,7 @@
 
 An app to help with the creation of complex svg markup that can be used directly in HTML or with a little fiddling in a [Path2d object](https://developer.mozilla.org/en-US/docs/Web/API/Path2D/Path2D).
 
-__NOTE:__ The markupt is output when clicking on the text, "output goes here". Double-clicking the markup copies it to the clipboard.
+__NOTE:__ The markupt is copied to the clip-board when double-clicking on the text, saying as much.
 
 ## Getting started
 
@@ -58,8 +58,6 @@ Adjust the dimensions of the drawing via the "Dimensions" titled fieldset.
 As this is work in progress, there're a couple of rough edges and missing features. 
 Here I want to list a few things that might get added in the future:
 
-- layer reordering
-- custom names for layers
 - non-broken svg transformations
 - import/export of projects
 - a way to play with the viewBox attribute of the svg
