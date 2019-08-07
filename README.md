@@ -2,7 +2,7 @@
 
 An app to help with the creation of complex svg markup that can be used directly in HTML or with a little fiddling in a [Path2d object](https://developer.mozilla.org/en-US/docs/Web/API/Path2D/Path2D).
 
-__NOTE:__ The markupt is copied to the clip-board when double-clicking on the text, saying as much.
+__NOTE:__ The markup is copied to the clip-board when double-clicking on the text, saying as much.
 
 ## Getting started
 
@@ -11,6 +11,10 @@ To try it out clone this repo and initialize it via NPM. Then execute eg `node a
 ## Layers
 
 Conceptually an svg, or let us say a drawing, produced by this app consists of layers, each being represented by one of three svg elements (path, rect or ellipse).
+
+Layers are organized on the left in a set of radio inputs.
+They may be re-ordered via dragging those radio inputs up or down.
+Furthermore they can be given custom labels by double-clicking on the respective label and typing in the desired string.
 
 ## Modes
 
@@ -31,7 +35,7 @@ When in path mode, a command can be selectet either by selecting it in the respe
 
 ### Rect
 
-Rect mode enables the easy creation of rectangular shapes.
+Rect mode enables easy creation of rectangular shapes.
 When in rect mode, create a rect by clicking on the canvas where its left upper corner should be and click again where its lower right corner should be.
 X- and y-position, as well as width or height can be adjusted via dragging the respective control points.
 

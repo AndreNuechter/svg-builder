@@ -41,18 +41,21 @@ body {
   display: flex; }
 
 #dims,
-#modes {
-  min-height: 2.7em;
+#modes,
+#a-cmd-config {
+  min-height: 2.8em;
   display: inline-flex;
   flex-direction: row;
   justify-content: center;
   padding: 0 6px 0 6px; }
   #dims label,
-  #modes label {
+  #modes label,
+  #a-cmd-config label {
     display: inline-block;
     margin: 0 8px 0 0; }
   #dims input[type=number],
-  #modes input[type=number] {
+  #modes input[type=number],
+  #a-cmd-config input[type=number] {
     margin-left: 4px; }
 
 #commands {
