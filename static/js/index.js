@@ -150,7 +150,8 @@ const drawing = {};
 const session = new Proxy({
     cmd: 'M',
     drawingShape: false,
-    shapeStart: {}
+    shapeStart: {},
+    reordering: false
 }, {
     set(obj, key, val) {
         if (key === 'mode' && modes.includes(val)) {
@@ -193,11 +194,16 @@ const session = new Proxy({
             return true;
         }
 
+        if (key === 'reordering' && typeof val === 'boolean') {
+            obj[key] = val;
+            return true;
+        }
+
         return false;
     }
 });
 
-// create and organize used elements
+// create and organize used HTML/SVG elements
 const selectorTemplate = (() => configElement(document.createElement('input'), {
     type: 'radio',
     name: 'layer'
@@ -211,31 +217,14 @@ const ellipseTemplate = document.createElementNS(ns, 'ellipse');
 const circleTemplate = document.createElementNS(ns, 'circle');
 const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseTemplate };
 
-const newOrder = { reordering: false };
-
 // watch for addition and removal of layers and do some synchronisation
 new MutationObserver((mutationsList) => {
     // hide/show a message when no layers exist
     vacancyMsgStyle.display = group.childElementCount ? 'none' : 'initial';
 
-    // if landing here due to reordering of layers, we only correct the affected layer-ids after re-addition
-    // NOTE: we take the second mutation since removal occurs before re-addition
-    if (newOrder.reordering) {
-        if (mutationsList[1].addedNodes.length) {
-            newOrder.reordering = false;
-
-            const start = Math.min(+newOrder.draggedId, +newOrder.droppedOnId);
-            const end = Math.max(+newOrder.draggedId, +newOrder.droppedOnId);
-
-            for (let i = start; i <= end; i += 1) {
-                const selectorParts = [...layerSelect.children[i].children];
-                selectorParts[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
-                selectorParts[1].value = i;
-                layerSelect.children[i].setAttribute('data-layer-id', i);
-                layers[i].setAttribute('data-layer-id', i);
-            }
-        }
-
+    // prevent interfering w reordering
+    if (session.reordering) {
+        session.reordering = false;
         return;
     }
 
@@ -311,7 +300,7 @@ new MutationObserver((mutationsList) => {
                 // config Stroke n Fill
                 setFillNStrokeFields();
 
-                // re-configure subsequent selectors and layer ordinals
+                // re-configure subsequent selectors and layer ids
                 for (let i = id; i < layerSelect.childElementCount; i += 1) {
                     const selectorParts = [...layerSelect.children[i].children];
                     selectorParts[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
@@ -399,14 +388,18 @@ layerSelect.ondragover = e => e.preventDefault();
 layerSelect.ondrop = (e) => {
     e.preventDefault();
 
+    // NOTE: the dragged layer is first removed and then re-added, triggering the observer on group...
+    // BUT since the the actions there happen after the fact, proper syncing via that is a pain
+    // SO we do the necessary work here
+    // signify to the observer on group that we are reordering
+    session.reordering = true;
+
     // NOTE: the node we're dropping on may not be a wrapper of a selector (a label) but a child of one (a radio)
     const droppedOnSelector = e.target.tagName === 'LABEL' ? e.target : e.target.parentNode;
     const droppedOnId = +droppedOnSelector.getAttribute('data-layer-id');
     const droppedOnLayer = svg.querySelector(`[data-layer-id="${droppedOnId}"]`);
     const draggedId = +e.dataTransfer.getData('text');
     const draggedLayer = svg.querySelector(`[data-layer-id="${draggedId}"]`);
-
-    Object.assign(newOrder, { reordering: true, draggedId, droppedOnId });
 
     // re-order the layer data
     const draggedLayerData = drawing.layers.splice(draggedId, 1)[0];
@@ -420,13 +413,22 @@ layerSelect.ondrop = (e) => {
     layerSelectors[session.layer].checked = true;
 
     // insert dragged layer before or after the one it's dropped on, depending on where it originated
-    // NOTE: the dragged layer is first removed and then re-added, triggering the observer on group.
-    // BUT since the the actions there happen after the fact, proper syncing via that is a pain
-    // SO we do the DOM-manipulation here and only change the layer-ids there
     if (draggedId < droppedOnId) {
         droppedOnLayer.after(draggedLayer);
     } else {
         group.insertBefore(draggedLayer, droppedOnLayer);
+    }
+
+    // adjust affected layer-ids and labels
+    const start = Math.min(draggedId, droppedOnId);
+    const end = Math.max(draggedId, droppedOnId);
+
+    for (let i = start; i <= end; i += 1) {
+        const selectorParts = [...layerSelect.children[i].children];
+        selectorParts[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
+        selectorParts[1].value = i;
+        layerSelect.children[i].setAttribute('data-layer-id', i);
+        layers[i].setAttribute('data-layer-id', i);
     }
 };
 
