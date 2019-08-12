@@ -54,8 +54,7 @@ const coordToolTips = (e) => {
 const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
 const aCmdConfig = document.getElementById('a-cmd-config');
-// NOTE: those are changed in onkeydown (j and k keys) and read when drawing an A cmd
-// TODO: get rid of the keydown part? add more?
+// NOTE: the below are written via the above selected fieldset and read when drawing an A cmd
 const ACmdParams = {
     xR: 50,
     yR: 50,
@@ -63,7 +62,7 @@ const ACmdParams = {
     large: false,
     sweep: false
 };
-// TODO: find a way to change a A cmd wo erasing it first (there might be more than one and then how would we tell which is meant?)
+// TODO: find a way to change a A cmd wo erasing it first (there might be more than one and then how would we tell which is meant? only consider last?)
 aCmdConfig.onchange = ({ target }) => {
     ACmdParams[target.name] = target[
         target.type === 'checkbox' ? 'checked' : 'value'
@@ -354,27 +353,33 @@ window.addEventListener('DOMContentLoaded', () => {
     setDimsOfSVG();
 });
 
+window.onkeyup = ({ key }) => {
+    if (moves[key]) {
+        drawing.layers[session.layer].points.forEach(mkPoint);
+    }
+};
+
 window.onkeydown = (e) => {
     const { key } = e;
-
-    // to prevent interference w eg custom labeling
-    if (document.activeElement !== document.body) return;
 
     if (moves[key]) {
         e.preventDefault();
         move(key, drawing.layers[session.layer].points);
         drawLayer();
-    } else if (key === 'Backspace') {
+        remControlPoints();
+    }
+
+    // to prevent interference w eg custom labeling
+    if (document.activeElement !== document.body) return;
+
+    if (key === 'Backspace') {
         e.preventDefault();
         undoBtn.click();
     } else if (!e.ctrlKey && cmds.includes(key.toUpperCase())) {
         e.preventDefault();
         session.cmd = key.toUpperCase();
-        // TODO: rem the two below?
-    } else if (key.toUpperCase() === 'K') {
-        ACmdParams.large = !ACmdParams.large;
-    } else if (key.toUpperCase() === 'J') {
-        ACmdParams.sweep = !ACmdParams.sweep;
+    } else if (e.ctrlKey && key.toUpperCase() === 'C') {
+        // TODO: add duplicate (style + mode + points) of current layer right after it and set focus to it
     }
 };
 
@@ -790,13 +795,6 @@ function remControlPoints() {
     [...controlPoints].forEach(c => c.remove());
 }
 
-const stopDragging = () => {
-    svg.onmousemove = '';
-    svg.onmouseleave = '';
-    svg.onmouseup = '';
-    overlay.setAttribute('d', '');
-};
-
 /**
  * The interface for control point (cp) creation (callback for on layerswitch and load; also called for a single point on mousedown)
  * @param { Object } point The point that should be controlled.
@@ -978,6 +976,16 @@ function dragging(layer, pointId, type, cp) {
                 .reduce((keyValPairs, keyVal) => Object.assign(keyValPairs, keyVal(x, y)), {}));
         });
     };
+}
+
+/**
+ * Removes dragging-related eventlisteners from svg and resets the overlay.
+ */
+function stopDragging() {
+    svg.onmousemove = '';
+    svg.onmouseleave = '';
+    svg.onmouseup = '';
+    overlay.setAttribute('d', '');
 }
 
 /**

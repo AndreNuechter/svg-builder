@@ -7,22 +7,31 @@ import {
 const inc = num => num + 1;
 const dec = num => num - 1;
 const moves = {
-    ArrowUp: ['y', dec],
-    ArrowDown: ['y', inc],
-    ArrowLeft: ['x', dec],
-    ArrowRight: ['x', inc]
+    ArrowUp: [
+        ['y', 'y1', 'y2', 'cy'], dec
+    ],
+    ArrowDown: [
+        ['y', 'y1', 'y2', 'cy'], inc
+    ],
+    ArrowLeft: [
+        ['x', 'x1', 'x2', 'cx'], dec
+    ],
+    ArrowRight: [
+        ['x', 'x1', 'x2', 'cx'], inc
+    ]
 };
 
 // moves a layer l/r/u/d when pressing an arrow key
-// TODO: cps are not affected
 function move(key, points) {
-    points.forEach((p) => {
-        const prop = moves[key][0];
-        const action = moves[key][1];
+    const [props, action] = moves[key];
 
-        p[prop] = action(p[prop]);
-        p[prop + 1] = action(p[prop + 1]); // cp1
-        p[prop + 2] = action(p[prop + 2]); // cp2
+    points.forEach((point) => {
+        props.forEach((prop) => {
+            // eslint-disable-next-line no-prototype-builtins
+            if (point.hasOwnProperty(prop)) {
+                point[prop] = action(point[prop]);
+            }
+        });
     });
 }
 
