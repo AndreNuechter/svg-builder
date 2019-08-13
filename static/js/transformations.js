@@ -21,6 +21,13 @@ const moves = {
     ]
 };
 
+const viewBoxMoves = {
+    ArrowUp: { action: inc, attr: 'yMin' },
+    ArrowDown: { action: dec, attr: 'yMin' },
+    ArrowLeft: { action: inc, attr: 'xMin' },
+    ArrowRight: { action: dec, attr: 'xMin' }
+};
+
 // moves a layer l/r/u/d when pressing an arrow key
 function move(key, points) {
     const [props, action] = moves[key];
@@ -86,6 +93,7 @@ function trim(points, config, wElmnt, hElmnt) {
 
 export {
     moves,
+    viewBoxMoves,
     move,
     scale,
     rotate,

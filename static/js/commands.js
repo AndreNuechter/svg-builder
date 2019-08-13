@@ -16,7 +16,8 @@ function quad(end, prior) {
     let yOffset;
     let xOffset;
 
-    // TODO: what is the 35 for? set up helper func for this
+    // TODO: what is the 35 for?
+    // TODO: set up helper func for this
     if (distX < distY) {
         yOffset = prior.y > y ? -35 : 35;
     } else { yOffset = 0; }

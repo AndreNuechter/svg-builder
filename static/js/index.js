@@ -13,6 +13,7 @@ import {
 } from './helper-functions.js';
 import {
     moves,
+    viewBoxMoves,
     move,
     scale,
     rotate,
@@ -129,7 +130,9 @@ const controlPointTypes = [
 const defaultConfig = {
     dims: {
         width: 640,
-        height: 360
+        height: 360,
+        xMin: 0,
+        yMin: 0
     },
     style: {
         strokeColor: '#000000',
@@ -153,6 +156,7 @@ const session = new Proxy({
     reordering: false
 }, {
     set(obj, key, val) {
+        // TODO: having possible values of mode in a list might be clearer
         if (key === 'mode' && modes.includes(val)) {
             obj[key] = val;
             // check the mode
@@ -203,12 +207,12 @@ const session = new Proxy({
 });
 
 // create and organize used HTML/SVG elements
+const labelTemplate = document.createElement('label');
+const spanTemplate = document.createElement('span');
 const selectorTemplate = (() => configElement(document.createElement('input'), {
     type: 'radio',
     name: 'layer'
 }))();
-const labelTemplate = document.createElement('label');
-const spanTemplate = document.createElement('span');
 const ns = 'http://www.w3.org/2000/svg';
 const pathTemplate = document.createElementNS(ns, 'path');
 const rectTemplate = document.createElementNS(ns, 'rect');
@@ -230,14 +234,13 @@ new MutationObserver((mutationsList) => {
     mutationsList.forEach((mutation) => {
         // deal w addition of layer (add a corresponding selector)
         if (mutation.addedNodes.length) {
-            const layerId = +mutation.addedNodes[0].getAttribute('data-layer-id'); // NOTE: prev: layerSelect.childElementCount
+            const layerId = layerSelect.childElementCount;
             const label = configClone(labelTemplate)({
                 'data-layer-id': layerId,
                 draggable: true
             });
             const labelText = configClone(spanTemplate)({
-                textContent: drawing.layers[layerId].label
-                    || `Layer ${layerId + 1}`,
+                textContent: drawing.layers[layerId].label || `Layer ${layerId + 1}`,
                 contenteditable: true
             });
             const selector = configClone(selectorTemplate)({
@@ -301,11 +304,13 @@ new MutationObserver((mutationsList) => {
 
                 // re-configure subsequent selectors and layer ids
                 for (let i = id; i < layerSelect.childElementCount; i += 1) {
-                    const selectorParts = [...layerSelect.children[i].children];
-                    selectorParts[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
-                    selectorParts[1].value = i;
-                    layerSelect.children[i].setAttribute('data-layer-id', i);
+                    const selector = layerSelect.children[i];
+
+                    selector.setAttribute('data-layer-id', i);
                     layers[i].setAttribute('data-layer-id', i);
+
+                    selector.children[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
+                    selector.children[1].value = i;
                 }
             }
 
@@ -351,10 +356,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // possibly resize the canvas
     setDimsOfSVG();
+
+    // TODO: tidy this up
+    // eslint-disable-next-line no-shadow
+    const { dims } = drawing;
+    svg.setAttribute('viewBox',
+        `${dims.xMin} ${dims.yMin} ${dims.width} ${dims.height}`);
 });
 
-window.onkeyup = ({ key }) => {
-    if (moves[key]) {
+window.onkeyup = (e) => {
+    if (!e.ctrlKey && moves[e.key]) {
         drawing.layers[session.layer].points.forEach(mkPoint);
     }
 };
@@ -364,6 +375,23 @@ window.onkeydown = (e) => {
 
     if (moves[key]) {
         e.preventDefault();
+
+        // move the viewBox when the ctrl key is pressed
+        if (e.ctrlKey) {
+            const { action, attr } = viewBoxMoves[key];
+            // eslint-disable-next-line no-shadow
+            const { dims } = drawing;
+
+            dims[attr] = action(dims[attr]);
+            save();
+
+            svg.setAttribute('viewBox',
+                `${dims.xMin} ${dims.yMin} ${dims.width} ${dims.height}`);
+
+            return;
+        }
+
+        // else move the layer
         move(key, drawing.layers[session.layer].points);
         drawLayer();
         remControlPoints();
@@ -429,11 +457,13 @@ layerSelect.ondrop = (e) => {
     const end = Math.max(draggedId, droppedOnId);
 
     for (let i = start; i <= end; i += 1) {
-        const selectorParts = [...layerSelect.children[i].children];
-        selectorParts[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
-        selectorParts[1].value = i;
-        layerSelect.children[i].setAttribute('data-layer-id', i);
+        const selector = layerSelect.children[i];
+
+        selector.setAttribute('data-layer-id', i);
         layers[i].setAttribute('data-layer-id', i);
+
+        selector.children[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
+        selector.children[1].value = i;
     }
 };
 
