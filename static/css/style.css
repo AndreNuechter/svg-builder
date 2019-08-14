@@ -97,17 +97,20 @@ svg#outer-container {
   display: flex; }
 
 #fill-and-stroke,
-#transformations {
+#transformations,
+#transforms {
   margin-bottom: 8px;
   display: inline-flex;
   flex-direction: column; }
   #fill-and-stroke label,
-  #transformations label {
+  #transformations label,
+  #transforms label {
     margin-bottom: 2px;
     display: flex;
     justify-content: space-between; }
   #fill-and-stroke input,
-  #transformations input {
+  #transformations input,
+  #transforms input {
     margin-left: 2em; }
 
 input[type=number] {

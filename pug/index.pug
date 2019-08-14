@@ -12,120 +12,136 @@ html
     #output
 
     #main
-      fieldset#layer-management
-        legend Layers
+        fieldset#layer-management
+            legend Layers
 
-        #no-layer-msg No layer, yet...
-        
-        #layer-select
-        
-        #layer-controls
-          button#add-layer(title="Add a layer") +
-          button#del-layer(title="Delete the active layer") Delete layer
-          button#undo(title="Delete the last point") Delete last
-          button#clear-all(title="Clear drawing") Clear drawing
+            #no-layer-msg No layer, yet...
+            
+            #layer-select
+            
+            #layer-controls
+                button#add-layer(title="Add a layer") +
+                button#del-layer(title="Delete the active layer") Delete layer
+                button#undo(title="Delete the last point") Delete last
+                button#clear-all(title="Clear drawing") Clear drawing
           
-      #canvas
-        #dims-and-modes
-          fieldset#dims
-            legend Dimensions
-            label
-              span Width:
-              input#width(type="number" min=1 value=640)
-            label
-              span Height:
-              input#height(type="number" min=1 value=360)
+        #canvas
+            #dims-and-modes
+                fieldset#dims
+                    legend Dimensions
+                    label
+                        span Width:
+                        input#width(type="number" min=1 value=640)
+                    label
+                        span Height:
+                        input#height(type="number" min=1 value=360)
 
-          fieldset#modes
-            legend Modes
-            label
-              span Path
-              input(type="radio" name="modes" value="path" checked)
-            label
-              span Rectangle
-              input(type="radio" name="modes" value="rect")
-            label
-              span Circle or ellipse
-              input(type="radio" name="modes" value="ellipse")
-              
-          select#commands
-            option(value="M" selected) Move to (M)
-            option(value="L") Line to (L)
-            option(value="H") Horizontal line to (H)
-            option(value="V") Vertical line to (V)
-            option(value="Q") Quadratic curve to (Q)
-            option(value="C") Cubic curve to (C)
-            option(value="A") Arc (A)
+                fieldset#modes
+                    legend Modes
+                    label
+                        span Path
+                        input(type="radio" name="modes" value="path" checked)
+                    label
+                        span Rectangle
+                        input(type="radio" name="modes" value="rect")
+                    label
+                        span Circle or ellipse
+                        input(type="radio" name="modes" value="ellipse")
+                
+                select#commands
+                    option(value="M" selected) Move to (M)
+                    option(value="L") Line to (L)
+                    option(value="H") Horizontal line to (H)
+                    option(value="V") Vertical line to (V)
+                    option(value="Q") Quadratic curve to (Q)
+                    option(value="C") Cubic curve to (C)
+                    option(value="A") Arc (A)
 
-          fieldset#a-cmd-config
-            legend A command config
-            label
-              span X-Radius
-              input(type="number" name="xR" min=1 step=1 value=50)
-            label
-              span Y-Radius
-              input(type="number" name="yR" min=1 step=1 value=50)
-            label
-              span X-Rotation
-              input(type="range" name="xRot" min=0 may=360 step=1 value=0)
-            label
-              span Large Arc Flag
-              input(type="checkbox" name="large")
-            label
-              span Sweep Flag
-              input(type="checkbox" name="sweep")
+                fieldset#a-cmd-config
+                    legend A command config
+                    label
+                        span X-Radius
+                        input(type="number" name="xR" min=1 step=1 value=50)
+                    label
+                        span Y-Radius
+                        input(type="number" name="yR" min=1 step=1 value=50)
+                    label
+                        span X-Rotation
+                        input(type="range" name="xRot" min=0 may=360 step=1 value=0)
+                    label
+                        span Large Arc Flag
+                        input(type="checkbox" name="large")
+                    label
+                        span Sweep Flag
+                        input(type="checkbox" name="sweep")
 
-        svg#outer-container(width="640" height="360" viewBox="0 0 640 360")
-          g#inner-container
-          path#overlay(fill="transparent" stroke="orange")
+            svg#outer-container(width="640" height="360" viewBox="0 0 640 360")
+                g#inner-container
+                path#overlay(fill="transparent" stroke="orange")
 
-        #coords
+            #coords
         
     #config
-      fieldset#fill-and-stroke
-        legend Fill &amp; Stroke
-        label
-          span Stroke-color:
-          input#stroke-color(type="color" name="strokeColor")
-        label
-          span Stroke-opacity:
-          input#stroke-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
-        label
-          span Stroke-width:
-          input#stroke-width(type="range" min=0.1 max=50 step=0.1 value=2 name="strokeWidth")
-        label
-          span Fill-color:
-          input#fill-color(type="color" name="fillColor")
-        label
-          span Fill-opacity:
-          input#fill-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
-        label
-          span Fill-rule:
-          select#fill-rule(name="fillRule")
-            option evenodd
-            option nonzero
-        label
-          span Fill shape
-          input#fill-toggle(type="checkbox" name="fill")
-        label
-          span Close shape
-          input#close-toggle(type="checkbox" name="close" checked)
+        fieldset#fill-and-stroke
+            legend Fill &amp; Stroke
+            label
+                span Stroke-color:
+                input#stroke-color(type="color" name="strokeColor")
+            label
+                span Stroke-opacity:
+                input#stroke-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
+            label
+                span Stroke-width:
+                input#stroke-width(type="range" min=0.1 max=50 step=0.1 value=2 name="strokeWidth")
+            label
+                span Fill-color:
+                input#fill-color(type="color" name="fillColor")
+            label
+                span Fill-opacity:
+                input#fill-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
+            label
+                span Fill-rule:
+                select#fill-rule(name="fillRule")
+                    option evenodd
+                    option nonzero
+            label
+                span Fill shape
+                input#fill-toggle(type="checkbox" name="fill")
+            label
+                span Close shape
+                input#close-toggle(type="checkbox" name="close" checked)
 
-      fieldset#transformations
-        legend Transformations
-        label
-          span Scale by factor of
-          input#scaling-factor(type="number" min=0.2 max=4.0 step=0.1 value=1)
-        label
-          span Rotate by (deg)
-          input#deg(type="number" min=-360 max=360 step=0.1 value=0)
-        label
-          span Reflect shape
-          select#reflect
-            option
-            option Vertically
-            option Horizontally
-        label
-          span Trim whitespace
-          input#trim-check(type="checkbox")
-        button#transform Transform
+        fieldset#transformations
+            legend Transformations
+            label
+                span Scale by factor of
+                input#scaling-factor(type="number" min=0.2 max=4.0 step=0.1 value=1)
+            label
+                span Rotate by (deg)
+                input#deg(type="number" min=-360 max=360 step=0.1 value=0)
+            label
+                span Reflect shape
+                select#reflect
+                    option
+                    option Vertically
+                    option Horizontally
+            label
+                span Trim whitespace
+                input#trim-check(type="checkbox")
+            button#transform Transform
+
+        fieldset#transforms
+            legend SVG Transformations
+            label
+                span Scale
+                input(type="number" min=1 max=100 step=1 value=1 name="scale")
+            label
+                span Rotate
+                input(type="range" min=0 max=360 step=0.1 value=0 name="rotate")
+            label
+                span SkewX
+                input(type="range" min=0 max=360 step=0.1 value=0 name="skewX")
+            label
+                span SkewY
+                input(type="range" min=0 max=360 step=0.1 value=0 name="skewY")
+            

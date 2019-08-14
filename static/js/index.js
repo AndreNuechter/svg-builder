@@ -85,6 +85,20 @@ const deg = document.getElementById('deg');
 const reflection = document.getElementById('reflect');
 const trimChk = document.getElementById('trim-check');
 const transformBtn = document.getElementById('transform');
+// SVG transforms
+const svgTransforms = document.getElementById('transforms');
+const appliedTransforms = {
+    scale: 1,
+    rotate: 0,
+    skewX: 0,
+    skewY: 0
+};
+svgTransforms.oninput = ({ target }) => {
+    appliedTransforms[target.name] = target.value;
+    group.setAttribute('transform',
+        `scale(${appliedTransforms.scale}) rotate(${appliedTransforms.rotate}) skewX(${appliedTransforms.skewX}) skewY(${appliedTransforms.skewY})`);
+};
+
 // Target for svg markup
 const output = document.getElementById('output');
 
