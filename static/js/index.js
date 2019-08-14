@@ -56,20 +56,16 @@ const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
 const aCmdConfig = document.getElementById('a-cmd-config');
 // NOTE: the below are written via the above selected fieldset and read when drawing an A cmd
-const ACmdParams = {
+const ACmdParams = { // TODO: add to session
     xR: 50,
     yR: 50,
     xRot: 0,
     large: false,
     sweep: false
 };
-// TODO: find a way to change a A cmd wo erasing it first (there might be more than one and then how would we tell which is meant? only consider last?)
-aCmdConfig.onchange = ({ target }) => {
-    ACmdParams[target.name] = target[
-        target.type === 'checkbox' ? 'checked' : 'value'
-    ];
-};
+
 // Fill & Stroke fieldset
+// TODO: can we reduce selections to only the fieldset?
 const styleConfig = document.getElementById('fill-and-stroke');
 const strokeColorSetter = document.getElementById('stroke-color');
 const strokeOpacitySetter = document.getElementById('stroke-opacity');
@@ -80,6 +76,7 @@ const fillRuleSetter = document.getElementById('fill-rule');
 const fillToggle = document.getElementById('fill-toggle');
 const closeToggle = document.getElementById('close-toggle');
 // Transformations fieldset
+// TODO: can we reduce selections to only the fieldset?
 const scalingFactor = document.getElementById('scaling-factor');
 const deg = document.getElementById('deg');
 const reflection = document.getElementById('reflect');
@@ -87,7 +84,7 @@ const trimChk = document.getElementById('trim-check');
 const transformBtn = document.getElementById('transform');
 // SVG transforms
 const svgTransforms = document.getElementById('transforms');
-const appliedTransforms = {
+const appliedTransforms = { // TODO: add to drawing.dims
     scale: 1,
     rotate: 0,
     skewX: 0,
@@ -95,8 +92,16 @@ const appliedTransforms = {
 };
 svgTransforms.oninput = ({ target }) => {
     appliedTransforms[target.name] = target.value;
+
+    const {
+        scale,
+        rotate,
+        skewX,
+        skewY
+    } = appliedTransforms;
+
     group.setAttribute('transform',
-        `scale(${appliedTransforms.scale}) rotate(${appliedTransforms.rotate}) skewX(${appliedTransforms.skewX}) skewY(${appliedTransforms.skewY})`);
+        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
 };
 
 // Target for svg markup
@@ -171,6 +176,7 @@ const session = new Proxy({
 }, {
     set(obj, key, val) {
         // TODO: having possible values of mode in a list might be clearer
+
         if (key === 'mode' && modes.includes(val)) {
             obj[key] = val;
             // check the mode
@@ -233,6 +239,29 @@ const rectTemplate = document.createElementNS(ns, 'rect');
 const ellipseTemplate = document.createElementNS(ns, 'ellipse');
 const circleTemplate = document.createElementNS(ns, 'circle');
 const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseTemplate };
+
+aCmdConfig.oninput = ({ target }) => {
+    ACmdParams[target.name] = target[
+        target.type === 'checkbox' ? 'checked' : 'value'
+    ];
+
+    // TODO: find a better way to change a A cmd
+    // there might be more than one in a layer and then how would we tell which is meant?
+    // rn we only consider the last
+    // BUG: weird behavior when first changing (jumps to some value), might be fixt when syncing the config on start
+    const lastACmd = drawing.layers[session.layer].points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A') || {};
+    Object.assign(lastACmd, {
+        xR: ACmdParams.xR,
+        yR: ACmdParams.yR,
+        xRot: ACmdParams.xRot,
+        large: +ACmdParams.large,
+        sweep: +ACmdParams.sweep
+    });
+    drawLayer();
+};
 
 // watch for addition and removal of layers and do some synchronisation
 new MutationObserver((mutationsList) => {
@@ -335,6 +364,8 @@ new MutationObserver((mutationsList) => {
 }).observe(group, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
+    // TODO: sync aCmdConfig...on layer switch too?!
+
     // if there's a saved drawing, use it, else use defaults
     const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
     Object.assign(drawing, {

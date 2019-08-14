@@ -4,6 +4,8 @@ An app to help with the creation of complex svg markup that can be used directly
 
 __NOTE:__ The markup is copied to the clip-board when double-clicking on the text, saying as much.
 
+__NOTE:__ I'm aware of Inkscape, this is mostly sport ;)
+
 ## Getting started
 
 To try it out clone this repo and initialize it via NPM. Then execute eg `node app` and navigate to localhost:3000.
@@ -50,6 +52,9 @@ Adjust the styling of a layer via the "Fill & Stroke" titled fieldset.
 
 ## Transformations
 
+Single layers can be translated by using the arrow keys.
+The entire drawing may be translated by holding down ctrl while using the arrow keys.
+
 An early version exists, but is broken. 
 I'm meaning to use actual svg transforms eventually.
 
@@ -64,4 +69,3 @@ Here I want to list a few things that might get added in the future:
 
 - non-broken svg transformations
 - import/export of projects
-- a way to play with the viewBox attribute of the svg
