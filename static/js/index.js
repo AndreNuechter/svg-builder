@@ -41,6 +41,7 @@ const svg = document.getElementById('outer-container');
 const svgBoundingRect = svg.getBoundingClientRect();
 const group = svg.getElementById('inner-container');
 const layers = group.children;
+const helperContainer = svg.getElementById('svg-helpers');
 const overlay = svg.getElementById('overlay');
 const controlPoints = svg.getElementsByClassName('control-point');
 // Coords display (visible when hovering svg) and the cb to manage that
@@ -101,6 +102,9 @@ svgTransforms.oninput = ({ target }) => {
     } = appliedTransforms;
 
     group.setAttribute('transform',
+        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
+
+    helperContainer.setAttribute('transform',
         `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
 };
 
@@ -802,6 +806,13 @@ output.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp())
  * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. Defaults to the one of the active layer.
  */
 function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
+    // TODO: refactor...loop thru the fieldsets children and set the appropriate attr to conf[child.name]
+    // how to determine attr?
+    // how to handle fillRuleSetter?...change into radios or checkbox?!
+    // [...styleConfig.children].forEach((child) => {
+    //     child[] = conf[child.name];
+    // });
+
     strokeColorSetter.value = conf.strokeColor;
     strokeOpacitySetter.value = conf.strokeOpacity;
     fillColorSetter.value = conf.fillColor;
@@ -941,7 +952,7 @@ function mkControlPoint(x, y, pointId, type = 0) {
     cp.onmouseup = stopDragging;
 
     // add cp to the outer container to keep it out of the markup output
-    svg.append(cp);
+    helperContainer.append(cp);
 }
 
 // TODO: duz this make sense for modes besides path? for rects we can highlight opposing sides; for ellipses diameters...the logic needs to change quite drastically for that
