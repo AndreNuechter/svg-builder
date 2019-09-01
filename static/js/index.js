@@ -21,6 +21,9 @@ import {
     trim
 } from './transformations.js';
 
+
+const drawing = {};
+
 // Layers fieldset
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 const layerSelect = document.getElementById('layer-select');
@@ -56,17 +59,8 @@ const coordToolTips = (e) => {
 const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
 const aCmdConfig = document.getElementById('a-cmd-config');
-// NOTE: the below are written via the above selected fieldset and read when drawing an A cmd
-const ACmdParams = { // TODO: add to session
-    xR: 50,
-    yR: 50,
-    xRot: 0,
-    large: false,
-    sweep: false
-};
 
 // Fill & Stroke fieldset
-// TODO: can we reduce selections to only the fieldset?
 const styleConfig = document.getElementById('fill-and-stroke');
 const strokeColorSetter = document.getElementById('stroke-color');
 const strokeOpacitySetter = document.getElementById('stroke-opacity');
@@ -77,7 +71,6 @@ const fillRuleSetter = document.getElementById('fill-rule');
 const fillToggle = document.getElementById('fill-toggle');
 const closeToggle = document.getElementById('close-toggle');
 // Transformations fieldset
-// TODO: can we reduce selections to only the fieldset?
 const scalingFactor = document.getElementById('scaling-factor');
 const deg = document.getElementById('deg');
 const reflection = document.getElementById('reflect');
@@ -85,32 +78,8 @@ const trimChk = document.getElementById('trim-check');
 const transformBtn = document.getElementById('transform');
 // SVG transforms
 const svgTransforms = document.getElementById('transforms');
-const appliedTransforms = { // TODO: add to drawing.dims
-    scale: 1,
-    rotate: 0,
-    skewX: 0,
-    skewY: 0
-};
-svgTransforms.oninput = ({ target }) => {
-    appliedTransforms[target.name] = target.value;
-
-    const {
-        scale,
-        rotate,
-        skewX,
-        skewY
-    } = appliedTransforms;
-
-    group.setAttribute('transform',
-        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
-
-    helperContainer.setAttribute('transform',
-        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
-};
-
 // Target for svg markup
 const output = document.getElementById('output');
-
 // determines the props of the affected point the cp is gonna change when moved via dragging
 // NOTE: key is the prop of the point data affected; callback states how it should be changed in relation to the current cursor position
 const controlPointTypes = [
@@ -149,13 +118,18 @@ const controlPointTypes = [
     ]
     // TODO: A cmd?...rx, ry (how to calculate position of those?), xRot (use the scroll wheel?)
 ];
-
 const defaultConfig = {
     dims: {
         width: 640,
         height: 360,
         xMin: 0,
-        yMin: 0
+        yMin: 0,
+        transforms: {
+            scale: 1,
+            rotate: 0,
+            skewX: 0,
+            skewY: 0
+        }
     },
     style: {
         strokeColor: '#000000',
@@ -168,12 +142,16 @@ const defaultConfig = {
         close: false
     }
 };
-
-const drawing = {};
-
 // partially initialize session and define a trap on set
 const session = new Proxy({
     cmd: 'M',
+    arcCmdConfig: {
+        xR: 50,
+        yR: 50,
+        xRot: 0,
+        large: false,
+        sweep: false
+    },
     drawingShape: false,
     shapeStart: {},
     reordering: false
@@ -229,7 +207,6 @@ const session = new Proxy({
         return false;
     }
 });
-
 // create and organize used HTML/SVG elements
 const labelTemplate = document.createElement('label');
 const spanTemplate = document.createElement('span');
@@ -243,29 +220,6 @@ const rectTemplate = document.createElementNS(ns, 'rect');
 const ellipseTemplate = document.createElementNS(ns, 'ellipse');
 const circleTemplate = document.createElementNS(ns, 'circle');
 const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseTemplate };
-
-aCmdConfig.oninput = ({ target }) => {
-    ACmdParams[target.name] = target[
-        target.type === 'checkbox' ? 'checked' : 'value'
-    ];
-
-    // TODO: find a better way to change a A cmd
-    // there might be more than one in a layer and then how would we tell which is meant?
-    // rn we only consider the last
-    // BUG: weird behavior when first changing (jumps to some value), might be fixt when syncing the config on start
-    const lastACmd = drawing.layers[session.layer].points
-        .slice()
-        .reverse()
-        .find(point => point.cmd === 'A') || {};
-    Object.assign(lastACmd, {
-        xR: ACmdParams.xR,
-        yR: ACmdParams.yR,
-        xRot: ACmdParams.xRot,
-        large: +ACmdParams.large,
-        sweep: +ACmdParams.sweep
-    });
-    drawLayer();
-};
 
 // watch for addition and removal of layers and do some synchronisation
 new MutationObserver((mutationsList) => {
@@ -408,11 +362,9 @@ window.addEventListener('DOMContentLoaded', () => {
     // possibly resize the canvas
     setDimsOfSVG();
 
-    // TODO: tidy this up
-    // eslint-disable-next-line no-shadow
-    const { dims } = drawing;
+    const viewBoxDims = drawing.dims;
     svg.setAttribute('viewBox',
-        `${dims.xMin} ${dims.yMin} ${dims.width} ${dims.height}`);
+        `${viewBoxDims.xMin} ${viewBoxDims.yMin} ${viewBoxDims.width} ${viewBoxDims.height}`);
 });
 
 window.onkeyup = (e) => {
@@ -704,11 +656,11 @@ svg.addEventListener('mousedown', (e) => {
             // TODO: arc func, rethink defaults
 
             Object.assign(layer.points[layer.points.length - 1], {
-                xR: ACmdParams.xR,
-                yR: ACmdParams.yR,
-                xRot: ACmdParams.xRot,
-                large: +ACmdParams.large,
-                sweep: +ACmdParams.sweep
+                xR: session.arcCmdConfig.xR,
+                yR: session.arcCmdConfig.yR,
+                xRot: session.arcCmdConfig.xRot,
+                large: +session.arcCmdConfig.large,
+                sweep: +session.arcCmdConfig.sweep
             });
         }
 
@@ -763,6 +715,29 @@ modeSelector.onchange = ({ target }) => {
     }
 };
 
+aCmdConfig.oninput = ({ target }) => {
+    session.arcCmdConfig[target.name] = target[
+        target.type === 'checkbox' ? 'checked' : 'value'
+    ];
+
+    // TODO: find a better way to change a A cmd
+    // there might be more than one in a layer and then how would we tell which is meant?
+    // rn we only consider the last
+    // BUG: weird behavior when first changing (jumps to some value), might be fixt when syncing the config on start
+    const lastACmd = drawing.layers[session.layer].points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A') || {};
+    Object.assign(lastACmd, {
+        xR: session.arcCmdConfig.xR,
+        yR: session.arcCmdConfig.yR,
+        xRot: session.arcCmdConfig.xRot,
+        large: +session.arcCmdConfig.large,
+        sweep: +session.arcCmdConfig.sweep
+    });
+    drawLayer();
+};
+
 // Fill & Stroke
 styleConfig.oninput = ({ target }) => {
     drawing
@@ -801,6 +776,23 @@ transformBtn.onclick = () => {
     drawLayer();
 };
 
+svgTransforms.oninput = ({ target }) => {
+    drawing.dims.transforms[target.name] = target.value;
+
+    const {
+        scale,
+        rotate,
+        skewX,
+        skewY
+    } = drawing.dims.transforms;
+
+    group.setAttribute('transform',
+        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
+
+    helperContainer.setAttribute('transform',
+        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
+};
+
 output.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 /**
@@ -808,13 +800,6 @@ output.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp())
  * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. Defaults to the one of the active layer.
  */
 function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
-    // TODO: refactor...loop thru the fieldsets children and set the appropriate attr to conf[child.name]
-    // how to determine attr?
-    // how to handle fillRuleSetter?...change into radios or checkbox?!
-    // [...styleConfig.children].forEach((child) => {
-    //     child[] = conf[child.name];
-    // });
-
     strokeColorSetter.value = conf.strokeColor;
     strokeOpacitySetter.value = conf.strokeOpacity;
     fillColorSetter.value = conf.fillColor;
@@ -1077,9 +1062,10 @@ function stopDragging() {
 }
 
 /**
- * Returns the markup of the created drawing (the content of group).
+ * Returns the markup of the created drawing (the content of group) inside default svg markup.
  */
 function generateMarkUp() {
+    // TODO: svg-ns, viewBox
     return `
     <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
     ${group.innerHTML}
