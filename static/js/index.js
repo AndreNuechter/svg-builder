@@ -287,7 +287,9 @@ new MutationObserver((mutationsList) => {
                 draggable: true
             });
             const labelText = configClone(spanTemplate)({
-                textContent: drawing.layers[layerId].label || `Layer ${layerId + 1}`,
+                textContent: drawing.layers[layerId]
+                    ? drawing.layers[layerId].label || `Layer ${layerId + 1}`
+                    : `Layer ${layerId + 1}`,
                 contenteditable: true
             });
             const selector = configClone(selectorTemplate)({
@@ -853,15 +855,15 @@ function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
         Object.assign(attrs, {
             cx: layer.points[0].cx,
             cy: layer.points[0].cy,
-            rx: layer.points[0].rx,
-            ry: layer.points[0].ry
+            rx: layer.points[0].rx || 0,
+            ry: layer.points[0].ry || 0
         });
     } else if (layer.mode === 'rect') {
         Object.assign(attrs, {
             x: layer.points[0].x,
             y: layer.points[0].y,
-            width: layer.points[0].width,
-            height: layer.points[0].height
+            width: layer.points[0].width || 0,
+            height: layer.points[0].height || 0
         });
     }
 
@@ -951,7 +953,7 @@ function mkControlPoint(x, y, pointId, type = 0) {
     // stop dragging on mouseup
     cp.onmouseup = stopDragging;
 
-    // add cp to the outer container to keep it out of the markup output
+    // add cp to the helper container to keep it out of the markup output
     helperContainer.append(cp);
 }
 
