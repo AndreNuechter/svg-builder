@@ -15,7 +15,7 @@ import {
     moves,
     viewBoxMoves,
     move,
-    scale,
+    scaleLayer,
     rotate,
     reflect,
     trim
@@ -42,8 +42,8 @@ const modes = ['path', 'rect', 'ellipse'];
 // SVG
 const svg = document.getElementById('outer-container');
 const svgBoundingRect = svg.getBoundingClientRect();
-const group = svg.getElementById('inner-container');
-const layers = group.children;
+const drawingContent = svg.getElementById('inner-container');
+const layers = drawingContent.children;
 const helperContainer = svg.getElementById('svg-helpers');
 const overlay = svg.getElementById('overlay');
 const controlPoints = svg.getElementsByClassName('control-point');
@@ -83,6 +83,7 @@ const output = document.getElementById('output');
 // determines the props of the affected point the cp is gonna change when moved via dragging
 // NOTE: key is the prop of the point data affected; callback states how it should be changed in relation to the current cursor position
 const controlPointTypes = [
+    // TODO use destructuring for the callbacks
     // regular point/upper right corner of rect
     [
         { key: 'x', callback: x => x },
@@ -224,7 +225,7 @@ const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseT
 // watch for addition and removal of layers and do some synchronisation
 new MutationObserver((mutationsList) => {
     // hide/show a message when no layers exist
-    vacancyMsgStyle.display = group.childElementCount ? 'none' : 'initial';
+    vacancyMsgStyle.display = drawingContent.childElementCount ? 'none' : 'initial';
 
     // prevent interfering w reordering
     if (session.reordering) {
@@ -321,7 +322,7 @@ new MutationObserver((mutationsList) => {
             layerSelectors[session.layer].checked = true;
         }
     });
-}).observe(group, { childList: true });
+}).observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
     // TODO: sync aCmdConfig...on layer switch too?!
@@ -352,7 +353,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 parseLayerStyle(layer.style));
 
         // add configured shape to the html
-        group.append(configClone(shape)(attrs));
+        drawingContent.append(configClone(shape)(attrs));
     });
 
     // adjust inputs for changing the dimensions of the drawing
@@ -452,7 +453,7 @@ layerSelect.ondrop = (e) => {
     if (draggedId < droppedOnId) {
         droppedOnLayer.after(draggedLayer);
     } else {
-        group.insertBefore(draggedLayer, droppedOnLayer);
+        drawingContent.insertBefore(draggedLayer, droppedOnLayer);
     }
 
     // adjust affected layer-ids and labels
@@ -487,7 +488,7 @@ addLayerBtn.onclick = () => {
     });
 
     // append the shape to the drawing
-    group.append(shape);
+    drawingContent.append(shape);
 };
 
 // deletes the active layer
@@ -710,7 +711,7 @@ modeSelector.onchange = ({ target }) => {
             const shape = configClone(svgTemplates[session.mode])({
                 'data-layer-id': session.layer
             });
-            group.replaceChild(shape, layers[session.layer]);
+            drawingContent.replaceChild(shape, layers[session.layer]);
         }
     }
 };
@@ -754,9 +755,10 @@ styleConfig.oninput = ({ target }) => {
 };
 
 // Transformations
+// TODO call functions onchange of the respective element
 transformBtn.onclick = () => {
     if (+scalingFactor.value !== 1) {
-        scale(+scalingFactor.value, drawing.layers[session.layer].points);
+        scaleLayer(+scalingFactor.value, drawing.layers[session.layer].points);
     }
 
     if (+deg.value !== 0) {
@@ -785,12 +787,9 @@ svgTransforms.oninput = ({ target }) => {
         skewX,
         skewY
     } = drawing.dims.transforms;
+    const transform = `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`;
 
-    group.setAttribute('transform',
-        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
-
-    helperContainer.setAttribute('transform',
-        `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`);
+    [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
 };
 
 output.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
@@ -1068,7 +1067,7 @@ function generateMarkUp() {
     // TODO: svg-ns, viewBox
     return `
     <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
-    ${group.innerHTML}
+    ${drawingContent.innerHTML}
     </svg>`;
 }
 
