@@ -23,17 +23,21 @@ body {
 }
 
 #main {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 7fr;
+    grid-template-areas:
+        "layers canvas"
+        "config canvas";
 }
 
 #layer-management {
+    grid-area: layers;
     display: inline-flex;
     flex-direction: column;
     justify-content: space-between;
-    margin-right: 8px;
 
     #layer-select {
-        margin-bottom: 8px;
+        min-height: 25vh;
 
         label {
             display: flex;
@@ -77,7 +81,11 @@ body {
     align-self: flex-end;
 }
 
-svg#outer-container {
+#canvas {
+    grid-area: canvas;
+}
+
+#outer-container {
     background: lightgrey;
     border: 2px solid white;
     outline: 3px solid grey;
@@ -115,26 +123,24 @@ svg#outer-container {
 }
 
 #config {
-    margin-top: 8px;
-    display: flex;
+    grid-area: config;
+    display: inline-flex;
+    flex-direction: column;
+    width: max-content;
 }
 
 #fill-and-stroke,
 #transformations,
 #transforms {
-    margin-bottom: 8px;
-    display: inline-flex;
-    flex-direction: column;
-
     label {
-        margin-bottom: 2px;
+        margin: 4px 0;
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
     }
+}
 
-    input {
-        margin-left: 2em;
-    }
+select {
+    width: max-content;
 }
 
 input[type=number] {

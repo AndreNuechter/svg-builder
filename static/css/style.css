@@ -19,15 +19,17 @@ body {
     content: "Double-click here to copy the markup to your clipboard"; }
 
 #main {
-  display: flex; }
+  display: grid;
+  grid-template-columns: 1fr 7fr;
+  grid-template-areas: "layers canvas" "config canvas"; }
 
 #layer-management {
+  grid-area: layers;
   display: inline-flex;
   flex-direction: column;
-  justify-content: space-between;
-  margin-right: 8px; }
+  justify-content: space-between; }
   #layer-management #layer-select {
-    margin-bottom: 8px; }
+    min-height: 25vh; }
     #layer-management #layer-select label {
       display: flex;
       justify-content: space-between; }
@@ -62,7 +64,10 @@ body {
   height: 2.7em;
   align-self: flex-end; }
 
-svg#outer-container {
+#canvas {
+  grid-area: canvas; }
+
+#outer-container {
   background: lightgrey;
   border: 2px solid white;
   outline: 3px solid grey;
@@ -93,25 +98,20 @@ svg#outer-container {
   pointer-events: none; }
 
 #config {
-  margin-top: 8px;
-  display: flex; }
-
-#fill-and-stroke,
-#transformations,
-#transforms {
-  margin-bottom: 8px;
+  grid-area: config;
   display: inline-flex;
+  flex-direction: column;
+  width: max-content; }
+
+#fill-and-stroke label,
+#transformations label,
+#transforms label {
+  margin: 4px 0;
+  display: flex;
   flex-direction: column; }
-  #fill-and-stroke label,
-  #transformations label,
-  #transforms label {
-    margin-bottom: 2px;
-    display: flex;
-    justify-content: space-between; }
-  #fill-and-stroke input,
-  #transformations input,
-  #transforms input {
-    margin-left: 2em; }
+
+select {
+  width: max-content; }
 
 input[type=number] {
   width: 5em;
