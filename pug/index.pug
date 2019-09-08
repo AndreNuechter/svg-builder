@@ -75,10 +75,11 @@ html
                         span Sweep Flag
                         input(type="checkbox" name="sweep")
 
-            svg#outer-container(width="640" height="360" viewBox="0 0 640 360")
+            svg#outer-container(width="640" height="360")
                 g#inner-container
                 g#svg-helpers
                     path#overlay(fill="transparent" stroke="orange")
+                    rect#dim-changer(fill="rgba(0,0,0,0.6)" width=10 height=10 x=630 y=350)
 
             #coords
         

@@ -13,7 +13,6 @@ import {
 } from './helper-functions.js';
 import {
     moves,
-    viewBoxMoves,
     move,
     scaleLayer,
     rotate,
@@ -41,8 +40,8 @@ const modeSelector = document.getElementById('modes');
 const modes = ['path', 'rect', 'ellipse'];
 // SVG
 const svg = document.getElementById('outer-container');
-const svgBoundingRect = svg.getBoundingClientRect();
 const drawingContent = svg.getElementById('inner-container');
+const drawingBoundingRect = svg.getBoundingClientRect();
 const layers = drawingContent.children;
 const helperContainer = svg.getElementById('svg-helpers');
 const overlay = svg.getElementById('overlay');
@@ -50,7 +49,7 @@ const controlPoints = svg.getElementsByClassName('control-point');
 // Coords display (visible when hovering svg) and the cb to manage that
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
-    const [x, y] = getMousePos(svgBoundingRect, e);
+    const [x, y] = getMousePos(drawingBoundingRect, e);
     coords.textContent = `x: ${x}, y: ${y}`;
     coords.style.left = `${e.pageX + 16}px`;
     coords.style.top = `${e.pageY - 32}px`;
@@ -123,9 +122,8 @@ const defaultConfig = {
     dims: {
         width: 640,
         height: 360,
-        xMin: 0,
-        yMin: 0,
         transforms: {
+            translate: { x: 0, y: 0 },
             scale: 1,
             rotate: 0,
             skewX: 0,
@@ -362,10 +360,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // possibly resize the canvas
     setDimsOfSVG();
-
-    const viewBoxDims = drawing.dims;
-    svg.setAttribute('viewBox',
-        `${viewBoxDims.xMin} ${viewBoxDims.yMin} ${viewBoxDims.width} ${viewBoxDims.height}`);
 });
 
 window.onkeyup = (e) => {
@@ -380,17 +374,24 @@ window.onkeydown = (e) => {
     if (moves[key]) {
         e.preventDefault();
 
-        // move the viewBox when the ctrl key is pressed
+        // translate the entire drawing when the ctrl key is pressed
         if (e.ctrlKey) {
-            const { action, attr } = viewBoxMoves[key];
-            // eslint-disable-next-line no-shadow
-            const { dims } = drawing;
+            const action = moves[key][1];
 
-            dims[attr] = action(dims[attr]);
-            save();
+            drawing.dims.transforms.translate[moves[key][0][0]] = key.match(/Arrow(Up|Down)/)
+                ? action(drawing.dims.transforms.translate.y)
+                : action(drawing.dims.transforms.translate.x);
 
-            svg.setAttribute('viewBox',
-                `${dims.xMin} ${dims.yMin} ${dims.width} ${dims.height}`);
+            const {
+                translate,
+                scale,
+                rotate,
+                skewX,
+                skewY
+            } = drawing.dims.transforms;
+            const transform = `translate(${[translate.x, translate.y]}) scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`;
+
+            [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
 
             return;
         }
@@ -526,7 +527,7 @@ undoBtn.onclick = () => {
 svg.addEventListener('mousedown', (e) => {
     if (!layers.length) addLayerBtn.click();
 
-    const [x, y] = getMousePos(svgBoundingRect, e);
+    const [x, y] = getMousePos(drawingBoundingRect, e);
     const layer = drawing.layers[session.layer];
 
     // drawing a rect or ellipse
@@ -575,7 +576,7 @@ svg.addEventListener('mousedown', (e) => {
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
         svg.onmousemove = (ev) => {
-            const [x1, y1] = getMousePos(svgBoundingRect, ev);
+            const [x1, y1] = getMousePos(drawingBoundingRect, ev);
 
             configElement(rect, {
                 x: Math.min(x, x1),
@@ -597,7 +598,7 @@ svg.addEventListener('mousedown', (e) => {
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
         svg.onmousemove = (ev) => {
-            const [x1, y1] = getMousePos(svgBoundingRect, ev);
+            const [x1, y1] = getMousePos(drawingBoundingRect, ev);
 
             configElement(ellipse, {
                 rx: Math.abs(x - x1),
@@ -781,13 +782,15 @@ transformBtn.onclick = () => {
 svgTransforms.oninput = ({ target }) => {
     drawing.dims.transforms[target.name] = target.value;
 
+    // TODO stay dry (c ctrl + arrow-key)
     const {
+        translate,
         scale,
         rotate,
         skewX,
         skewY
     } = drawing.dims.transforms;
-    const transform = `scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`;
+    const transform = `translate(${[translate.x, translate.y]}) scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`;
 
     [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
 };
@@ -1028,7 +1031,7 @@ function dragging(layer, pointId, type, cp) {
     }
 
     return (e) => {
-        const [x, y] = getMousePos(svgBoundingRect, e);
+        const [x, y] = getMousePos(drawingBoundingRect, e);
 
         // update the dragged points data
         args.forEach(arg => Object.assign(point, {
@@ -1064,7 +1067,7 @@ function stopDragging() {
  * Returns the markup of the created drawing (the content of group) inside default svg markup.
  */
 function generateMarkUp() {
-    // TODO: svg-ns, viewBox
+    // TODO: svg-ns
     return `
     <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
     ${drawingContent.innerHTML}
