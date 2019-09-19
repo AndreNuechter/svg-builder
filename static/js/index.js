@@ -20,9 +20,8 @@ import {
     trim
 } from './transformations.js';
 
-
 const drawing = {};
-
+const markupOutput = document.getElementById('output');
 // Layers fieldset
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 const layerSelect = document.getElementById('layer-select');
@@ -41,12 +40,12 @@ const modes = ['path', 'rect', 'ellipse'];
 // SVG
 const svg = document.getElementById('outer-container');
 const drawingContent = svg.getElementById('inner-container');
-const drawingBoundingRect = svg.getBoundingClientRect();
+const drawingBoundingRect = svg.getBoundingClientRect(); // TODO: this leads to weird offsets...replacing instances w the value seems wasteful tho...
 const layers = drawingContent.children;
 const helperContainer = svg.getElementById('svg-helpers');
 const overlay = svg.getElementById('overlay');
 const controlPoints = svg.getElementsByClassName('control-point');
-// Coords display (visible when hovering svg) and the cb to manage that
+// Coords display (visible when hovering svg) and the cb to manage it
 const coords = document.getElementById('coords');
 const coordToolTips = (e) => {
     const [x, y] = getMousePos(drawingBoundingRect, e);
@@ -58,7 +57,6 @@ const coordToolTips = (e) => {
 const commands = document.getElementById('commands');
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
 const aCmdConfig = document.getElementById('a-cmd-config');
-
 // Fill & Stroke fieldset
 const styleConfig = document.getElementById('fill-and-stroke');
 const strokeColorSetter = document.getElementById('stroke-color');
@@ -75,55 +73,14 @@ const deg = document.getElementById('deg');
 const reflection = document.getElementById('reflect');
 const trimChk = document.getElementById('trim-check');
 const transformBtn = document.getElementById('transform');
-// SVG transforms
 const svgTransforms = document.getElementById('transforms');
-// Target for svg markup
-const output = document.getElementById('output');
-// determines the props of the affected point the cp is gonna change when moved via dragging
-// NOTE: key is the prop of the point data affected; callback states how it should be changed in relation to the current cursor position
-const controlPointTypes = [
-    // TODO use destructuring for the callbacks
-    // regular point/upper right corner of rect
-    [
-        { key: 'x', callback: x => x },
-        { key: 'y', callback: (x, y) => y }
-    ],
-    // cp1
-    [
-        { key: 'x1', callback: x => x },
-        { key: 'y1', callback: (x, y) => y }
-    ],
-    // cp2
-    [
-        { key: 'x2', callback: x => x },
-        { key: 'y2', callback: (x, y) => y }
-    ],
-    // center of an ellipse
-    [
-        { key: 'cx', callback: x => x },
-        { key: 'cy', callback: (x, y) => y }
-    ],
-    // lower left corner of rect
-    [
-        { key: 'width', callback: (x, y, point) => Math.abs(x - point.x) },
-        { key: 'height', callback: (x, y, point) => Math.abs(y - point.y) }
-    ],
-    // controlling width of ellipse
-    [
-        { key: 'rx', callback: (x, y, point) => Math.abs(x - point.cx) }
-    ],
-    // controlling height of ellipse
-    [
-        { key: 'ry', callback: (x, y, point) => Math.abs(y - point.cy) }
-    ]
-    // TODO: A cmd?...rx, ry (how to calculate position of those?), xRot (use the scroll wheel?)
-];
+
 const defaultConfig = {
     dims: {
         width: 640,
         height: 360,
         transforms: {
-            translate: { x: 0, y: 0 },
+            translate: [0, 0],
             scale: 1,
             rotate: 0,
             skewX: 0,
@@ -156,7 +113,7 @@ const session = new Proxy({
     reordering: false
 }, {
     set(obj, key, val) {
-        // TODO: having possible values of mode in a list might be clearer
+        // TODO: having possible values of key in a list might be clearer
 
         if (key === 'mode' && modes.includes(val)) {
             obj[key] = val;
@@ -217,7 +174,10 @@ const ns = 'http://www.w3.org/2000/svg';
 const pathTemplate = document.createElementNS(ns, 'path');
 const rectTemplate = document.createElementNS(ns, 'rect');
 const ellipseTemplate = document.createElementNS(ns, 'ellipse');
-const circleTemplate = document.createElementNS(ns, 'circle');
+const circleTemplate = (() => configElement(document.createElementNS(ns, 'circle'), {
+    r: 3,
+    class: 'control-point'
+}))();
 const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseTemplate };
 
 // watch for addition and removal of layers and do some synchronisation
@@ -278,6 +238,7 @@ new MutationObserver((mutationsList) => {
                 .remove();
 
             // if there're no layers left and we havent done so yet, we do some clean-up and are done
+            // TODO: this deserves a refactor
             if (!layers.length) {
                 // eslint-disable-next-line no-prototype-builtins
                 if (session.hasOwnProperty('layer')) {
@@ -372,26 +333,18 @@ window.onkeydown = (e) => {
     const { key } = e;
 
     if (moves[key]) {
+        // TODO: dragging center of svg arround (might allow getting rid of dims changing)
         e.preventDefault();
 
         // translate the entire drawing when the ctrl key is pressed
         if (e.ctrlKey) {
             const action = moves[key][1];
 
-            drawing.dims.transforms.translate[moves[key][0][0]] = key.match(/Arrow(Up|Down)/)
-                ? action(drawing.dims.transforms.translate.y)
-                : action(drawing.dims.transforms.translate.x);
+            drawing.dims.transforms.translate[moves[key][0][0] === 'x' ? 0 : 1] = key.match(/Arrow(?:Up|Down)/)
+                ? action(drawing.dims.transforms.translate[1])
+                : action(drawing.dims.transforms.translate[0]);
 
-            const {
-                translate,
-                scale,
-                rotate,
-                skewX,
-                skewY
-            } = drawing.dims.transforms;
-            const transform = `translate(${[translate.x, translate.y]}) scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`;
-
-            [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
+            applyTransforms();
 
             return;
         }
@@ -411,8 +364,6 @@ window.onkeydown = (e) => {
     } else if (!e.ctrlKey && cmds.includes(key.toUpperCase())) {
         e.preventDefault();
         session.cmd = key.toUpperCase();
-    } else if (e.ctrlKey && key.toUpperCase() === 'C') {
-        // TODO: add duplicate (style + mode + points) of current layer right after it and set focus to it
     }
 };
 
@@ -429,6 +380,7 @@ layerSelect.ondrop = (e) => {
     // NOTE: the dragged layer is first removed and then re-added, triggering the observer on group...
     // BUT since the the actions there happen after the fact, proper syncing via that is a pain
     // SO we do the necessary work here
+
     // signify to the observer on group that we are reordering
     session.reordering = true;
 
@@ -492,7 +444,6 @@ addLayerBtn.onclick = () => {
     drawingContent.append(shape);
 };
 
-// deletes the active layer
 delLayerBtn.onclick = () => {
     if (!layers.length) return;
 
@@ -512,11 +463,12 @@ clearAllBtn.onclick = () => {
     drawing.layers.length = 0;
     drawing.dims = Object.assign({}, defaultConfig.dims);
 
-    // remove all layers incl selectors
+    // remove HTML part
     [...layers].forEach(layer => layer.remove());
 };
 
 undoBtn.onclick = () => {
+    // TODO: fix for circles and rects
     if (session.mode === 'path' && drawing.layers[session.layer].points.length) {
         remLastControlPoint(drawing.layers[session.layer].points.pop().cmd);
         drawLayer();
@@ -535,7 +487,7 @@ svg.addEventListener('mousedown', (e) => {
         // TODO: allow stopping creation by pressing esc?
         // stop drawing
         session.drawingShape = false;
-        svg.onmousemove = '';
+        svg.onmousemove = null;
 
         // collect the shapes attrs
         const size = {
@@ -680,18 +632,17 @@ svg.addEventListener('mouseleave', () => {
     [coords.style.top, coords.style.left] = ['-100px', '-100px'];
 });
 
-// Commands (only visible when in path mode)
 commands.onchange = ({ target }) => {
     session.cmd = cmds[cmds.indexOf(target.value)] || cmds[0];
 };
 
+// Dimensions of canvas
 // NOTE: we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync...
-// best way may be to never actually do the below, make svg comfortably large and only use dims on markup?! some form of movement in on the canvas might be necessary
+// best way may be to never actually do this...make svg comfortably large and only use dims on markup...some form of movement in on the canvas might be necessary
 function setDimsOfSVG() {
     svg.style.width = `${drawing.dims.width}px`;
     svg.style.height = `${drawing.dims.height}px`;
 }
-// Dimensions of canvas
 dims.onchange = ({ target }) => {
     drawing.dims[target.id] = target.value || drawing.dims[target.id];
     svg.style[target.id] = `${drawing.dims[target.id]}px`;
@@ -702,18 +653,18 @@ dims.onchange = ({ target }) => {
 modeSelector.onchange = ({ target }) => {
     session.mode = modes.includes(target.value) ? target.value : session.mode;
 
+    if (!layers[session.layer]) return;
+
     // if we change the mode on an existing layer, we add a new layer
     // if the layer has not been edited yet, we replace the shape and the mode
-    if (layers[session.layer]) {
-        if (drawing.layers[session.layer].points.length) {
-            addLayerBtn.click();
-        } else {
-            drawing.layers[session.layer].mode = session.mode;
-            const shape = configClone(svgTemplates[session.mode])({
-                'data-layer-id': session.layer
-            });
-            drawingContent.replaceChild(shape, layers[session.layer]);
-        }
+    if (drawing.layers[session.layer].points.length) {
+        addLayerBtn.click();
+    } else {
+        drawing.layers[session.layer].mode = session.mode;
+        const shape = configClone(svgTemplates[session.mode])({
+            'data-layer-id': session.layer
+        });
+        drawingContent.replaceChild(shape, layers[session.layer]);
     }
 };
 
@@ -756,7 +707,7 @@ styleConfig.oninput = ({ target }) => {
 };
 
 // Transformations
-// TODO call functions onchange of the respective element
+// TODO switch to svg transforms
 transformBtn.onclick = () => {
     if (+scalingFactor.value !== 1) {
         scaleLayer(+scalingFactor.value, drawing.layers[session.layer].points);
@@ -782,20 +733,10 @@ transformBtn.onclick = () => {
 svgTransforms.oninput = ({ target }) => {
     drawing.dims.transforms[target.name] = target.value;
 
-    // TODO stay dry (c ctrl + arrow-key)
-    const {
-        translate,
-        scale,
-        rotate,
-        skewX,
-        skewY
-    } = drawing.dims.transforms;
-    const transform = `translate(${[translate.x, translate.y]}) scale(${scale}) rotate(${rotate}) skewX(${skewX}) skewY(${skewY})`;
-
-    [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
+    applyTransforms();
 };
 
-output.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
+markupOutput.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given config.
@@ -815,7 +756,7 @@ function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
 }
 
 /**
- * Changes the style-related attributess of a layer (a svg path, rect or ellipse).
+ * Changes the style-related attributess of a layer.
  * @param { number } [layerId=session.layer] The ordinal number of the affected Layer. Defaults to the active layer.
  * @param { Object } [conf=drawing.layers[layerId].style] The container of style-related attributes of the affected layer.
  */
@@ -832,41 +773,48 @@ function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].styl
  * @param { Object } [layer=drawing.layers[layerId]] The affected layer. Defaults to the current.
  */
 function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
-    const attrs = {};
+    let attrs;
 
     if (layer.mode === 'path') {
-        Object.assign(attrs, {
+        attrs = {
             d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
-        });
+        };
     } else if (layer.mode === 'ellipse') {
-        Object.assign(attrs, {
+        attrs = {
             cx: layer.points[0].cx,
             cy: layer.points[0].cy,
             rx: layer.points[0].rx || 0,
             ry: layer.points[0].ry || 0
-        });
+        };
     } else if (layer.mode === 'rect') {
-        Object.assign(attrs, {
+        attrs = {
             x: layer.points[0].x,
             y: layer.points[0].y,
             width: layer.points[0].width || 0,
             height: layer.points[0].height || 0
-        });
+        };
     }
 
     configElement(layers[layerId], attrs);
     save();
 }
 
-// TODO: refactor cmd param and make it work for other modes
+function applyTransforms() {
+    const transform = Object
+        .keys(drawing.dims.transforms)
+        .reduce((str, key) => `${str} ${key}(${drawing.dims.transforms[key]})`, '');
+
+    [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
+}
+
 function remLastControlPoint(cmd) {
     controlPoints[controlPoints.length - 1].remove();
     if (cmd === 'Q' || cmd === 'C') controlPoints[controlPoints.length - 1].remove();
     if (cmd === 'C') controlPoints[controlPoints.length - 1].remove();
 }
-// TODO: should rem a single point incl cps, but rn duz so for every cp
+
 function remControlPoints() {
-    // NOTE: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly removed...its easy to do, but maybe unnecesary, so set it up and compare perf
+    // NOTE: to ensure there's no mem leak the eventListeners (onmouseenter, onmouseleave, onmousedown, onmouseup) might need to be explicitly set to null...it may be unnecesary, so set it up and compare perf
     [...controlPoints].forEach(c => c.remove());
 }
 
@@ -878,7 +826,7 @@ function remControlPoints() {
 function mkPoint(point, pointId) {
     // regular point (eg moveTo)
     if (session.mode === 'path') {
-        // TODO: duz this make sense w H and V? it looks weird
+        // TODO: duz this make sense w H and V?... it looks weird
         mkControlPoint(point.x, point.y, pointId);
 
         // control point for Q and first one for C
@@ -890,8 +838,6 @@ function mkPoint(point, pointId) {
         if (point.cmd === 'C') {
             mkControlPoint(point.x2, point.y2, pointId, 2);
         }
-
-        // TODO: cps for A cmd?... xr, yr, xRot, sweep and large arc
     } else if (session.mode === 'rect') {
         // one to change x and y
         mkControlPoint(point.x, point.y, pointId);
@@ -913,16 +859,14 @@ function mkPoint(point, pointId) {
  * @param { number } x The x-ccordinate of the cp.
  * @param { number } y The y-ccordinate of the cp.
  * @param { number } pointId The ordinal number of the point within its layer.
- * @param { number } [type=0] the "type" of cp we want to create.
+ * @param { number } [type=0] the type of cp we want to create. Defaults to 0.
  */
 function mkControlPoint(x, y, pointId, type = 0) {
     const layer = drawing.layers[session.layer];
 
     const cp = configClone(circleTemplate)({
         cx: x,
-        cy: y,
-        r: 3,
-        class: 'control-point'
+        cy: y
     });
 
     // start dragging on mousedown
@@ -930,58 +874,58 @@ function mkControlPoint(x, y, pointId, type = 0) {
         // prevent triggering svg.onmousedown
         e.stopPropagation();
         // so the hilight is shown prior to movement
-        hilightSegment(layer, pointId, type > 0);
+        hilightSegment(layer, pointId, !!type);
         // update dragged point on mousemove
         svg.onmousemove = dragging(layer, pointId, type, cp);
         svg.onmouseleave = stopDragging;
         svg.onmouseup = stopDragging;
     };
 
-    // stop dragging on mouseup
     cp.onmouseup = stopDragging;
 
     // add cp to the helper container to keep it out of the markup output
     helperContainer.append(cp);
 }
 
-// TODO: duz this make sense for modes besides path? for rects we can highlight opposing sides; for ellipses diameters...the logic needs to change quite drastically for that
-// TODO: c 3rd param, is that clearer?
-/**
- * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s).
- * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer (extracted from the layer).
- * @param { number } pointId The ordinal number of the point within its layer.
- * @param { boolean } isCp The "type" of cp being dragged (it's kinda missleading)
- */
-function hilightSegment({ points } = drawing.layers[session.layer], pointId, type) {
-    if (points.length <= 1) return;
-
-    let d = 'M ';
-
-    // TODO: check if shape is closed and highlight that part as well
-    // what can we tell about the dragged point?
-    if (pointId === points.length - 1 || type) {
-        // it's the last point or not a regular point (eg cps for x1 and y1 only affect one segment no matter what)
-        // mov to prev point and draw path to curr
-        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-         ${pointToMarkup(points[pointId])}`;
-    } else if (pointId === 0) {
-        // it's the first point of the layer
-        // mov to point and draw path to next
-        d += `${[points[0].x, points[0].y].join(' ')}
-         ${pointToMarkup(points[1])}`;
-    } else {
-        // it's a point in between
-        // mov to prev point and draw path over curr to next
-        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-         ${pointToMarkup(points[pointId])}
-         ${pointToMarkup(points[pointId + 1])}`;
-    }
-
-    configElement(overlay, {
-        'stroke-width': +drawing.layers[session.layer].style.strokeWidth + 4,
-        d
-    });
-}
+// determines the props of the affected point the cp is gonna change when moved via dragging
+// NOTE: key is the prop of the point data affected; callback states how it should be changed in relation to the current cursor position
+// NOTE: the index of ea obj is used as its 'type' in other places (passed to mkCP)
+const controlPointTypes = [
+    // TODO use destructuring for the callbacks
+    // regular point/upper right corner of rect
+    [
+        { key: 'x', callback: x => x },
+        { key: 'y', callback: (x, y) => y }
+    ],
+    // cp1
+    [
+        { key: 'x1', callback: x => x },
+        { key: 'y1', callback: (x, y) => y }
+    ],
+    // cp2
+    [
+        { key: 'x2', callback: x => x },
+        { key: 'y2', callback: (x, y) => y }
+    ],
+    // center of an ellipse
+    [
+        { key: 'cx', callback: x => x },
+        { key: 'cy', callback: (x, y) => y }
+    ],
+    // lower left corner of rect
+    [
+        { key: 'width', callback: (x, y, point) => Math.abs(x - point.x) },
+        { key: 'height', callback: (x, y, point) => Math.abs(y - point.y) }
+    ],
+    // controlling width of ellipse
+    [
+        { key: 'rx', callback: (x, y, point) => Math.abs(x - point.cx) }
+    ],
+    // controlling height of ellipse
+    [
+        { key: 'ry', callback: (x, y, point) => Math.abs(y - point.cy) }
+    ]
+];
 
 /**
  * The eventHandler-factory for dragging a cp.
@@ -994,9 +938,9 @@ function hilightSegment({ points } = drawing.layers[session.layer], pointId, typ
 function dragging(layer, pointId, type, cp) {
     const args = controlPointTypes[type];
     const point = layer.points[pointId];
+    // collect the affected cps and the effects applied to them
     const cps = [{ ref: cp, fx: [] }];
 
-    // collect the affected cps and the effects applied to them
     if (point.cmd !== 'V' && type !== 6) {
         cps[0].fx.push(x => ({ cx: x }));
     }
@@ -1005,7 +949,7 @@ function dragging(layer, pointId, type, cp) {
         cps[0].fx.push((x, y) => ({ cy: y }));
     }
 
-    // if the dragged cp is the anchor of a rect or ellipse, we want to move the other cp(s) too
+    // if the dragged cp is the anchor of a rect or ellipse, we want to move the related cp(s) too
     if (session.mode === 'rect' && args[0].key === 'x') {
         cps.push({
             ref: controlPoints[1],
@@ -1042,7 +986,7 @@ function dragging(layer, pointId, type, cp) {
         drawLayer();
 
         // visualize affected path segment
-        hilightSegment(layer, pointId, type);
+        hilightSegment(layer, pointId, !!type);
 
         // move the affected cp(s)
         cps.forEach((currentCp) => {
@@ -1054,12 +998,49 @@ function dragging(layer, pointId, type, cp) {
 }
 
 /**
+ * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s).
+ * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer.
+ * @param { number } pointId The ordinal number of the point within its layer.
+ * @param { boolean } isCp The "type" of cp being dragged (it's kinda missleading)
+ */
+function hilightSegment({ points } = drawing.layers[session.layer], pointId, isCp) {
+    if (points.length <= 1) return;
+
+    let d = 'M ';
+
+    // TODO: check if shape is closed and highlight that part as well
+    // what can we tell about the dragged point?
+    if (pointId === points.length - 1 || isCp) {
+        // it's the last point or not a regular point (eg cps for x1 and y1 only affect one segment no matter what)
+        // mov to prev point and draw path to curr
+        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
+         ${pointToMarkup(points[pointId])}`;
+    } else if (pointId === 0) {
+        // it's the first point of the layer
+        // mov to point and draw path to next
+        d += `${[points[0].x, points[0].y].join(' ')}
+         ${pointToMarkup(points[1])}`;
+    } else {
+        // it's a point in between
+        // mov to prev point and draw path over curr to next
+        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
+         ${pointToMarkup(points[pointId])}
+         ${pointToMarkup(points[pointId + 1])}`;
+    }
+
+    configElement(overlay, {
+        'stroke-width': +drawing.layers[session.layer].style.strokeWidth + 4,
+        d
+    });
+}
+
+/**
  * Removes dragging-related eventlisteners from svg and resets the overlay.
  */
 function stopDragging() {
-    svg.onmousemove = '';
-    svg.onmouseleave = '';
-    svg.onmouseup = '';
+    svg.onmousemove = null;
+    svg.onmouseleave = null;
+    svg.onmouseup = null;
     overlay.setAttribute('d', '');
 }
 
@@ -1067,7 +1048,7 @@ function stopDragging() {
  * Returns the markup of the created drawing (the content of group) inside default svg markup.
  */
 function generateMarkUp() {
-    // TODO: svg-ns
+    // TODO: svg-ns and transforms
     return `
     <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
     ${drawingContent.innerHTML}

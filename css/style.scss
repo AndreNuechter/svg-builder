@@ -126,7 +126,6 @@ body {
     grid-area: config;
     display: inline-flex;
     flex-direction: column;
-    width: max-content;
 }
 
 #fill-and-stroke,
@@ -150,4 +149,20 @@ input[type=number] {
 
 input:checked {
     box-shadow: 0 0 0 2px orange;
+}
+
+fieldset.togglable {
+    margin: 0.4rem 0 0.8rem;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s;
+
+    &.open {
+        max-height: 100em;
+    }
+
+    &.closed {
+        max-height: 0;
+        padding-bottom: 0;
+    }
 }

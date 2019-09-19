@@ -5,6 +5,7 @@ html
     title SVG Builder
     link(rel="stylesheet" href="/css/style.css")
     script(src="/js/index.js" type="module" defer)
+    script(src="/js/collapsables.js" defer)
 
   body
     h1 SVG Builder
@@ -79,12 +80,12 @@ html
                 g#inner-container
                 g#svg-helpers
                     path#overlay(fill="transparent" stroke="orange")
-                    rect#dim-changer(fill="rgba(0,0,0,0.6)" width=10 height=10 x=630 y=350)
+                    // rect#dim-changer(fill="rgba(0,0,0,0.6)" width=10 height=10 x=630 y=350)
 
             #coords
         
         #config
-            fieldset#fill-and-stroke
+            fieldset#fill-and-stroke.closed.togglable
                 legend Fill &amp; Stroke
                 label
                     span Stroke-color:
@@ -113,8 +114,8 @@ html
                     span Close shape
                     input#close-toggle(type="checkbox" name="close" checked)
 
-            fieldset#transformations
-                legend Transform Active Layer
+            fieldset#transformations.closed.togglable
+                legend Transform Layer
                 label
                     span Scale by factor of
                     input#scaling-factor(type="number" min=0.2 max=4.0 step=0.1 value=1)
@@ -132,17 +133,17 @@ html
                     input#trim-check(type="checkbox")
                 button#transform Transform
 
-            fieldset#transforms
+            fieldset#transforms.closed.togglable
                 legend Transform Drawing
                 label
                     span Scale
                     input(type="number" min=1 max=100 step=1 value=1 name="scale")
                 label
                     span Rotate
-                    input(type="range" min=0 max=360 step=0.1 value=0 name="rotate")
+                    input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
                 label
                     span SkewX
-                    input(type="range" min=0 max=360 step=0.1 value=0 name="skewX")
+                    input(type="range" min=-90 max=90 step=0.1 value=0 name="skewX")
                 label
                     span SkewY
-                    input(type="range" min=0 max=360 step=0.1 value=0 name="skewY")
+                    input(type="range" min=-90 max=90 step=0.1 value=0 name="skewY")
