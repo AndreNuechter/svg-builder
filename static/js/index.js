@@ -113,54 +113,62 @@ const session = new Proxy({
     reordering: false
 }, {
     set(obj, key, val) {
-        // TODO: having possible values of key in a list might be clearer
-
-        if (key === 'mode' && modes.includes(val)) {
-            obj[key] = val;
-            // check the mode
-            document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
-            // show/hide cmds depending on mode
-            commands.style.display = val === 'path' ? 'flex' : 'none';
-            // same for a cmd config
-            aCmdConfig.style.display = val === 'path' ? 'flex' : 'none';
-            // disable checkbox for closing shape when not in path mode
-            closeToggle.disabled = (val !== 'path');
-            return true;
-        }
-
-        if (key === 'cmd' && cmds.includes(val)) {
-            obj[key] = val;
-            // check cmd selector
-            document.querySelector(`option[value="${val}"]`).selected = true;
-            return true;
-        }
-
-        if (key === 'layer' && (+val >= 0 && +val <= drawing.layers.length)) {
-            obj[key] = val;
-            // set mode
-            session.mode = drawing.layers[val].mode;
-            // rem cps of prev layer
-            remControlPoints();
-            // add cps for curr layer
-            if (drawing.layers[val].points.length) {
-                drawing.layers[val].points.forEach(mkPoint);
+        // TODO: module this
+        const proxiedSessionKeys = {
+            mode: {
+                check() { return modes.includes(val); },
+                onPass() {
+                    // check the appropriate mode input
+                    document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
+                    // show/hide cmds depending on mode
+                    commands.style.display = val === 'path' ? 'flex' : 'none';
+                    // same for a cmd config
+                    aCmdConfig.style.display = val === 'path' ? 'flex' : 'none';
+                    // disable checkbox for closing shape when not in path mode
+                    closeToggle.disabled = (val !== 'path');
+                }
+            },
+            cmd: {
+                check() { return cmds.includes(val); },
+                onPass() {
+                    // check cmd selector
+                    document.querySelector(`option[value="${val}"]`).selected = true;
+                }
+            },
+            layer: {
+                check() { return (+val >= 0 && +val <= drawing.layers.length); },
+                onPass() {
+                    // set mode
+                    session.mode = drawing.layers[val].mode;
+                    // rem cps of prev layer
+                    remControlPoints();
+                    // add cps for curr layer
+                    if (drawing.layers[val].points.length) {
+                        drawing.layers[val].points.forEach(mkPoint);
+                    }
+                    // adjust Fill & Stroke
+                    setFillNStrokeFields();
+                }
+            },
+            drawingShape: {
+                check() { return typeof val === 'boolean'; },
+                onPass() {}
+            },
+            reordering: {
+                check() { return typeof val === 'boolean'; },
+                onPass() {}
             }
-            // adjust Fill & Stroke
-            setFillNStrokeFields();
-            return true;
-        }
+        };
 
-        if (key === 'drawingShape' && typeof val === 'boolean') {
-            obj[key] = val;
-            return true;
-        }
+        const invalidKey = !Object.keys(proxiedSessionKeys).includes(key);
+        const invalidValue = !proxiedSessionKeys[key].check();
 
-        if (key === 'reordering' && typeof val === 'boolean') {
-            obj[key] = val;
-            return true;
-        }
+        if (invalidKey || invalidValue) return false;
 
-        return false;
+        obj[key] = val;
+        proxiedSessionKeys[key].onPass();
+
+        return true;
     }
 });
 // create and organize used HTML/SVG elements
