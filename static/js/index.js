@@ -9,7 +9,8 @@ import {
     configClone,
     parseLayerStyle,
     getMousePos,
-    pointToMarkup
+    pointToMarkup,
+    getViewBox
 } from './helper-functions.js';
 import {
     moves,
@@ -21,7 +22,6 @@ import {
 } from './transformations.js';
 
 const drawing = {};
-const markupOutput = document.getElementById('output');
 // Layers fieldset
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 const layerSelect = document.getElementById('layer-select');
@@ -77,8 +77,8 @@ const svgTransforms = document.getElementById('transforms');
 
 const defaultConfig = {
     dims: {
-        width: 640,
-        height: 360,
+        width: 320,
+        height: 180,
         transforms: {
             translate: [0, 0],
             scale: 1,
@@ -113,7 +113,6 @@ const session = new Proxy({
     reordering: false
 }, {
     set(obj, key, val) {
-        // TODO: module this
         const proxiedSessionKeys = {
             mode: {
                 check() { return modes.includes(val); },
@@ -121,9 +120,9 @@ const session = new Proxy({
                     // check the appropriate mode input
                     document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
                     // show/hide cmds depending on mode
-                    commands.style.display = val === 'path' ? 'flex' : 'none';
+                    commands.style.display = val === 'path' ? 'block' : 'none';
                     // same for a cmd config
-                    aCmdConfig.style.display = val === 'path' ? 'flex' : 'none';
+                    aCmdConfig.style.display = val === 'path' ? 'block' : 'none';
                     // disable checkbox for closing shape when not in path mode
                     closeToggle.disabled = (val !== 'path');
                 }
@@ -220,13 +219,13 @@ new MutationObserver((mutationsList) => {
 
             // enable re-ordering via dragging of label
             label.ondragstart = (e) => {
-                e.dataTransfer.setData('text', e.target.getAttribute('data-layer-id'));
+                e.dataTransfer.setData('text', e.target.dataset.layerId);
                 e.dataTransfer.effectAllowed = 'move';
             };
 
             // save the custom label
+            // NOTE: we assume edition is preceded by selection and the edited label belongs to the active layer
             labelText.oninput = ({ target }) => {
-                // NOTE: banking on edition being necessarily preceded by selection
                 drawing.layers[session.layer].label = target.textContent;
                 save();
             };
@@ -240,7 +239,8 @@ new MutationObserver((mutationsList) => {
             // delete selector
             const id = +mutation
                 .removedNodes[0]
-                .getAttribute('data-layer-id');
+                .dataset
+                .layerId;
             layerSelect
                 .querySelector(`label[data-layer-id="${id}"]`)
                 .remove();
@@ -277,8 +277,8 @@ new MutationObserver((mutationsList) => {
                 for (let i = id; i < layerSelect.childElementCount; i += 1) {
                     const selector = layerSelect.children[i];
 
-                    selector.setAttribute('data-layer-id', i);
-                    layers[i].setAttribute('data-layer-id', i);
+                    selector.dataset.layerId = i;
+                    layers[i].dataset.layerId = i;
 
                     selector.children[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
                     selector.children[1].value = i;
@@ -293,6 +293,12 @@ new MutationObserver((mutationsList) => {
 
 window.addEventListener('DOMContentLoaded', () => {
     // TODO: sync aCmdConfig...on layer switch too?!
+
+    // set width and height of svg to 100 vw and vh (- offset)
+    configElement(svg, {
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
 
     // if there's a saved drawing, use it, else use defaults
     const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
@@ -326,9 +332,6 @@ window.addEventListener('DOMContentLoaded', () => {
     // adjust inputs for changing the dimensions of the drawing
     widthSetter.value = drawing.dims.width;
     heightSetter.value = drawing.dims.height;
-
-    // possibly resize the canvas
-    setDimsOfSVG();
 });
 
 window.onkeyup = (e) => {
@@ -394,7 +397,7 @@ layerSelect.ondrop = (e) => {
 
     // NOTE: the node we're dropping on may not be a wrapper of a selector (a label) but a child of one (a radio)
     const droppedOnSelector = e.target.tagName === 'LABEL' ? e.target : e.target.parentNode;
-    const droppedOnId = +droppedOnSelector.getAttribute('data-layer-id');
+    const droppedOnId = +droppedOnSelector.dataset.layerId;
     const droppedOnLayer = svg.querySelector(`[data-layer-id="${droppedOnId}"]`);
     const draggedId = +e.dataTransfer.getData('text');
     const draggedLayer = svg.querySelector(`[data-layer-id="${draggedId}"]`);
@@ -424,8 +427,8 @@ layerSelect.ondrop = (e) => {
     for (let i = start; i <= end; i += 1) {
         const selector = layerSelect.children[i];
 
-        selector.setAttribute('data-layer-id', i);
-        layers[i].setAttribute('data-layer-id', i);
+        selector.dataset.layerId = i;
+        layers[i].dataset.layerId = i;
 
         selector.children[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
         selector.children[1].value = i;
@@ -490,14 +493,11 @@ svg.addEventListener('mousedown', (e) => {
     const [x, y] = getMousePos(drawingBoundingRect, e);
     const layer = drawing.layers[session.layer];
 
-    // drawing a rect or ellipse
     if (session.drawingShape) {
         // TODO: allow stopping creation by pressing esc?
-        // stop drawing
         session.drawingShape = false;
         svg.onmousemove = null;
 
-        // collect the shapes attrs
         const size = {
             hor: Math.abs(session.shapeStart.x - x),
             vert: Math.abs(session.shapeStart.y - y)
@@ -518,10 +518,7 @@ svg.addEventListener('mousedown', (e) => {
             };
         }
 
-        // commit em
         Object.assign(layer.points[0], attrs);
-
-        // create cps for the new layer
         mkPoint(layer.points[layer.points.length - 1], layer.points.length - 1);
     } else if (session.mode === 'rect') {
         if (layer.points[0]) return;
@@ -535,6 +532,7 @@ svg.addEventListener('mousedown', (e) => {
         session.drawingShape = true;
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
+        // TODO: the listener can be defined elsewhere
         svg.onmousemove = (ev) => {
             const [x1, y1] = getMousePos(drawingBoundingRect, ev);
 
@@ -557,6 +555,7 @@ svg.addEventListener('mousedown', (e) => {
         session.drawingShape = true;
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
+        // TODO: c. above
         svg.onmousemove = (ev) => {
             const [x1, y1] = getMousePos(drawingBoundingRect, ev);
 
@@ -590,7 +589,7 @@ svg.addEventListener('mousedown', (e) => {
             remLastControlPoint(session.cmd);
         }
 
-        // for M and L cmds, this is enuff (for H and V its even too much)
+        // for M and L cmds, this is enough (for H and V its even too much)
         layer.points.push({
             cmd: session.cmd,
             x,
@@ -637,23 +636,15 @@ svg.addEventListener('mousedown', (e) => {
 svg.addEventListener('mousemove', coordToolTips);
 svg.addEventListener('mouseover', coordToolTips);
 svg.addEventListener('mouseleave', () => {
-    [coords.style.top, coords.style.left] = ['-100px', '-100px'];
+    coords.style = null;
 });
 
 commands.onchange = ({ target }) => {
     session.cmd = cmds[cmds.indexOf(target.value)] || cmds[0];
 };
 
-// Dimensions of canvas
-// NOTE: we want to keep svg.style.dims, drawing.dims and the two responsible number inputs in sync...
-// best way may be to never actually do this...make svg comfortably large and only use dims on markup...some form of movement in on the canvas might be necessary
-function setDimsOfSVG() {
-    svg.style.width = `${drawing.dims.width}px`;
-    svg.style.height = `${drawing.dims.height}px`;
-}
 dims.onchange = ({ target }) => {
     drawing.dims[target.id] = target.value || drawing.dims[target.id];
-    svg.style[target.id] = `${drawing.dims[target.id]}px`;
     save();
 };
 
@@ -689,6 +680,7 @@ aCmdConfig.oninput = ({ target }) => {
         .slice()
         .reverse()
         .find(point => point.cmd === 'A') || {};
+
     Object.assign(lastACmd, {
         xR: session.arcCmdConfig.xR,
         yR: session.arcCmdConfig.yR,
@@ -696,6 +688,7 @@ aCmdConfig.oninput = ({ target }) => {
         large: +session.arcCmdConfig.large,
         sweep: +session.arcCmdConfig.sweep
     });
+
     drawLayer();
 };
 
@@ -732,7 +725,6 @@ transformBtn.onclick = () => {
 
     if (trimChk.checked) {
         trim(drawing.layers[session.layer].points, drawing.dims, widthSetter, heightSetter);
-        setDimsOfSVG();
     }
 
     drawLayer();
@@ -743,8 +735,6 @@ svgTransforms.oninput = ({ target }) => {
 
     applyTransforms();
 };
-
-markupOutput.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given config.
@@ -765,7 +755,7 @@ function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
 
 /**
  * Changes the style-related attributess of a layer.
- * @param { number } [layerId=session.layer] The ordinal number of the affected Layer. Defaults to the active layer.
+ * @param { number } [layerId=session.layer] The ordinal number of the affected layer. Defaults to the active layer.
  * @param { Object } [conf=drawing.layers[layerId].style] The container of style-related attributes of the affected layer.
  */
 function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].style) {
@@ -810,7 +800,7 @@ function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
 function applyTransforms() {
     const transform = Object
         .keys(drawing.dims.transforms)
-        .reduce((str, key) => `${str} ${key}(${drawing.dims.transforms[key]})`, '');
+        .reduce((str, key) => `${str}${key}(${drawing.dims.transforms[key]})`, '');
 
     [drawingContent, helperContainer].forEach(c => c.setAttribute('transform', transform));
 }
@@ -900,6 +890,7 @@ function mkControlPoint(x, y, pointId, type = 0) {
 // NOTE: the index of ea obj is used as its 'type' in other places (passed to mkCP)
 const controlPointTypes = [
     // TODO use destructuring for the callbacks
+    // TODO be explicit about naming types...no more numerical types!
     // regular point/upper right corner of rect
     [
         { key: 'x', callback: x => x },
@@ -936,7 +927,7 @@ const controlPointTypes = [
 ];
 
 /**
- * The eventHandler-factory for dragging a cp.
+ * The eventHandler-factory for a draggable cp.
  * @param { Object } layer The layer the dragged cp affects.
  * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
  * @param { number } type The "type" of cp we're dealing with.
@@ -1006,7 +997,7 @@ function dragging(layer, pointId, type, cp) {
 }
 
 /**
- * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s).
+ * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s), giving it a bright orange color and making it 4px wider than the highlighted segment.
  * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer.
  * @param { number } pointId The ordinal number of the point within its layer.
  * @param { boolean } isCp The "type" of cp being dragged (it's kinda missleading)
@@ -1052,20 +1043,39 @@ function stopDragging() {
     overlay.setAttribute('d', '');
 }
 
+// markupOutput.ondblclick = () => window.navigator.clipboard.writeText(generateMarkUp());
+document
+    .getElementById('get-markup')
+    .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());
+
+const ratio = document.getElementById('ratio');
+const meetOrSlice = document.getElementById('slice-or-meet');
+
 /**
  * Returns the markup of the created drawing (the content of group) inside default svg markup.
  */
 function generateMarkUp() {
     // TODO: svg-ns and transforms
+    const viewBox = getViewBox(drawing.layers).join(' ');
+
     return `
-    <svg width="${drawing.dims.width}" height="${drawing.dims.height}">
+    <svg 
+    width="${drawing.dims.width}" 
+    height="${drawing.dims.height}" 
+    viewBox="${viewBox}" 
+    preserveAspectRatio="${[ratio.value, meetOrSlice.value].join(' ')}">
     ${drawingContent.innerHTML}
     </svg>`;
 }
 
-/**
- * Saves the drawing.
- */
+document
+    .getElementById('preview')
+    .onclick = previewDrawing;
+
+function previewDrawing() {
+    window.open('').document.write(generateMarkUp());
+}
+
 function save() {
     window.localStorage.setItem('drawing', JSON.stringify(drawing));
 }

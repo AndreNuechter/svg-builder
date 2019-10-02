@@ -136,6 +136,64 @@ function getMinNMax(points) {
     return [xMin, yMin, xMax, yMax];
 }
 
+// for ellipse (when p has cx) xs are cx +/- rx
+// for rects (when p has width) xs are x and x + w
+// for ps with cps, its the highest and lowest
+const minMaxXHandler = {
+    path(points) {
+        return points.flatMap((point) => {
+            const res = [point.x];
+
+            if (point.cmd === 'Q' || point.cmd === 'C') res.push(point.x1);
+            if (point.cmd === 'C') res.push(point.x2);
+            if (point.cmd === 'A') res.push(point.x + point.xR, point.x - point.xR);
+
+            return res;
+        });
+    },
+    ellipse(points) {
+        return [points[0].cx, points[0].cx + points[0].rx, points[0].cx - points[0].rx];
+    },
+    rect(points) { // destructure?... [points]
+        return points[0] ? [points[0].x, points[0].x + points[0].width] : [];
+    }
+};
+
+const minMaxYHandler = {
+    path(points) {
+        return points.flatMap((point) => {
+            const res = [point.y];
+
+            if (point.cmd === 'Q' || point.cmd === 'C') res.push(point.y1);
+            if (point.cmd === 'C') res.push(point.y2);
+            if (point.cmd === 'A') res.push(point.y + point.yR, point.y - point.yR);
+
+            return res;
+        });
+    },
+    ellipse(points) { // TODO perhaps needs check too, c below
+        return [points[0].cy, points[0].cy + points[0].ry, points[0].cy - points[0].ry];
+    },
+    rect(points) { // destructure [points]
+        return points[0] ? [points[0].y, points[0].y + points[0].height] : [];
+    }
+};
+
+/**
+ * Returns an array of the lowest x- and y-components and the pixel-dimensions of the drawing for use within an svg-viewBox-attribute.
+ * @param { Object } layers A set of layers belonging to a drawing.
+ * @returns { Array }
+ */
+function getViewBox(layers) {
+    const xs = layers.flatMap(layer => minMaxXHandler[layer.mode](layer.points));
+    const ys = layers.flatMap(layer => minMaxYHandler[layer.mode](layer.points));
+    const xMin = Math.min(...xs);
+    const yMin = Math.min(...ys);
+    const xMax = Math.max(...xs);
+    const yMax = Math.max(...ys);
+    return [xMin, yMin, xMax - xMin, yMax - yMin];
+}
+
 export {
     configElement,
     configClone,
@@ -143,5 +201,6 @@ export {
     hexToRGB,
     getMousePos,
     pointToMarkup,
-    getMinNMax
+    getMinNMax,
+    getViewBox
 };

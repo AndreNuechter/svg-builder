@@ -1,22 +1,20 @@
 body {
-  font-family: arial, helvetica;
+  font-family: Helvetica, Arial, sans-serif;
   background: #282828;
   color: #96968c;
+  margin: 0;
   padding: 8px;
   display: flex;
-  flex-direction: column; }
+  flex-direction: column;
+  box-sizing: border-box; }
+  body *,
+  body *::before,
+  body *::after {
+    box-sizing: inherit; }
 
-#output {
-  cursor: pointer;
-  margin: 8px 0 8px 0;
-  padding: 2px;
-  max-width: 640px;
-  font-weight: 600;
-  color: slategrey; }
-  #output::before {
-    color: lightgrey;
-    font-weight: 200;
-    content: "Double-click here to copy the markup to your clipboard"; }
+#dims,
+#modes {
+  display: inline; }
 
 #main {
   display: grid;
@@ -28,41 +26,37 @@ body {
   display: inline-flex;
   flex-direction: column;
   justify-content: space-between; }
-  #layer-management #layer-select {
-    min-height: 25vh; }
-    #layer-management #layer-select label {
-      display: flex;
-      justify-content: space-between; }
+  #layer-management #layer-select label {
+    display: flex;
+    justify-content: space-between; }
   #layer-management #layer-select,
   #layer-management #add,
   #layer-management #layer-controls {
     display: inline-flex;
     flex-direction: column; }
 
-#dims-and-modes {
+#mode-config {
   display: flex; }
 
-#dims,
-#modes,
-#a-cmd-config {
-  min-height: 2.8em;
-  display: inline-flex;
-  flex-direction: row;
-  justify-content: center;
-  padding: 0 6px 0 6px; }
-  #dims label,
-  #modes label,
-  #a-cmd-config label {
-    display: inline-block;
-    margin: 0 8px 0 0; }
-  #dims input[type=number],
-  #modes input[type=number],
-  #a-cmd-config input[type=number] {
-    margin-left: 4px; }
+#output {
+  display: flex;
+  width: max-content; }
+
+#dims label,
+#modes label,
+#a-cmd-config label,
+#output label {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle; }
+  #dims label span,
+  #modes label span,
+  #a-cmd-config label span,
+  #output label span {
+    margin-right: 4px; }
 
 #commands {
-  height: 2.7em;
-  align-self: flex-end; }
+  align-self: center; }
 
 #canvas {
   grid-area: canvas; }
@@ -90,8 +84,7 @@ body {
   top: -100px;
   padding: 3px;
   border: 1px solid black;
-  min-width: 7em;
-  max-height: 1em;
+  width: max-content;
   background: rgba(255, 255, 255, 0.7);
   color: black;
   text-align: center;
@@ -100,14 +93,16 @@ body {
 #config {
   grid-area: config;
   display: inline-flex;
-  flex-direction: column; }
+  flex-direction: column;
+  margin-right: 2px; }
 
 #fill-and-stroke label,
 #transformations label,
 #transforms label {
   margin: 4px 0;
   display: flex;
-  flex-direction: column; }
+  justify-content: space-between;
+  flex-wrap: wrap; }
 
 select {
   width: max-content; }
@@ -125,7 +120,7 @@ fieldset.togglable {
   overflow: hidden;
   transition: all 0.3s; }
   fieldset.togglable.open {
-    max-height: 100em; }
+    max-height: 100rem; }
   fieldset.togglable.closed {
-    max-height: 0;
+    max-height: 1rem;
     padding-bottom: 0; }
