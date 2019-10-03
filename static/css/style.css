@@ -6,7 +6,8 @@ body {
   padding: 8px;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  overflow-x: hidden; }
   body *,
   body *::before,
   body *::after {
@@ -36,7 +37,8 @@ body {
     flex-direction: column; }
 
 #mode-config {
-  display: flex; }
+  display: flex;
+  margin-left: 4px; }
 
 #output {
   display: flex;
@@ -59,13 +61,16 @@ body {
   align-self: center; }
 
 #canvas {
-  grid-area: canvas; }
+  grid-area: canvas;
+  margin-right: 8px; }
 
 #outer-container {
   background: lightgrey;
+  min-width: 720px;
+  min-height: 405px;
   border: 2px solid white;
   outline: 3px solid grey;
-  margin: 8px 0 8px 5px;
+  margin: 8px 0 0 8px;
   stroke-width: 2;
   stroke: black;
   display: block; }

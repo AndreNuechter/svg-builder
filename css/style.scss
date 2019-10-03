@@ -7,6 +7,7 @@ body {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    overflow-x: hidden;
 
     *,
     *::before,
@@ -49,6 +50,7 @@ body {
 
 #mode-config {
     display: flex;
+    margin-left: 4px;
 }
 
 #output {
@@ -77,13 +79,16 @@ body {
 
 #canvas {
     grid-area: canvas;
+    margin-right: 8px;
 }
 
 #outer-container {
     background: lightgrey;
+    min-width: 720px;
+    min-height: 405px;
     border: 2px solid white;
     outline: 3px solid grey;
-    margin: 8px 0 8px 5px;
+    margin: 8px 0 0 8px;
     stroke-width: 2;
     stroke: black;
     display: block;

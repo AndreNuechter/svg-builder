@@ -40,7 +40,7 @@ const modes = ['path', 'rect', 'ellipse'];
 // SVG
 const svg = document.getElementById('outer-container');
 const drawingContent = svg.getElementById('inner-container');
-const drawingBoundingRect = svg.getBoundingClientRect(); // TODO: this leads to weird offsets...replacing instances w the value seems wasteful tho...
+const drawingBoundingRect = svg.getBoundingClientRect(); // TODO: this leads to weird offsets...replacing instances w the value seems wasteful tho...initialize it on load and update it on resize
 const layers = drawingContent.children;
 const helperContainer = svg.getElementById('svg-helpers');
 const overlay = svg.getElementById('overlay');
@@ -146,7 +146,7 @@ const session = new Proxy({
                         drawing.layers[val].points.forEach(mkPoint);
                     }
                     // adjust Fill & Stroke
-                    setFillNStrokeFields();
+                    setFillAndStrokeFields();
                 }
             },
             drawingShape: {
@@ -252,7 +252,7 @@ new MutationObserver((mutationsList) => {
                 if (session.hasOwnProperty('layer')) {
                     delete session.layer;
                     remControlPoints();
-                    setFillNStrokeFields(defaultConfig.style);
+                    setFillAndStrokeFields(defaultConfig.style);
                 }
                 return;
             }
@@ -271,7 +271,7 @@ new MutationObserver((mutationsList) => {
                 drawing.layers[session.layer].points.forEach(mkPoint);
 
                 // config Stroke n Fill
-                setFillNStrokeFields();
+                setFillAndStrokeFields();
 
                 // re-configure subsequent selectors and layer ids
                 for (let i = id; i < layerSelect.childElementCount; i += 1) {
@@ -296,8 +296,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // set width and height of svg to 100 vw and vh (- offset)
     configElement(svg, {
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: '100%' || window.innerWidth,
+        height: window.innerHeight - drawingBoundingRect.top
     });
 
     // if there's a saved drawing, use it, else use defaults
@@ -344,7 +344,6 @@ window.onkeydown = (e) => {
     const { key } = e;
 
     if (moves[key]) {
-        // TODO: dragging center of svg arround (might allow getting rid of dims changing)
         e.preventDefault();
 
         // translate the entire drawing when the ctrl key is pressed
@@ -366,7 +365,7 @@ window.onkeydown = (e) => {
         remControlPoints();
     }
 
-    // to prevent interference w eg custom labeling
+    // prevent interference w eg custom labeling
     if (document.activeElement !== document.body) return;
 
     if (key === 'Backspace') {
@@ -479,10 +478,29 @@ clearAllBtn.onclick = () => {
 };
 
 undoBtn.onclick = () => {
-    // TODO: fix for circles and rects
-    if (session.mode === 'path' && drawing.layers[session.layer].points.length) {
-        remLastControlPoint(drawing.layers[session.layer].points.pop().cmd);
+    const latestPoint = drawing.layers[session.layer].points.pop();
+
+    if (!latestPoint) return;
+
+    if (latestPoint.cmd) {
+        remLastControlPoint(latestPoint.cmd);
         drawLayer();
+    } else {
+        // NOTE: to make this work properly for rects or ellipses (which don't have a cmd-prop),
+        // we cache the layer-id, remove all attrs and re-add the layer-id.
+        // This way changing mode works as expected.
+        remControlPoints();
+
+        const layer = layers[session.layer];
+        const { layerId } = layer.dataset;
+
+        while (layer.attributes.length) {
+            layer.removeAttribute(layer.attributes[0].name);
+        }
+
+        layer.dataset.layerId = layerId;
+
+        save();
     }
 };
 
@@ -494,7 +512,6 @@ svg.addEventListener('mousedown', (e) => {
     const layer = drawing.layers[session.layer];
 
     if (session.drawingShape) {
-        // TODO: allow stopping creation by pressing esc?
         session.drawingShape = false;
         svg.onmousemove = null;
 
@@ -532,7 +549,6 @@ svg.addEventListener('mousedown', (e) => {
         session.drawingShape = true;
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
-        // TODO: the listener can be defined elsewhere
         svg.onmousemove = (ev) => {
             const [x1, y1] = getMousePos(drawingBoundingRect, ev);
 
@@ -555,7 +571,7 @@ svg.addEventListener('mousedown', (e) => {
         session.drawingShape = true;
         [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
-        // TODO: c. above
+        // TODO: c. listener created above, DRY
         svg.onmousemove = (ev) => {
             const [x1, y1] = getMousePos(drawingBoundingRect, ev);
 
@@ -668,14 +684,15 @@ modeSelector.onchange = ({ target }) => {
 };
 
 aCmdConfig.oninput = ({ target }) => {
+    if (!drawing.layers[session.layer]) return;
+
     session.arcCmdConfig[target.name] = target[
         target.type === 'checkbox' ? 'checked' : 'value'
     ];
 
     // TODO: find a better way to change a A cmd
     // there might be more than one in a layer and then how would we tell which is meant?
-    // rn we only consider the last
-    // BUG: weird behavior when first changing (jumps to some value), might be fixt when syncing the config on start
+    // BUG: weird behavior when first changing (jumps to some value, perhaps the ones on drawing?!), might be fixt when syncing the config on start
     const lastACmd = drawing.layers[session.layer].points
         .slice()
         .reverse()
@@ -740,7 +757,7 @@ svgTransforms.oninput = ({ target }) => {
  * Adjusts the Fill & Stroke fieldset to a given config.
  * @param { Object } [conf=drawing.layers[session.layer].style] The config to be applied. Defaults to the one of the active layer.
  */
-function setFillNStrokeFields(conf = drawing.layers[session.layer].style) {
+function setFillAndStrokeFields(conf = drawing.layers[session.layer].style) {
     strokeColorSetter.value = conf.strokeColor;
     strokeOpacitySetter.value = conf.strokeOpacity;
     fillColorSetter.value = conf.fillColor;
@@ -816,6 +833,7 @@ function remControlPoints() {
     [...controlPoints].forEach(c => c.remove());
 }
 
+// NOTE type first mentioned here
 /**
  * The interface for control point (cp) creation (callback for on layerswitch and load; also called for a single point on mousedown)
  * @param { Object } point The point that should be controlled.
@@ -853,7 +871,7 @@ function mkPoint(point, pointId) {
 }
 
 /**
- * Constructs a single draggable point to control some prop(s) of the active layer
+ * Constructs a single draggable point to control some prop(s) of the active layer.
  * @param { number } x The x-ccordinate of the cp.
  * @param { number } y The y-ccordinate of the cp.
  * @param { number } pointId The ordinal number of the point within its layer.
@@ -1013,18 +1031,18 @@ function hilightSegment({ points } = drawing.layers[session.layer], pointId, isC
         // it's the last point or not a regular point (eg cps for x1 and y1 only affect one segment no matter what)
         // mov to prev point and draw path to curr
         d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-         ${pointToMarkup(points[pointId])}`;
+        ${pointToMarkup(points[pointId])}`;
     } else if (pointId === 0) {
         // it's the first point of the layer
         // mov to point and draw path to next
         d += `${[points[0].x, points[0].y].join(' ')}
-         ${pointToMarkup(points[1])}`;
+        ${pointToMarkup(points[1])}`;
     } else {
         // it's a point in between
         // mov to prev point and draw path over curr to next
         d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-         ${pointToMarkup(points[pointId])}
-         ${pointToMarkup(points[pointId + 1])}`;
+        ${pointToMarkup(points[pointId])}
+        ${pointToMarkup(points[pointId + 1])}`;
     }
 
     configElement(overlay, {
@@ -1055,11 +1073,12 @@ const meetOrSlice = document.getElementById('slice-or-meet');
  * Returns the markup of the created drawing (the content of group) inside default svg markup.
  */
 function generateMarkUp() {
-    // TODO: svg-ns and transforms
+    // TODO: transforms
     const viewBox = getViewBox(drawing.layers).join(' ');
 
     return `
     <svg 
+    xmlns="${ns}"
     width="${drawing.dims.width}" 
     height="${drawing.dims.height}" 
     viewBox="${viewBox}" 

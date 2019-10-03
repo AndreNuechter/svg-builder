@@ -1,10 +1,6 @@
 # svg-builder
 
-An app to help with the creation of complex svg markup that can be used directly in HTML or with a little fiddling in a [Path2d object](https://developer.mozilla.org/en-US/docs/Web/API/Path2D/Path2D).
-
-__NOTE:__ The markup is copied to the clip-board when double-clicking on the text, saying as much.
-
-__NOTE:__ I'm aware of Inkscape, this is mostly sport ;)
+An app to help with the creation of complex svg markup.
 
 ## Getting started
 
@@ -12,11 +8,17 @@ To try it out clone this repo and initialize it via NPM. Then execute eg `node a
 
 ## Layers
 
-Conceptually an svg, or let us say a drawing, produced by this app consists of layers, each being represented by one of three svg elements (path, rect or ellipse).
+Conceptually an svg, or let us say a drawing, produced by this app consists of a set of layers, each being represented by one of three svg elements (path, rect or ellipse).
 
 Layers are organized on the left in a set of radio inputs.
-They may be re-ordered via dragging those radio inputs up or down.
+They may be re-ordered via dragging those radio inputs up or down (technically the wrapping label-element).
 Furthermore they can be given custom labels by double-clicking on the respective label and typing in the desired string.
+
+Layers can be added by clicking on the canvas or by changing the mode on an existing layer, if it has content.
+
+Layers may be deleted one at a time or all at once via the appropriately named buttons on the left.
+
+A single point (or in case or rects or ellipses the entire shape) maybe erased by hitting backspace.
 
 ## Modes
 
@@ -45,6 +47,7 @@ X- and y-position, as well as width or height can be adjusted via dragging the r
 
 In ellipse mode, it's easy to create circles and ellipses.
 Just click on the spot on the canvas where the center of the ellipsoid should be and click another time once the proportions are satisfying.
+The center, as well as x- and y-radii can be adjusted via dragging the respective control points.
 
 ## Styling Layers
 
@@ -55,17 +58,11 @@ Adjust the styling of a layer via the "Fill & Stroke" titled fieldset.
 Single layers can be translated by using the arrow keys.
 The entire drawing may be translated by holding down ctrl while using the arrow keys.
 
-An early version exists, but is broken. 
-I'm meaning to use actual svg transforms eventually.
+There're somewhat broken transform-functions to target single layers.
+The entire drawing may be transformed using svg-transforms, which can be defined via the respective fieldset.
 
 ## Dimensions
 
-Adjust the dimensions of the drawing via the "Dimensions" titled fieldset.
+The dimension of the canvas try to maximize available screen-real-estate.
 
-## Coming soon...
-
-As this is work in progress, there're a couple of rough edges and missing features. 
-Here I want to list a few things that might get added in the future:
-
-- non-broken svg transformations
-- import/export of projects
+The dimensions of the output (viewport and viewbox) may be controlled via the fielset titled "Output".
