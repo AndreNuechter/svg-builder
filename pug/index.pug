@@ -38,9 +38,8 @@ html
                     option meet
                     option slice
 
-            button#get-markup Get Markup
-
-            button#preview Open Preview
+            button#get-markup(title="...copied to clipboard") Get Markup
+            button#preview(title="...in new tab or window") Open Preview
 
         #main
             fieldset#layer-management
@@ -53,8 +52,8 @@ html
                 #layer-controls
                     button#add-layer(title="Add a layer") +
                     button#del-layer(title="Delete the active layer") Delete layer
-                    button#undo(title="Delete the last point") Delete last
-                    button#clear-all(title="Clear drawing") Clear drawing
+                    button#undo Delete last point
+                    button#clear-all Clear canvas
 
             #canvas
                 #mode-config
@@ -97,7 +96,7 @@ html
                             span Sweep Flag
                             input(type="checkbox" name="sweep")
 
-                svg#outer-container
+                svg#outer-container(width="100%")
                     g#inner-container
                     g#svg-helpers
                         path#overlay(fill="transparent" stroke="orange")

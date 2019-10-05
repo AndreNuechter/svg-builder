@@ -16,6 +16,11 @@ body {
     }
 }
 
+#output {
+    display: flex;
+    width: max-content;
+}
+
 #dims,
 #modes {
     display: inline;
@@ -23,7 +28,8 @@ body {
 
 #main {
     display: grid;
-    grid-template-columns: 1fr 7fr;
+    grid-template-columns: min-content auto;
+    grid-template-rows: min-content auto;
     grid-template-areas:
         "layers canvas"
         "config canvas";
@@ -31,7 +37,7 @@ body {
 
 #layer-management {
     grid-area: layers;
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
 
@@ -51,11 +57,6 @@ body {
 #mode-config {
     display: flex;
     margin-left: 4px;
-}
-
-#output {
-    display: flex;
-    width: max-content;
 }
 
 #dims,
@@ -94,24 +95,11 @@ body {
     display: block;
 }
 
-.control-point {
-    fill: orange;
-    stroke: dimgrey;
-
-    &:hover {
-        stroke-width: 10;
-    }
-
-    &:last-of-type {
-        fill: red;
-    }
-}
-
 #coords {
     position: absolute;
     left: -100px;
     top: -100px;
-    padding: 3px;
+    padding: 3px 6px;
     border: 1px solid black;
     width: max-content;
     background: rgba(255, 255, 255, 0.7);
@@ -138,17 +126,41 @@ body {
     }
 }
 
+.control-point {
+    fill: orange;
+    stroke: dimgrey;
+
+    &:hover {
+        stroke-width: 10;
+    }
+
+    &:last-of-type {
+        fill: red;
+    }
+}
+
 select {
     width: max-content;
 }
 
-input[type=number] {
-    width: 5em;
-    text-align: center;
-}
+input {
+    &[type=number] {
+        width: 5em;
+        text-align: center;
+    }
 
-input:checked {
-    box-shadow: 0 0 0 2px orange;
+    &[type=number] {
+        width: 5em;
+        text-align: center;
+    }
+
+    &[type=range] {
+        margin: 0;
+    }
+
+    &:checked {
+        box-shadow: 0 0 0 2px orange;
+    }
 }
 
 fieldset.togglable {

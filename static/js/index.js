@@ -263,23 +263,17 @@ new MutationObserver((mutationsList) => {
             } else {
                 // set session.mode to that of the active layer
                 session.mode = drawing.layers[session.layer].mode;
-
                 // rem cps of prev layer
                 remControlPoints();
-
                 // mk cps of current layer
                 drawing.layers[session.layer].points.forEach(mkPoint);
-
                 // config Stroke n Fill
                 setFillAndStrokeFields();
-
                 // re-configure subsequent selectors and layer ids
                 for (let i = id; i < layerSelect.childElementCount; i += 1) {
                     const selector = layerSelect.children[i];
-
                     selector.dataset.layerId = i;
                     layers[i].dataset.layerId = i;
-
                     selector.children[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
                     selector.children[1].value = i;
                 }
@@ -294,9 +288,7 @@ new MutationObserver((mutationsList) => {
 window.addEventListener('DOMContentLoaded', () => {
     // TODO: sync aCmdConfig...on layer switch too?!
 
-    // set width and height of svg to 100 vw and vh (- offset)
     configElement(svg, {
-        width: '100%' || window.innerWidth,
         height: window.innerHeight - drawingBoundingRect.top
     });
 
@@ -1015,7 +1007,7 @@ function dragging(layer, pointId, type, cp) {
 }
 
 /**
- * Highlights segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s), giving it a bright orange color and making it 4px wider than the highlighted segment.
+ * Highlights path-segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s), giving it a bright orange color and making it 4px wider than the highlighted segment.
  * @param { Object } [{ points }=drawing.layers[session.layer]] The set of points belonging to the affected layer.
  * @param { number } pointId The ordinal number of the point within its layer.
  * @param { boolean } isCp The "type" of cp being dragged (it's kinda missleading)
@@ -1073,7 +1065,7 @@ const meetOrSlice = document.getElementById('slice-or-meet');
  * Returns the markup of the created drawing (the content of group) inside default svg markup.
  */
 function generateMarkUp() {
-    // TODO: transforms
+    // TODO: add global transforms to output
     const viewBox = getViewBox(drawing.layers).join(' ');
 
     return `
@@ -1084,7 +1076,8 @@ function generateMarkUp() {
     viewBox="${viewBox}" 
     preserveAspectRatio="${[ratio.value, meetOrSlice.value].join(' ')}">
     ${drawingContent.innerHTML}
-    </svg>`;
+    </svg>`
+        .replace(/ data-layer-id="\d+?"/g, '');
 }
 
 document
