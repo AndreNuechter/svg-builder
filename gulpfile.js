@@ -5,7 +5,7 @@ const {
     watch
 } = require('gulp');
 const pug = require('gulp-pug');
-const less = require('gulp-sass');
+const sass = require('gulp-sass');
 const minifyCSS = require('gulp-csso');
 const express = require('express');
 
@@ -17,12 +17,12 @@ function html() {
 
 function css() {
     return src('src/css/*.scss')
-        .pipe(less())
+        .pipe(sass())
         .pipe(minifyCSS())
         .pipe(dest('dist/css'));
 }
 
-// TODO: fill this in and add to default...watcher too...do we want to concat+minify/uglify?
+// TODO: fill this in...should concat, minify/uglify and move to dist
 function js() {
 
 }
@@ -33,6 +33,18 @@ function watcher() {
     watch('src/pug/*.pug', html);
 }
 
+function serveForDev() {
+    const app = express();
+    app.use(express.static('src'));
+    app.use(express.static('dist'));
+    // TODO: get rid of empty func
+    app.get('/', () => {
+
+    });
+    app.listen(3000,
+        () => console.log('Build that SVG!'));
+}
+
 function serve() {
     const app = express();
     app.use(express.static('dist'));
@@ -40,12 +52,8 @@ function serve() {
     app.get('/', () => {
 
     });
-
-    app.listen(3000,
-        () => console.log('Build that SVG!'));
+    app.listen(3000);
 }
 
-exports.css = css;
-exports.html = html;
-exports.serve = serve;
-exports.default = parallel(html, css, serve, watcher);
+exports.default = parallel(html, css, serveForDev, watcher);
+exports.production = parallel(html, css, js, serve);
