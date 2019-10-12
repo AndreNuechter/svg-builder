@@ -4,7 +4,7 @@ An app to help with the creation of complex svg markup.
 
 ## Getting started
 
-To try it out clone this repo and initialize it via NPM. Then execute eg `node app` and navigate to localhost:3000.
+To try it out clone this repo and initialize it via NPM. Then execute `gulp` and navigate to localhost:3000.
 
 ## Layers
 

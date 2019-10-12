@@ -2,24 +2,20 @@
     "name": "svg-builder",
     "version": "1.0.0",
     "description": "A simple tool to build complex svgs.",
-    "main": "app.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
+    "main": "gulpfile.js",
     "author": "AndreNuechter",
     "license": "MIT",
     "dependencies": {
         "express": "^4.16.4",
-        "express-compile-sass": "^4.0.0",
-        "fs": "0.0.1-security",
-        "node-sass-middleware": "^0.11.0",
-        "nodemon": "^1.19.1",
-        "path": "^0.12.7",
+        "gulp-csso": "^3.0.1",
+        "gulp-pug": "^4.0.1",
+        "gulp-sass": "^4.0.2",
         "pug": "^2.0.3"
     },
     "devDependencies": {
         "eslint": "^5.3.0",
         "eslint-config-airbnb-base": "^13.1.0",
-        "eslint-plugin-import": "^2.14.0"
+        "eslint-plugin-import": "^2.14.0",
+        "gulp": "^4.0.2"
     }
 }
