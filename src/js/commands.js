@@ -7,7 +7,7 @@
  * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
  * @returns { Object }
  */
-function quad(end, prior) {
+function quad(end, prior) { // TODO: return object that may be assigned directly
     const [x, y] = end;
     const distX = Math.abs(prior.x - x);
     const distY = Math.abs(prior.y - y);
@@ -38,7 +38,7 @@ function quad(end, prior) {
  * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
  * @returns { Object }
  */
-function cube(end, prior) {
+function cube(end, prior) { // TODO: return object that may be assigned directly
     const [x, y] = end;
     const distX = Math.abs(prior.x - x);
     const distY = Math.abs(prior.y - y);
