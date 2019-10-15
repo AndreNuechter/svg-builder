@@ -1,5 +1,12 @@
-// TODO: for quad and cube, return objects that can be inserted directly
 // TODO: can we abstract the creation of a cp?
+
+// TODO: what is the 35 for?
+const calculateOffset = (distA, distB, prior, current) => {
+    if (distA < distB) {
+        return prior > current ? -35 : 35;
+    }
+    return 0;
+};
 
 /**
  * Returns somewhat ok default coords for a cp for the quad cmd.
@@ -13,22 +20,12 @@ function quad(end, prior) { // TODO: return object that may be assigned directly
     const distY = Math.abs(prior.y - y);
     const xMin = Math.min(x, prior.x);
     const yMin = Math.min(y, prior.y);
-    let yOffset;
-    let xOffset;
-
-    // TODO: what is the 35 for?
-    // TODO: set up helper func for this
-    if (distX < distY) {
-        yOffset = prior.y > y ? -35 : 35;
-    } else { yOffset = 0; }
-
-    if (distY < distX) {
-        xOffset = prior.x > x ? -35 : 35;
-    } else { xOffset = 0; }
+    const yOffset = calculateOffset(distX, distY, prior.y, y);
+    const xOffset = calculateOffset(distY, distX, prior.x, x);
 
     return {
-        x: xMin - xOffset + (Math.max(x, prior.x) - xMin) / 2,
-        y: yMin - yOffset + (Math.max(y, prior.y) - yMin) / 2
+        x1: xMin - xOffset + (Math.max(x, prior.x) - xMin) / 2,
+        y1: yMin - yOffset + (Math.max(y, prior.y) - yMin) / 2
     };
 }
 
@@ -38,37 +35,33 @@ function quad(end, prior) { // TODO: return object that may be assigned directly
  * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
  * @returns { Object }
  */
-function cube(end, prior) { // TODO: return object that may be assigned directly
+function cube(end, prior) {
     const [x, y] = end;
     const distX = Math.abs(prior.x - x);
     const distY = Math.abs(prior.y - y);
     const xMin = Math.min(x, prior.x);
     const yMin = Math.min(y, prior.y);
-    let yOffset;
-    let xOffset;
+    const yOffset = calculateOffset(distY, distX, prior.x, x);
+    const xOffset = calculateOffset(distX, distY, prior.y, y);
 
-    if (distY < distX) {
-        yOffset = prior.x > x ? -35 : 35;
-    } else { yOffset = 0; }
-
-    if (distX < distY) {
-        xOffset = prior.y > y ? -35 : 35;
-    } else { xOffset = 0; }
-
-    const cp1 = {
-        x: xMin - xOffset + (Math.max(x, prior.x) - xMin) / 4,
-        y: yMin - yOffset + (Math.max(y, prior.y) - yMin) / 4
+    return {
+        x1: xMin - xOffset + (Math.max(x, prior.x) - xMin) / 4,
+        y1: yMin - yOffset + (Math.max(y, prior.y) - yMin) / 4,
+        x2: xMin - xOffset + (Math.max(x, prior.x) - xMin) * 0.75,
+        y2: yMin - yOffset + (Math.max(y, prior.y) - yMin) * 0.75
     };
-    const cp2 = {
-        x: xMin - xOffset + (Math.max(x, prior.x) - xMin) * 0.75,
-        y: yMin - yOffset + (Math.max(y, prior.y) - yMin) * 0.75
-    };
-
-    return [cp1, cp2];
 }
 
-function arc() {
-    // TODO: decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags...how to attach points to change those?
+function arc(config) {
+    // TODO: rethink defaults
+    // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags...how to attach points to change those?
+    return {
+        xR: config.xR,
+        yR: config.yR,
+        xRot: config.xRot,
+        large: +config.large,
+        sweep: +config.sweep
+    };
 }
 
 export {

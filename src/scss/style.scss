@@ -126,6 +126,10 @@ body {
     }
 }
 
+#overlay {
+    filter: invert(10%) hue-rotate(90deg);
+}
+
 .control-point {
     fill: orange;
     stroke: dimgrey;

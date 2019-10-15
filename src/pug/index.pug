@@ -5,7 +5,8 @@ html
         title SVG Builder
         link(rel="stylesheet" href="/css/style.css")
         script(src="/js/index.js" type="module" defer)
-        script(src="/js/collapsables.js" defer)
+        script(src="/js/components/collapsables.js" defer)
+        script(src="/js/components/coords-display.js" type="module" defer)
 
     body
         fieldset#output
@@ -99,7 +100,7 @@ html
                 svg#outer-container(width="100%")
                     g#inner-container
                     g#svg-helpers
-                        path#overlay(fill="transparent" stroke="orange")
+                        path#overlay(fill="transparent")
 
                 #coords
             
@@ -134,26 +135,10 @@ html
                         input#close-toggle(type="checkbox" name="close" checked)
 
                 fieldset#transformations.closed.togglable
-                    legend Transform Layer
-                    label(for="scaling-factor")
-                        span Scale by factor of
-                        input#scaling-factor(type="number" min=0.2 max=4.0 step=0.1 value=1)
-                    label(for="deg")
-                        span Rotate by (deg)
-                        input#deg(type="number" min=-360 max=360 step=0.1 value=0)
-                    label(for="reflect")
-                        span Reflect shape
-                        select#reflect
-                            option
-                            option Vertically
-                            option Horizontally
-                    label(for="trim-check")
-                        span Trim whitespace
-                        input#trim-check(type="checkbox")
-                    button#transform Transform
-
-                fieldset#transforms.closed.togglable
-                    legend Transform Drawing
+                    legend Transformations
+                    label 
+                        span Just the layer
+                        input(type="checkbox" name="target-switch" title="Check this to transform the active layer")
                     label
                         span Scale
                         input(type="number" min=1 max=100 step=1 value=1 name="scale")
@@ -162,7 +147,7 @@ html
                         input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
                     label
                         span SkewX
-                        input(type="range" min=-90 max=90 step=0.1 value=0 name="skewX")
+                        input(type="range" min=-180 max=180 step=0.1 value=0 name="skewX")
                     label
                         span SkewY
-                        input(type="range" min=-90 max=90 step=0.1 value=0 name="skewY")
+                        input(type="range" min=-180 max=180 step=0.1 value=0 name="skewY")

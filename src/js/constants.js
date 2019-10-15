@@ -1,11 +1,11 @@
 /* globals document */
 
 const modes = ['path', 'rect', 'ellipse'];
+const closeToggle = document.getElementById('close-toggle');
 
 const proxiedSessionKeys = (
     commands,
     aCmdConfig,
-    closeToggle,
     cmds,
     drawing,
     remControlPoints,
@@ -44,7 +44,7 @@ const proxiedSessionKeys = (
                 drawing.layers[val].points.forEach(mkPoint);
             }
             // adjust Fill & Stroke
-            setFillAndStrokeFields();
+            setFillAndStrokeFields(drawing.layers[val].style);
         }
     },
     drawingShape: {
@@ -94,24 +94,26 @@ const defaults = {
     }
 };
 
+const xComponent = ({ x }) => x;
+const yComponent = ({ y }) => y;
+
 // NOTE: ea prop is a name for a cp. The values are objects where the keys are the affected props of the point object and their values the callbacks to change them in relation to the current cursor position
 const controlPointTypes = {
-    // TODO stay DRY
     regularPoint: {
-        x({ x }) { return x; },
-        y({ y }) { return y; }
+        x: xComponent,
+        y: yComponent
     },
     firstControlPoint: {
-        x1({ x }) { return x; },
-        y1({ y }) { return y; }
+        x1: xComponent,
+        y1: yComponent
     },
     secondControlPoint: {
-        x2({ x }) { return x; },
-        y2({ y }) { return y; }
+        x2: xComponent,
+        y2: yComponent
     },
     ellipseCenter: {
-        cx({ x }) { return x; },
-        cy({ y }) { return y; }
+        cx: xComponent,
+        cy: yComponent
     },
     rectLowerRight: {
         width({ x }, point) { return Math.abs(x - point.x); },

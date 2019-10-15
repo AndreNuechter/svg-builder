@@ -139,6 +139,7 @@ function getMinNMax(points) {
 // for ellipse (when p has cx) xs are cx +/- rx
 // for rects (when p has width) xs are x and x + w
 // for ps with cps, its the highest and lowest
+// TODO: DRY
 const minMaxXHandler = {
     path(points) {
         return points.flatMap((point) => {

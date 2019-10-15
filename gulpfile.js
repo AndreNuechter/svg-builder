@@ -16,7 +16,7 @@ function html() {
 }
 
 function css() {
-    return src('src/css/*.scss')
+    return src('src/scss/*.scss')
         .pipe(sass())
         .pipe(minifyCSS())
         .pipe(dest('dist/css'));
@@ -29,7 +29,7 @@ function js() {
 
 // TODO do this in default?
 function watcher() {
-    watch('src/css/*.scss', css);
+    watch('src/scss/*.scss', css);
     watch('src/pug/*.pug', html);
 }
 
