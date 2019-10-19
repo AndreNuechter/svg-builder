@@ -5,7 +5,7 @@
  * @returns { HTMLElement }
  */
 function configElement(element, keyValPairs) {
-    // NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not node attrs
+    // NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not attrs
     const exceptions = ['checked', 'textContent', 'data'];
 
     Object.keys(keyValPairs).forEach((key) => {
@@ -20,7 +20,7 @@ function configElement(element, keyValPairs) {
 }
 
 /**
- * Clones the provided element and returns a partially applied version of configElement
+ * Clones the provided element shallowly and returns a partially applied version of configElement().
  * @param { HTMLElement } template The element to be cloned.
  * @returns { Function }
  */
@@ -29,7 +29,7 @@ function configClone(template) {
 }
 
 /**
- * Prepares a style config to be usable in configElement, since the fill and stroke attributes are computed.
+ * Prepares a style config to be usable in configElement, since the fill and stroke-attribute-values are computed.
  * @param { Object } conf The config that should be parsed.
  * @returns { Object }
  */
@@ -44,6 +44,7 @@ function parseLayerStyle(conf) {
     };
 }
 
+const re = /[a-z\d]{2}/gi;
 /**
  * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB color values.
  * @param { string } hex The hexadecimal representation to be converted.
@@ -52,7 +53,7 @@ function parseLayerStyle(conf) {
 function hexToRGB(hex) {
     return hex
         .slice(1) // cut off hash-symbol
-        .match(/\w{2}/g) // split into pairs of word-chars (= hex nums)
+        .match(re) // split into pairs of word-chars or hex nums
         .map(e => parseInt(e, 16)) // parse em to base 10
         .join(',');
 }
@@ -126,7 +127,7 @@ function pointToMarkup(point) {
  * @param { Object } points A set of points belonging to a single layer.
  * @returns { Array }
  */
-function getMinNMax(points) {
+function getMinAndMax(points) {
     const xs = points.map(p => p.x);
     const ys = points.map(p => p.y);
     const xMin = Math.min(...xs);
@@ -155,11 +156,10 @@ const minMaxXHandler = {
     ellipse(points) {
         return [points[0].cx, points[0].cx + points[0].rx, points[0].cx - points[0].rx];
     },
-    rect(points) { // destructure?... [points]
+    rect(points) {
         return points[0] ? [points[0].x, points[0].x + points[0].width] : [];
     }
 };
-
 const minMaxYHandler = {
     path(points) {
         return points.flatMap((point) => {
@@ -172,10 +172,10 @@ const minMaxYHandler = {
             return res;
         });
     },
-    ellipse(points) { // TODO perhaps needs check too, c below
+    ellipse(points) { // TODO might need check too, c below
         return [points[0].cy, points[0].cy + points[0].ry, points[0].cy - points[0].ry];
     },
-    rect(points) { // destructure [points]
+    rect(points) {
         return points[0] ? [points[0].y, points[0].y + points[0].height] : [];
     }
 };
@@ -195,6 +195,9 @@ function getViewBox(layers) {
     return [xMin, yMin, xMax - xMin, yMax - yMin];
 }
 
+const inc = num => num + 1;
+const dec = num => num - 1;
+
 export {
     configElement,
     configClone,
@@ -202,6 +205,8 @@ export {
     hexToRGB,
     getMousePos,
     pointToMarkup,
-    getMinNMax,
-    getViewBox
+    getMinAndMax,
+    getViewBox,
+    inc,
+    dec
 };

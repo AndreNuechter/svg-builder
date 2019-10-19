@@ -1,5 +1,7 @@
 /* globals document */
 
+import { inc, dec } from './helper-functions.js';
+
 const modes = ['path', 'rect', 'ellipse'];
 const closeToggle = document.getElementById('close-toggle');
 
@@ -9,15 +11,14 @@ const proxiedSessionKeys = (
     cmds,
     drawing,
     remControlPoints,
-    mkPoint,
+    mkControlPoint,
     setFillAndStrokeFields
 ) => ({
     mode: {
         check(val) { return modes.includes(val); },
         onPass(val) {
             // check the appropriate mode input
-            document
-                .querySelector(`input[type="radio"][value="${val}"]`)
+            document.querySelector(`input[type="radio"][value="${val}"]`)
                 .checked = true;
             // show/hide cmds depending on mode
             commands.style.display = val === 'path' ? 'block' : 'none';
@@ -41,7 +42,7 @@ const proxiedSessionKeys = (
             remControlPoints();
             // add cps for curr layer
             if (drawing.layers[val].points.length) {
-                drawing.layers[val].points.forEach(mkPoint);
+                drawing.layers[val].points.forEach(mkControlPoint);
             }
             // adjust Fill & Stroke
             setFillAndStrokeFields(drawing.layers[val].style);
@@ -127,8 +128,24 @@ const controlPointTypes = {
     }
 };
 
+const moves = {
+    ArrowUp: [
+        ['y', 'y1', 'y2', 'cy'], dec
+    ],
+    ArrowDown: [
+        ['y', 'y1', 'y2', 'cy'], inc
+    ],
+    ArrowLeft: [
+        ['x', 'x1', 'x2', 'cx'], dec
+    ],
+    ArrowRight: [
+        ['x', 'x1', 'x2', 'cx'], inc
+    ]
+};
+
 export {
     proxiedSessionKeys,
     defaults,
-    controlPointTypes
+    controlPointTypes,
+    moves
 };

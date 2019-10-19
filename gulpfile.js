@@ -37,10 +37,6 @@ function serveForDev() {
     const app = express();
     app.use(express.static('src'));
     app.use(express.static('dist'));
-    // TODO: get rid of empty func
-    app.get('/', () => {
-
-    });
     app.listen(3000,
         () => console.log('Build that SVG!'));
 }
@@ -48,10 +44,6 @@ function serveForDev() {
 function serve() {
     const app = express();
     app.use(express.static('dist'));
-    // TODO: get rid of empty func
-    app.get('/', () => {
-
-    });
     app.listen(3000);
 }
 

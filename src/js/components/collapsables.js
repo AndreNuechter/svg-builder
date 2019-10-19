@@ -1,9 +1,10 @@
 /* globals document */
 
-const legends = [...document.getElementsByClassName('togglable')];
-legends.forEach((l) => {
-    l.onclick = ({ target }) => {
-        target.parentNode.classList.toggle('open');
-        target.parentNode.classList.toggle('closed');
-    };
+[...document.getElementsByClassName('togglable')].forEach((l) => {
+    l.onclick = collapse;
 });
+
+function collapse({ target }) {
+    target.parentNode.classList.toggle('open');
+    target.parentNode.classList.toggle('closed');
+}

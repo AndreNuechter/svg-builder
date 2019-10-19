@@ -1,6 +1,4 @@
-// TODO: can we abstract the creation of a cp?
-
-// TODO: what is the 35 for?
+// TODO: what is the 35 for? Purely aesthetic?
 const calculateOffset = (distA, distB, prior, current) => {
     if (distA < distB) {
         return prior > current ? -35 : 35;
@@ -8,13 +6,14 @@ const calculateOffset = (distA, distB, prior, current) => {
     return 0;
 };
 
+// TODO: DRY...can we abstract the creation of a cp?
 /**
  * Returns somewhat ok default coords for a cp for the quad cmd.
  * @param { Array } end An array containing x- and y-coordinates of the cmds target.
  * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
  * @returns { Object }
  */
-function quad(end, prior) { // TODO: return object that may be assigned directly
+function quad(end, prior) {
     const [x, y] = end;
     const distX = Math.abs(prior.x - x);
     const distY = Math.abs(prior.y - y);
@@ -54,7 +53,7 @@ function cube(end, prior) {
 
 function arc(config) {
     // TODO: rethink defaults
-    // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags...how to attach points to change those?
+    // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags
     return {
         xR: config.xR,
         yR: config.yR,
