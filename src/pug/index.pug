@@ -136,7 +136,7 @@ html
 
                 fieldset#transformations.closed.togglable
                     legend Transformations
-                    label 
+                    label
                         span Just the layer
                         input(type="checkbox" name="target-switch" title="Check this to transform the active layer")
                     label
@@ -147,7 +147,7 @@ html
                         input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
                     label
                         span SkewX
-                        input(type="range" min=-180 max=180 step=0.1 value=0 name="skewX")
+                        input(type="range" min=0 max=180 step=0.1 value=0 name="skewX")
                     label
                         span SkewY
-                        input(type="range" min=-180 max=180 step=0.1 value=0 name="skewY")
+                        input(type="range" min=0 max=180 step=0.1 value=0 name="skewY")

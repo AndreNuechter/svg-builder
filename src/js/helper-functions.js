@@ -122,63 +122,49 @@ function pointToMarkup(point) {
     return [point.cmd, ...args].join(' ');
 }
 
+// NOTE: for ellipse (when p has cx) xs are cx +/- rx
+// for rects (when p has width) xs are x and x + w
+// for ps with cps, its the highest and lowest
+const minMaxHandler = {
+    path(points, dim) {
+        return points.flatMap((point) => {
+            const res = [point[dim]];
+
+            if (point.cmd === 'Q' || point.cmd === 'C') res.push(point[`${dim}1`]);
+            if (point.cmd === 'C') res.push(point[`${dim}2`]);
+            if (point.cmd === 'A') res.push(point[dim] + point[`${dim}R`], point[dim] - point[`${dim}R`]);
+
+            return res;
+        });
+    },
+    ellipse([points], dim) {
+        return [points[`c${dim}`], points[`c${dim}`] + points[`r${dim}`], points[`c${dim}`] - points[`r${dim}`]];
+    },
+    rect([points], dim) {
+        return [points[dim], points[dim] + points[dim === 'x' ? 'width' : 'height']];
+    }
+};
+
 /**
  * Gives an array of the lowest and highest x- and y-components from a set of points.
- * @param { Object } points A set of points belonging to a single layer.
- * @returns { Array }
+ * @param { Object } points A set of points belonging to a single layer or the entire drawing.
+ * @returns { Object } xMin, yMin, xMax and yMax of the provided set.
  */
-function getMinAndMax(points) {
-    const xs = points.map(p => p.x);
-    const ys = points.map(p => p.y);
+// TODO: generalize this to take a single layer or point too and adapt docs above...is it already?
+function getMinAndMax(layers) {
+    const xs = layers.flatMap(layer => minMaxHandler[layer.mode](layer.points, 'x'));
+    const ys = layers.flatMap(layer => minMaxHandler[layer.mode](layer.points, 'y'));
     const xMin = Math.min(...xs);
     const yMin = Math.min(...ys);
     const xMax = Math.max(...xs);
     const yMax = Math.max(...ys);
-    return [xMin, yMin, xMax, yMax];
+    return {
+        xMin,
+        yMin,
+        xMax,
+        yMax
+    };
 }
-
-// for ellipse (when p has cx) xs are cx +/- rx
-// for rects (when p has width) xs are x and x + w
-// for ps with cps, its the highest and lowest
-// TODO: DRY
-const minMaxXHandler = {
-    path(points) {
-        return points.flatMap((point) => {
-            const res = [point.x];
-
-            if (point.cmd === 'Q' || point.cmd === 'C') res.push(point.x1);
-            if (point.cmd === 'C') res.push(point.x2);
-            if (point.cmd === 'A') res.push(point.x + point.xR, point.x - point.xR);
-
-            return res;
-        });
-    },
-    ellipse(points) {
-        return [points[0].cx, points[0].cx + points[0].rx, points[0].cx - points[0].rx];
-    },
-    rect(points) {
-        return points[0] ? [points[0].x, points[0].x + points[0].width] : [];
-    }
-};
-const minMaxYHandler = {
-    path(points) {
-        return points.flatMap((point) => {
-            const res = [point.y];
-
-            if (point.cmd === 'Q' || point.cmd === 'C') res.push(point.y1);
-            if (point.cmd === 'C') res.push(point.y2);
-            if (point.cmd === 'A') res.push(point.y + point.yR, point.y - point.yR);
-
-            return res;
-        });
-    },
-    ellipse(points) { // TODO might need check too, c below
-        return [points[0].cy, points[0].cy + points[0].ry, points[0].cy - points[0].ry];
-    },
-    rect(points) {
-        return points[0] ? [points[0].y, points[0].y + points[0].height] : [];
-    }
-};
 
 /**
  * Returns an array of the lowest x- and y-components and the pixel-dimensions of the drawing for use within an svg-viewBox-attribute.
@@ -186,17 +172,28 @@ const minMaxYHandler = {
  * @returns { Array }
  */
 function getViewBox(layers) {
-    const xs = layers.flatMap(layer => minMaxXHandler[layer.mode](layer.points));
-    const ys = layers.flatMap(layer => minMaxYHandler[layer.mode](layer.points));
-    const xMin = Math.min(...xs);
-    const yMin = Math.min(...ys);
-    const xMax = Math.max(...xs);
-    const yMax = Math.max(...ys);
+    const {
+        xMin,
+        yMin,
+        xMax,
+        yMax
+    } = getMinAndMax(layers);
     return [xMin, yMin, xMax - xMin, yMax - yMin];
 }
 
 const inc = num => num + 1;
 const dec = num => num - 1;
+
+/**
+ * Reduces an object of svg-transforms into a string, readily inserted into HTML.
+ * @param { Object } transformData The transforms to be stringified.
+ * @returns { string } The stringified transforms.
+ */
+function stringifyTransforms(transformData) {
+    return Object
+        .keys(transformData)
+        .reduce((str, key) => `${str}${key}(${transformData[key]})`, '');
+}
 
 export {
     configElement,
@@ -208,5 +205,6 @@ export {
     getMinAndMax,
     getViewBox,
     inc,
-    dec
+    dec,
+    stringifyTransforms
 };

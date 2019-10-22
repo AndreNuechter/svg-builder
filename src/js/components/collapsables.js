@@ -1,7 +1,7 @@
 /* globals document */
 
-[...document.getElementsByClassName('togglable')].forEach((l) => {
-    l.onclick = collapse;
+[...document.getElementsByClassName('togglable')].forEach((f) => {
+    f.firstChild.onclick = collapse;
 });
 
 function collapse({ target }) {

@@ -116,7 +116,7 @@ const controlPointTypes = {
         cx: xComponent,
         cy: yComponent
     },
-    rectLowerRight: {
+    rectLowerRight: { // TODO prevent movement above point.y or left of point.x
         width({ x }, point) { return Math.abs(x - point.x); },
         height({ y }, point) { return Math.abs(y - point.y); }
     },
