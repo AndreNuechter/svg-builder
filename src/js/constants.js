@@ -5,15 +5,17 @@ import { inc, dec } from './helper-functions.js';
 const modes = ['path', 'rect', 'ellipse'];
 const closeToggle = document.getElementById('close-toggle');
 
+const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
+
 const proxiedSessionKeys = (
     commands,
     aCmdConfig,
-    cmds,
     drawing,
     remControlPoints,
     mkControlPoint,
     setFillAndStrokeFields
 ) => ({
+    // TODO move mode back into index? We could forego some of the params then...
     mode: {
         check(val) { return modes.includes(val); },
         onPass(val) {
@@ -23,7 +25,7 @@ const proxiedSessionKeys = (
             // show/hide cmds depending on mode
             commands.style.display = val === 'path' ? 'block' : 'none';
             // same for a cmd config
-            aCmdConfig.style.display = val === 'path' ? 'block' : 'none';
+            aCmdConfig.style.display = val === 'path' ? 'inline-grid' : 'none';
             // disable checkbox for closing shape when not in path mode
             closeToggle.disabled = (val !== 'path');
         }
@@ -98,7 +100,7 @@ const defaults = {
 const xComponent = ({ x }) => x;
 const yComponent = ({ y }) => y;
 
-// NOTE: ea prop is a name for a cp. The values are objects where the keys are the affected props of the point object and their values the callbacks to change them in relation to the current cursor position
+// NOTE: ea prop is a name for a control point type. The values are objects where the keys are the affected props of the point object and their values the callbacks to change them in relation to the current cursor position
 const controlPointTypes = {
     regularPoint: {
         x: xComponent,
@@ -116,36 +118,43 @@ const controlPointTypes = {
         cx: xComponent,
         cy: yComponent
     },
-    rectLowerRight: { // TODO prevent movement above point.y or left of point.x
-        width({ x }, point) { return Math.abs(x - point.x); },
-        height({ y }, point) { return Math.abs(y - point.y); }
+    rectLowerRight: {
+        width({ x }, point) { return x > point.x ? x - point.x : point.width; },
+        height({ y }, point) { return y > point.y ? y - point.y : point.height; }
     },
     ellipseRx: {
         rx({ x }, point) { return Math.abs(x - point.cx); }
     },
     ellipseRy: {
         ry({ y }, point) { return Math.abs(y - point.cy); }
-    }
+    },
+    hCmd: { x: xComponent },
+    vCmd: { y: yComponent }
 };
 
 const moves = {
-    ArrowUp: [
-        ['y', 'y1', 'y2', 'cy'], dec
-    ],
-    ArrowDown: [
-        ['y', 'y1', 'y2', 'cy'], inc
-    ],
-    ArrowLeft: [
-        ['x', 'x1', 'x2', 'cx'], dec
-    ],
-    ArrowRight: [
-        ['x', 'x1', 'x2', 'cx'], inc
-    ]
+    ArrowUp: {
+        props: ['y', 'y1', 'y2', 'cy'],
+        cb: dec
+    },
+    ArrowDown: {
+        props: ['y', 'y1', 'y2', 'cy'],
+        cb: inc
+    },
+    ArrowLeft: {
+        props: ['x', 'x1', 'x2', 'cx'],
+        cb: dec
+    },
+    ArrowRight: {
+        props: ['x', 'x1', 'x2', 'cx'],
+        cb: inc
+    }
 };
 
 export {
     proxiedSessionKeys,
     defaults,
     controlPointTypes,
-    moves
+    moves,
+    cmds
 };

@@ -1,3 +1,5 @@
+// NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not attrs
+const exceptions = ['checked', 'textContent', 'data'];
 /**
  * Applies attributes and properties to an HTMLElement.
  * @param { HTMLElement } element The element to be configured.
@@ -5,9 +7,6 @@
  * @returns { HTMLElement }
  */
 function configElement(element, keyValPairs) {
-    // NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not attrs
-    const exceptions = ['checked', 'textContent', 'data'];
-
     Object.keys(keyValPairs).forEach((key) => {
         if (exceptions.includes(key)) {
             element[key] = keyValPairs[key];
@@ -59,20 +58,21 @@ function hexToRGB(hex) {
 }
 
 /**
- * Gives the mouse's x- and y-coordinates within the target.
+ * Gives the mouse's x- and y-coordinates within the target in an array.
  * @param { HTMLElement } target The element over which the mouse is moving.
  * @param { Event } event The event triggering this (most likely mouseover)
- * @returns { Array }
+ * @returns { number[] }
  */
 function getMousePos(target, event) {
+    const boundingRect = target.getBoundingClientRect();
     return [
-        +(event.clientX - target.left).toFixed(),
-        +(event.clientY - target.top).toFixed()
+        +(event.clientX - boundingRect.left).toFixed(),
+        +(event.clientY - boundingRect.top).toFixed()
     ];
 }
 
 /**
- * Turns a single point object into a string that may be inserted into a path's d-attribute.
+ * Turns a single point-object into a string that may be inserted into a path's d-attribute.
  * @param { Object } point The point we are trying to draw.
  * @returns { string }
  */
@@ -178,7 +178,12 @@ function getViewBox(layers) {
         xMax,
         yMax
     } = getMinAndMax(layers);
-    return [xMin, yMin, xMax - xMin, yMax - yMin];
+    return {
+        xMin,
+        yMin,
+        width: xMax - xMin,
+        height: yMax - yMin
+    };
 }
 
 const inc = num => num + 1;

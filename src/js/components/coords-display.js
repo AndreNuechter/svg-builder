@@ -3,7 +3,6 @@
 import { getMousePos } from '../helper-functions.js';
 
 const svg = document.getElementById('outer-container');
-const drawingBoundingRect = svg.getBoundingClientRect();
 const coords = document.getElementById('coords');
 
 svg.addEventListener('mousemove', coordToolTips);
@@ -13,8 +12,8 @@ svg.addEventListener('mouseleave', () => {
 });
 
 function coordToolTips(e) {
-    const [x, y] = getMousePos(drawingBoundingRect, e);
+    const [x, y] = getMousePos(svg, e);
     coords.textContent = `x: ${x}, y: ${y}`;
-    coords.style.left = `${e.pageX - 16}px`;
-    coords.style.top = `${e.pageY - 32}px`;
+    coords.style.left = `${e.pageX - 120}px`;
+    coords.style.top = `${e.pageY - 40}px`;
 }

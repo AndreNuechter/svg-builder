@@ -6,9 +6,10 @@ const calculateOffset = (distA, distB, prior, current) => {
     return 0;
 };
 
-// TODO: DRY...can we abstract the creation of a cp?
+// TODO: DRY...can we abstract the creation of a cp?...c getViewBox too, some of that seems redundant
+// TODO destructure x and y from end and prior?
 /**
- * Returns somewhat ok default coords for a cp for the quad cmd.
+ * Returns somewhat ok default coords for a cp of a quad cmd.
  * @param { Array } end An array containing x- and y-coordinates of the cmds target.
  * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
  * @returns { Object }
@@ -29,7 +30,7 @@ function quad(end, prior) {
 }
 
 /**
- * Returns a set of somewhat ok default coords for the cps for the cube cmd.
+ * Returns a set of somewhat ok default coords for the cps of a cube cmd.
  * @param { Array } end An array containing x- and y-coordinates of the cmds target.
  * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
  * @returns { Object }

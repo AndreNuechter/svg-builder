@@ -11,7 +11,6 @@ html
     body
         fieldset#output
             legend Output
-
             fieldset#dims
                 legend Dimensions
                 label(for="width")
@@ -20,7 +19,6 @@ html
                 label(for="height")
                     span Height
                     input#height(type="number" min=1 value=180)
-
             fieldset#preserve-aspect-ratio
                 legend Preserve Aspect Ratio
                 select#ratio
@@ -34,13 +32,29 @@ html
                     option xMaxYMid
                     option xMaxYMin
                     option none
-
                 select#slice-or-meet
                     option meet
                     option slice
-
             button#get-markup(title="...copied to clipboard") Get Markup
             button#preview(title="...in new tab or window") Open Preview
+
+        fieldset#a-cmd-config
+            legend A-command config
+            label
+                span X-Radius
+                input(type="number" name="xR" min=1 step=1 value=50)
+            label
+                span Y-Radius
+                input(type="number" name="yR" min=1 step=1 value=50)
+            label
+                span Large Arc Flag
+                input(type="checkbox" name="large")
+            label
+                span Sweep Flag
+                input(type="checkbox" name="sweep")
+            label
+                span X-Rotation
+                input(type="range" name="xRot" min=0 may=360 step=1 value=0)
 
         #main
             fieldset#layer-management
@@ -55,54 +69,6 @@ html
                     button#del-layer(title="Delete the active layer") Delete layer
                     button#undo Delete last point
                     button#clear-all Clear canvas
-
-            #canvas
-                #mode-config
-                    fieldset#modes
-                        legend Modes
-                        label
-                            span Path
-                            input(type="radio" name="modes" value="path" checked)
-                        label
-                            span Rectangle
-                            input(type="radio" name="modes" value="rect")
-                        label
-                            span Ellipse
-                            input(type="radio" name="modes" value="ellipse")
-                    
-                    select#commands
-                        option(value="M" selected) Move to (M)
-                        option(value="L") Line to (L)
-                        option(value="H") Horizontal line to (H)
-                        option(value="V") Vertical line to (V)
-                        option(value="Q") Quadratic curve to (Q)
-                        option(value="C") Cubic curve to (C)
-                        option(value="A") Arc (A)
-
-                    fieldset#a-cmd-config
-                        legend A command config
-                        label
-                            span X-Radius
-                            input(type="number" name="xR" min=1 step=1 value=50)
-                        label
-                            span Y-Radius
-                            input(type="number" name="yR" min=1 step=1 value=50)
-                        label
-                            span X-Rotation
-                            input(type="range" name="xRot" min=0 may=360 step=1 value=0)
-                        label
-                            span Large Arc Flag
-                            input(type="checkbox" name="large")
-                        label
-                            span Sweep Flag
-                            input(type="checkbox" name="sweep")
-
-                svg#outer-container(width="100%")
-                    g#inner-container
-                    g#svg-helpers
-                        path#overlay(fill="transparent")
-
-                #coords
             
             #config
                 fieldset#fill-and-stroke.closed.togglable
@@ -151,3 +117,33 @@ html
                     label
                         span SkewY
                         input(type="range" min=0 max=180 step=0.1 value=0 name="skewY")
+
+            #canvas
+                #mode-config
+                    fieldset#modes
+                        legend Modes
+                        label
+                            span Path
+                            input(type="radio" name="modes" value="path" checked)
+                        label
+                            span Rectangle
+                            input(type="radio" name="modes" value="rect")
+                        label
+                            span Ellipse
+                            input(type="radio" name="modes" value="ellipse")
+                    
+                    select#commands
+                        option(value="M" selected) Move to (M)
+                        option(value="L") Line to (L)
+                        option(value="H") Horizontal line to (H)
+                        option(value="V") Vertical line to (V)
+                        option(value="Q") Quadratic curve to (Q)
+                        option(value="C") Cubic curve to (C)
+                        option(value="A") Arc (A)
+
+                svg#outer-container(width="100%")
+                    g#inner-container
+                    g#svg-helpers
+                        path#overlay(fill="transparent")
+
+                #coords

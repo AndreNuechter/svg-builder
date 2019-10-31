@@ -4,8 +4,6 @@ body {
     color: rgb(150, 150, 140);
     margin: 0;
     padding: 8px;
-    display: flex;
-    flex-direction: column;
     box-sizing: border-box;
     overflow-x: hidden;
 
@@ -17,13 +15,19 @@ body {
 }
 
 #output {
-    display: flex;
+    display: inline-flex;
     width: max-content;
 }
 
 #dims,
 #modes {
     display: inline;
+}
+
+#a-cmd-config {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    position: absolute;
 }
 
 #main {
@@ -41,9 +45,13 @@ body {
     flex-direction: column;
     justify-content: space-between;
 
-    #layer-select label {
-        display: flex;
-        justify-content: space-between;
+    #layer-select {
+        padding-bottom: 1rem;
+
+        label {
+            display: flex;
+            justify-content: space-between;
+        }
     }
 
     #layer-select,
