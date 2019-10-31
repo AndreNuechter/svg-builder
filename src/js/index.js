@@ -40,7 +40,6 @@ const svg = document.getElementById('outer-container');
 const drawingContent = svg.getElementById('inner-container');
 const layers = drawingContent.children;
 const helperContainer = svg.getElementById('svg-helpers');
-const overlay = svg.getElementById('overlay');
 const controlPoints = svg.getElementsByClassName('control-point');
 let transformLayerNotDrawing;
 
@@ -733,8 +732,6 @@ function ControlPoint(x, y, pointId, controlPointType) {
     cp.onmousedown = (e) => {
         // prevent triggering svg.onmousedown
         e.stopPropagation();
-        // so the hilight is shown prior to movement
-        hilightSegment(layer, pointId, controlPointType);
         svg.onmousemove = dragging(layer, pointId, controlPointType, cp);
         svg.onmouseleave = stopDragging;
         svg.onmouseup = stopDragging;
@@ -854,9 +851,6 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
         // update the affected layer's visual representation
         drawLayer();
 
-        // visualize affected path segment
-        hilightSegment(layer, pointId, controlPointType);
-
         // move the affected cp(s)
         toBeDragged.forEach((currentCp) => {
             configElement(currentCp.ref, currentCp
@@ -867,49 +861,12 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
 }
 
 /**
- * Highlights path-segment(s) affected by dragging a cp, by configuring the overlay to coincide w the affected segment(s), settings its color (which is filtered via css) and making it 4px wider than the highlighted segment.
- * @param { Object } [{ points }=session.current] The set of points belonging to the affected layer.
- * @param { number } pointId The ordinal number of the point within its layer.
- * @param { string } controlPointType The "type" of cp being dragged.
- */
-function hilightSegment({ points } = session.current, pointId, controlPointType) {
-    if (points.length <= 1) return;
-
-    const closed = session.current.style.close;
-    let d = 'M ';
-
-    // TODO does not properly work for H and V...they dont actually have both x and y...the unnecessary one is going to be removed from points...
-    // dragged point is last of the layer or not a regular point
-    if (pointId === points.length - 1 || controlPointType !== 'regularPoint') {
-        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-        ${pointToMarkup(points[pointId])}
-        ${closed ? `L${[points[0].x, points[0].y].join(' ')}` : ''}`;
-        // dragged point is the first point of the layer
-    } else if (pointId === 0) {
-        d += `${closed ? `${[points[points.length - 1].x, points[points.length - 1].y].join(' ')}L` : ''}
-        ${[points[0].x, points[0].y].join(' ')}
-        ${pointToMarkup(points[1])}`;
-    } else {
-        d += `${[points[pointId - 1].x, points[pointId - 1].y].join(' ')}
-        ${pointToMarkup(points[pointId])}
-        ${pointToMarkup(points[pointId + 1])}`;
-    }
-
-    configElement(overlay, {
-        'stroke-width': +session.current.style.strokeWidth + 4,
-        stroke: session.current.style.strokeColor,
-        d
-    });
-}
-
-/**
- * Removes dragging-related eventlisteners from svg and resets the overlay.
+ * Removes dragging-related eventlisteners from svg.
  */
 function stopDragging() {
     svg.onmousemove = null;
     svg.onmouseleave = null;
     svg.onmouseup = null;
-    overlay.setAttribute('d', '');
 }
 
 /**
