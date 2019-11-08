@@ -1,3 +1,34 @@
+/**
+ * Gives the mouse's x- and y-coordinates within the target in an array.
+ * @param { HTMLElement } target The element over which the mouse is moving.
+ * @param { Event } event The event triggering this (most likely mouseover)
+ * @returns { number[] }
+ */
+function getMousePos(target, event) {
+    // TODO local transforms need to be applied to position
+    let pt = target.createSVGPoint();
+    pt.x = event.pageX;
+    pt.y = event.pageY;
+    pt = pt.matrixTransform(target.firstElementChild.getScreenCTM().inverse());
+
+    return [pt.x, pt.y];
+
+    // const boundingRect = target.getBoundingClientRect();
+    // return [
+    //     Math.trunc(event.clientX - boundingRect.left),
+    //     Math.trunc(event.clientY - boundingRect.top)
+    // ];
+}
+
+/**
+ * Clones the provided element shallowly and returns a partially applied version of configElement().
+ * @param { HTMLElement } template The element to be cloned.
+ * @returns { Function }
+ */
+function configClone(template) {
+    return attrs => configElement(template.cloneNode(false), attrs);
+}
+
 // NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not attrs
 const exceptions = ['checked', 'textContent', 'data'];
 /**
@@ -16,59 +47,6 @@ function configElement(element, keyValPairs) {
     });
 
     return element;
-}
-
-/**
- * Clones the provided element shallowly and returns a partially applied version of configElement().
- * @param { HTMLElement } template The element to be cloned.
- * @returns { Function }
- */
-function configClone(template) {
-    return attrs => configElement(template.cloneNode(false), attrs);
-}
-
-/**
- * Prepares a style config to be usable in configElement, since the fill and stroke-attribute-values are computed.
- * @param { Object } conf The config that should be parsed.
- * @returns { Object }
- */
-function parseLayerStyle(conf) {
-    return {
-        'fill-rule': conf.fillRule,
-        fill: conf.fill
-            ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
-            : 'transparent',
-        stroke: `rgba(${[hexToRGB(conf.strokeColor), conf.strokeOpacity].join(',')})`,
-        'stroke-width': conf.strokeWidth
-    };
-}
-
-const re = /[a-z\d]{2}/gi;
-/**
- * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB color values.
- * @param { string } hex The hexadecimal representation to be converted.
- * @returns { string }
- */
-function hexToRGB(hex) {
-    return hex
-        .slice(1) // cut off hash-symbol
-        .match(re) // split into pairs of word-chars or hex nums
-        .map(e => parseInt(e, 16)) // parse em to base 10
-        .join(',');
-}
-
-/**
- * Gives the mouse's x- and y-coordinates within the target in an array.
- * @param { HTMLElement } target The element over which the mouse is moving.
- * @param { Event } event The event triggering this (most likely mouseover)
- * @returns { number[] }
- */
-function getMousePos(target, event) {
-    const boundingRect = target.getBoundingClientRect();
-    return [
-        +(event.clientX - boundingRect.left).toFixed(),
-        +(event.clientY - boundingRect.top).toFixed()
-    ];
 }
 
 /**
@@ -122,72 +100,35 @@ function pointToMarkup(point) {
     return [point.cmd, ...args].join(' ');
 }
 
-// NOTE: for ellipse (when p has cx) xs are cx +/- rx
-// for rects (when p has width) xs are x and x + w
-// for ps with cps, its the highest and lowest
-const minMaxHandler = {
-    path(points, dim) {
-        return points.flatMap((point) => {
-            const res = [point[dim]];
-
-            if (point.cmd === 'Q' || point.cmd === 'C') res.push(point[`${dim}1`]);
-            if (point.cmd === 'C') res.push(point[`${dim}2`]);
-            if (point.cmd === 'A') res.push(point[dim] + point[`${dim}R`], point[dim] - point[`${dim}R`]);
-
-            return res;
-        });
-    },
-    ellipse([points], dim) {
-        return [points[`c${dim}`], points[`c${dim}`] + points[`r${dim}`], points[`c${dim}`] - points[`r${dim}`]];
-    },
-    rect([points], dim) {
-        return [points[dim], points[dim] + points[dim === 'x' ? 'width' : 'height']];
-    }
-};
-
 /**
- * Gives an array of the lowest and highest x- and y-components from a set of points.
- * @param { Object } points A set of points belonging to a single layer or the entire drawing.
- * @returns { Object } xMin, yMin, xMax and yMax of the provided set.
+ * Prepares a style config to be usable in configElement, since the fill and stroke-attribute-values are computed.
+ * @param { Object } conf The config that should be parsed.
+ * @returns { Object }
  */
-// TODO: generalize this to take a single layer or point too and adapt docs above...is it already?
-function getMinAndMax(layers) {
-    const xs = layers.flatMap(layer => minMaxHandler[layer.mode](layer.points, 'x'));
-    const ys = layers.flatMap(layer => minMaxHandler[layer.mode](layer.points, 'y'));
-    const xMin = Math.min(...xs);
-    const yMin = Math.min(...ys);
-    const xMax = Math.max(...xs);
-    const yMax = Math.max(...ys);
+function parseLayerStyle(conf) {
     return {
-        xMin,
-        yMin,
-        xMax,
-        yMax
+        'fill-rule': conf.fillRule,
+        fill: conf.fill
+            ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
+            : 'transparent',
+        stroke: `rgba(${[hexToRGB(conf.strokeColor), conf.strokeOpacity].join(',')})`,
+        'stroke-width': conf.strokeWidth
     };
 }
 
+const re = /[a-z\d]{2}/gi;
 /**
- * Returns an array of the lowest x- and y-components and the pixel-dimensions of the drawing for use within an svg-viewBox-attribute.
- * @param { Object } layers A set of layers belonging to a drawing.
- * @returns { Array }
+ * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB color values.
+ * @param { string } hex The hexadecimal representation to be converted.
+ * @returns { string }
  */
-function getViewBox(layers) {
-    const {
-        xMin,
-        yMin,
-        xMax,
-        yMax
-    } = getMinAndMax(layers);
-    return {
-        xMin,
-        yMin,
-        width: xMax - xMin,
-        height: yMax - yMin
-    };
+function hexToRGB(hex) {
+    return hex
+        .slice(1) // cut off hash-symbol
+        .match(re) // split into pairs of word-chars or hex nums
+        .map(e => parseInt(e, 16)) // parse em to base 10
+        .join(',');
 }
-
-const inc = num => num + 1;
-const dec = num => num - 1;
 
 /**
  * Reduces an object of svg-transforms into a string, readily inserted into HTML.
@@ -196,9 +137,12 @@ const dec = num => num - 1;
  */
 function stringifyTransforms(transformData) {
     return Object
-        .keys(transformData)
-        .reduce((str, key) => `${str}${key}(${transformData[key]})`, '');
+        .entries(transformData)
+        .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
 }
+
+const inc = num => num + 1;
+const dec = num => num - 1;
 
 export {
     configElement,
@@ -207,8 +151,6 @@ export {
     hexToRGB,
     getMousePos,
     pointToMarkup,
-    getMinAndMax,
-    getViewBox,
     inc,
     dec,
     stringifyTransforms

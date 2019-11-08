@@ -4,28 +4,26 @@ import { inc, dec } from './helper-functions.js';
 
 const modes = ['path', 'rect', 'ellipse'];
 const closeToggle = document.getElementById('close-toggle');
+const arcCmdConfig = document.getElementById('arc-cmd-config');
+const commands = document.getElementById('commands');
 
 const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
 
 const proxiedSessionKeys = (
-    commands,
-    aCmdConfig,
     drawing,
     remControlPoints,
     mkControlPoint,
     setFillAndStrokeFields
 ) => ({
-    // TODO move mode back into index? We could forego some of the params then...
     mode: {
         check(val) { return modes.includes(val); },
         onPass(val) {
             // check the appropriate mode input
-            document.querySelector(`input[type="radio"][value="${val}"]`)
-                .checked = true;
+            document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
             // show/hide cmds depending on mode
-            commands.style.display = val === 'path' ? 'block' : 'none';
+            commands.style.display = (val === 'path') ? 'block' : 'none';
             // same for a cmd config
-            aCmdConfig.style.display = val === 'path' ? 'inline-grid' : 'none';
+            arcCmdConfig.style.display = (val === 'path') ? 'inline-grid' : 'none';
             // disable checkbox for closing shape when not in path mode
             closeToggle.disabled = (val !== 'path');
         }
@@ -93,7 +91,8 @@ const defaults = {
         },
         drawingShape: false,
         shapeStart: {},
-        reordering: false
+        reordering: false,
+        currentStyle: {}
     }
 };
 

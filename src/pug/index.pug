@@ -5,7 +5,7 @@ html
         title SVG Builder
         link(rel="stylesheet" href="/css/style.css")
         script(src="/js/index.js" type="module" defer)
-        script(src="/js/components/collapsables.js" defer)
+        script(src="/js/components/collapsable-fieldsets.js" defer)
         script(src="/js/components/coords-display.js" type="module" defer)
 
     body
@@ -38,7 +38,7 @@ html
             button#get-markup(title="...copied to clipboard") Get Markup
             button#preview(title="...in new tab or window") Open Preview
 
-        fieldset#a-cmd-config
+        fieldset#arc-cmd-config
             legend A-command config
             label
                 span X-Radius
@@ -107,7 +107,7 @@ html
                         input(type="checkbox" name="target-switch" title="Check this to transform the active layer")
                     label
                         span Scale
-                        input(type="number" min=1 max=100 step=1 value=1 name="scale")
+                        input(type="number" min=0 max=100 step=0.1 value=1 name="scale")
                     label
                         span Rotate
                         input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")

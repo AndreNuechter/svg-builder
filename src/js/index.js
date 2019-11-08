@@ -18,10 +18,9 @@ import {
     parseLayerStyle,
     getMousePos,
     pointToMarkup,
-    getViewBox,
     stringifyTransforms
 } from './helper-functions.js';
-import setFillAndStrokeFields from './components/fillAndStrokeSyncer.js';
+import setFillAndStrokeFields from './components/fill-and-stroke-syncer.js';
 
 // Layers fieldset
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
@@ -34,19 +33,17 @@ const ratio = document.getElementById('ratio');
 const meetOrSlice = document.getElementById('slice-or-meet');
 // Path commands (visible when in 'path' mode) and enum of allowed values
 const commands = document.getElementById('commands');
-const aCmdConfig = document.getElementById('a-cmd-config');
+const arcCmdConfig = document.getElementById('arc-cmd-config');
 // SVG
 const svg = document.getElementById('outer-container');
 const drawingContent = svg.getElementById('inner-container');
 const layers = drawingContent.children;
 const helperContainer = svg.getElementById('svg-helpers');
 const controlPoints = svg.getElementsByClassName('control-point');
-let transformLayerNotDrawing;
+let transformLayerNotDrawing; // TODO: add to session
 
 const drawing = {};
 const proxiedKeys = proxiedSessionKeys(
-    commands,
-    aCmdConfig,
     drawing,
     remControlPoints,
     mkControlPoint,
@@ -68,6 +65,10 @@ const session = new Proxy(Object.assign({
         return true;
     }
 });
+
+// TODO this is helpful, but only temporary
+window.global = session;
+
 // create and organize used HTML/SVG elements
 const layerSelectorTemplate = (() => {
     const label = configElement(document.createElement('label'), { draggable: true });
@@ -103,7 +104,7 @@ const changeLayerLabel = ({ target }) => {
     save();
 };
 
-// watch for addition and removal of layers and do some synchronisation
+// watches for additions and removals of layers and does some synchronisation
 new MutationObserver((mutationsList) => {
     // hide/show a message when no layers exist
     vacancyMsgStyle.display = drawingContent.childElementCount ? 'none' : 'initial';
@@ -171,13 +172,11 @@ new MutationObserver((mutationsList) => {
 }).observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
-    // TODO: sync aCmdConfig...on layer switch too?!
-    // TODO: transform fieldsets too
-
-    transformLayerNotDrawing = document.querySelector('[name=target-switch]').checked;
+    // TODO: sync arcCmdConfig (return fields to defaults and if first layer is path containing arc cmd, set it to its config)...on layer switch too (if selected layer is path containing arc cmd, set it to its config)
+    // TODO: transform fieldsets too. start: set fieldset to global config; switch: if we changed to transforming single layer, set fieldset to the config of the new layer
 
     configElement(svg, {
-        height: window.innerHeight - svg.getBoundingClientRect().top
+        height: Math.trunc(window.innerHeight - svg.getBoundingClientRect().top)
     });
 
     // if there's a saved drawing, use it, else use defaults
@@ -211,6 +210,9 @@ window.addEventListener('DOMContentLoaded', () => {
     // adjust inputs for changing the dimensions of the drawing
     document.getElementById('width').value = drawing.dims.width;
     document.getElementById('height').value = drawing.dims.height;
+
+    // we want to transform the entire drawing by default
+    document.querySelector('[name=target-switch]').checked = false;
 });
 
 // NOTE: to not have to move control points around when moving a layer,
@@ -292,11 +294,12 @@ layerSelect.ondrop = (e) => {
     drawing.layers.splice(droppedOnId, 0, draggedLayerData);
     save();
 
-    // TODO dragging layer other than active, feels weird
+    // TODO dragging layer other than active, feels weird, since the session is set to it
+    // we want the active layer to remain active in that case
     session.layer = droppedOnId;
     layerSelectors[session.layer].checked = true;
 
-    // insert dragged before or after depending on its origin
+    // insert dragged before or after the one dropped on depending on its origin
     if (draggedId < droppedOnId) {
         droppedOnLayer.after(draggedLayer);
     } else {
@@ -307,16 +310,23 @@ layerSelect.ondrop = (e) => {
 };
 
 addLayerBtn.onclick = () => {
-    // create new vanilla layer data and set session-focus to it
+    const currentStyles = Object.keys(session.currentStyle);
+    // add new vanilla layer-data and set session-focus to it
     session.layer = drawing
         .layers
         .push({
             mode: session.mode,
             points: [],
-            style: Object.assign({}, defaults.style), // FIXME: when triggered by eg mode switch, what if the user configs style before drawing?
+            // NOTE: the user might have configured styles before starting to draw the layer
+            style: currentStyles.length
+                ? Object.assign({}, defaults.style, session.currentStyle)
+                : Object.assign({}, defaults.style),
             transforms: JSON.parse(JSON.stringify(defaults.dims.transforms))
         }) - 1;
     save();
+
+    // reset the current styles
+    currentStyles.forEach(key => delete session.currentStyle[key]);
 
     // config the appropriate shape
     const shape = configClone(svgTemplates[session.mode])({
@@ -451,10 +461,10 @@ svg.addEventListener('mousedown', (e) => {
 
         // for Q, C and A cmds we need to add cp(s)
         if (session.cmd === 'Q') {
-            const cp = quad([x, y], points[points.length - 2]);
+            const cp = quad(x, y, points[points.length - 2]);
             Object.assign(points[points.length - 1], cp);
         } else if (session.cmd === 'C') {
-            const cps = cube([x, y], points[points.length - 2]);
+            const cps = cube(x, y, points[points.length - 2]);
             Object.assign(points[points.length - 1], cps);
         } else if (session.cmd === 'A') {
             const cp = arc(session.arcCmdConfig);
@@ -501,7 +511,7 @@ document.getElementById('modes').onchange = ({ target }) => {
     }
 };
 
-aCmdConfig.oninput = ({ target }) => {
+arcCmdConfig.oninput = ({ target }) => {
     if (!session.current) return;
 
     session.arcCmdConfig[target.name] = target[
@@ -526,12 +536,14 @@ aCmdConfig.oninput = ({ target }) => {
 
 // Fill & Stroke
 document.getElementById('fill-and-stroke').oninput = ({ target }) => {
-    // FIXME: if done before layer has points (ie on start for a blank canvas) this causes an exception
-    drawing
-        .layers[session.layer]
-        .style[target.name] = target[
-            target.type === 'checkbox' ? 'checked' : 'value'
-        ];
+    // NOTE: this could happen before the layer exists or has styles and
+    // we still want to capture the input
+    const storageLocation = drawing
+        .layers[session.layer] ? drawing.layers[session.layer].style : session.currentStyle;
+
+    storageLocation[target.name] = target[target.type === 'checkbox' ? 'checked' : 'value'];
+
+    if (!drawing.layers[session.layer]) return;
 
     if (target.id === 'close-toggle') {
         drawLayer();
@@ -542,31 +554,37 @@ document.getElementById('fill-and-stroke').oninput = ({ target }) => {
 
 document.getElementById('transformations').oninput = ({ target }) => {
     if (target.name === 'target-switch') {
+        // TODO: if we switched to transforming single layer, we need to sync the transform fieldset to the current layers config
         transformLayerNotDrawing = target.checked;
         return;
     }
 
-    const transformTarget = transformLayerNotDrawing // FIXME: layer wo points causes exception
+    const transformTarget = transformLayerNotDrawing
         ? session.current
         : drawing.dims;
 
+    // NOTE otherwise getBBox might be called with undefined
+    if (transformTarget === session.current && !layers.length) return;
+
     let value;
+    // NOTE: 'rotate' can take three params (deg, cx, cy)
+    // we want to rotate from the center
     if (target.name === 'rotate') {
         const {
-            xMin,
-            yMin,
+            x,
+            y,
             width,
             height
-        } = getViewBox(transformTarget === session.current ? [transformTarget] : drawing.layers);
-        const middleOfTransformTarget = [xMin + (width * 0.5), yMin + (height * 0.5)];
-        value = [target.value, ...middleOfTransformTarget].join(',');
+        } = (transformTarget === session.current ? layers[session.layer] : drawingContent).getBBox();
+        const centerOfTransformTarget = [x + (width * 0.5), y + (height * 0.5)];
+        value = [target.value, ...centerOfTransformTarget].join(',');
     } else {
         ({ value } = target);
     }
 
     transformTarget.transforms[target.name] = value;
-    applyTransforms();
     save();
+    applyTransforms();
 };
 
 document.getElementById('preview')
@@ -576,10 +594,12 @@ document.getElementById('get-markup')
     .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 /**
- * Applies configured transforms to the currently active layer and the entire svg-canvas.
- * Takes care of control points and the overlay as well.
+ * Applies transforms to the layer-container,
+ * the currently active layer and its control points.
  */
 function applyTransforms() {
+    if (!session.current) return;
+
     const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
     const layerTransforms = stringifyTransforms(session.current.transforms);
     const targets = [drawingContent, layers[session.layer], helperContainer];
@@ -588,7 +608,7 @@ function applyTransforms() {
 }
 
 /**
- * Adjusts layer-ids and labels of layers and selectors affected by re-ordering or deletion.
+ * Adjusts layer-ids and labels of layers and selectors affected by re-ordering or deleting.
  * @param { number } startIndex The ordinal of the first affected item.
  * @param { number } endIndex The ordinal of the last affected item.
  */
@@ -603,7 +623,7 @@ function reorderLayerSelectors(startIndex, endIndex) {
 }
 
 /**
- * Returns a eventHandler for drawing a shape (ellipse or rect).
+ * Returns an eventHandler for drawing a shape (ellipse or rect).
  * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
  * @param { Function } attrs A lambda evaluating to the respective attributes when given the current mouse-position.
  * @returns { Function }
@@ -890,21 +910,19 @@ function move(key, points) {
  */
 function generateMarkUp() {
     const {
-        xMin,
-        yMin,
+        x,
+        y,
         width,
         height
-    } = getViewBox(drawing.layers);
-    const drawingTransforms = Object
-        .entries(drawing.dims.transforms)
-        .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
+    } = drawingContent.getBBox();
+    const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
 
     return `
     <svg 
     xmlns="${ns}"
     width="${drawing.dims.width}" 
     height="${drawing.dims.height}" 
-    viewBox="${[xMin, yMin, width, height].join(' ')}" 
+    viewBox="${[x, y, width, height].join(' ')}" 
     transform="${drawingTransforms}" 
     preserveAspectRatio="${[ratio.value, meetOrSlice.value].join(' ')}">
     ${drawingContent.innerHTML}

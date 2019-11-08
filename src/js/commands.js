@@ -1,57 +1,53 @@
-// TODO: what is the 35 for? Purely aesthetic?
-const calculateOffset = (distA, distB, prior, current) => {
-    if (distA < distB) {
-        return prior > current ? -35 : 35;
-    }
-    return 0;
-};
-
-// TODO: DRY...can we abstract the creation of a cp?...c getViewBox too, some of that seems redundant
-// TODO destructure x and y from end and prior?
+// TODO: stay DRY...can we abstract the creation of a cp?
 /**
- * Returns somewhat ok default coords for a cp of a quad cmd.
- * @param { Array } end An array containing x- and y-coordinates of the cmds target.
- * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
+ * Returns a set of somewhat ok default coords for the cps of a quad cmd.
+ * @param { number } xEnd The x-coordinate of the cmd.
+ * @param { number } yEnd The y-coordinate of the cmd.
+ * @param { Object } { x: xPrev, y: yPrev } X- and y-ccordinates of the previous point.
  * @returns { Object }
  */
-function quad(end, prior) {
-    const [x, y] = end;
-    const distX = Math.abs(prior.x - x);
-    const distY = Math.abs(prior.y - y);
-    const xMin = Math.min(x, prior.x);
-    const yMin = Math.min(y, prior.y);
-    const yOffset = calculateOffset(distX, distY, prior.y, y);
-    const xOffset = calculateOffset(distY, distX, prior.x, x);
+function quad(xEnd, yEnd, { x: xPrev, y: yPrev }) {
+    const {
+        xMin,
+        yMin,
+        yOffset,
+        xOffset
+    } = cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev);
 
     return {
-        x1: xMin - xOffset + (Math.max(x, prior.x) - xMin) / 2,
-        y1: yMin - yOffset + (Math.max(y, prior.y) - yMin) / 2
+        x1: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.5,
+        y1: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.5
     };
 }
 
 /**
  * Returns a set of somewhat ok default coords for the cps of a cube cmd.
- * @param { Array } end An array containing x- and y-coordinates of the cmds target.
- * @param { Object } prior The prior point of the layer (we only care about its x- and y-coords).
+ * @param { number } xEnd The x-coordinate of the cmd.
+ * @param { number } yEnd The y-coordinate of the cmd.
+ * @param { Object } { x: xPrev, y: yPrev } X- and y-ccordinates of the previous point.
  * @returns { Object }
  */
-function cube(end, prior) {
-    const [x, y] = end;
-    const distX = Math.abs(prior.x - x);
-    const distY = Math.abs(prior.y - y);
-    const xMin = Math.min(x, prior.x);
-    const yMin = Math.min(y, prior.y);
-    const yOffset = calculateOffset(distY, distX, prior.x, x);
-    const xOffset = calculateOffset(distX, distY, prior.y, y);
+function cube(xEnd, yEnd, { x: xPrev, y: yPrev }) {
+    const {
+        xMin,
+        yMin,
+        yOffset,
+        xOffset
+    } = cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev);
 
     return {
-        x1: xMin - xOffset + (Math.max(x, prior.x) - xMin) / 4,
-        y1: yMin - yOffset + (Math.max(y, prior.y) - yMin) / 4,
-        x2: xMin - xOffset + (Math.max(x, prior.x) - xMin) * 0.75,
-        y2: yMin - yOffset + (Math.max(y, prior.y) - yMin) * 0.75
+        x1: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.25,
+        y1: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.25,
+        x2: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.75,
+        y2: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.75
     };
 }
 
+/**
+ * Returns basic defaults for a point of the arc-cmd.
+ * @param { Object } config The current configuration of the arc-cmd-config fieldset.
+ * @returns { Object }
+ */
 function arc(config) {
     // TODO: rethink defaults
     // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags
@@ -62,6 +58,31 @@ function arc(config) {
         large: +config.large,
         sweep: +config.sweep
     };
+}
+
+function cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev) {
+    const distX = Math.abs(xPrev - xEnd);
+    const distY = Math.abs(yPrev - yEnd);
+    const xMin = Math.min(xEnd, xPrev);
+    const yMin = Math.min(yEnd, yPrev);
+    const yOffset = calculateOffset(distY, distX, xPrev, xEnd);
+    const xOffset = calculateOffset(distX, distY, yPrev, yEnd);
+
+    return {
+        xMin,
+        yMin,
+        yOffset,
+        xOffset
+    };
+}
+
+const offset = 33;
+
+function calculateOffset(distA, distB, prior, current) {
+    if (distA < distB) {
+        return prior > current ? -offset : offset;
+    }
+    return 0;
 }
 
 export {
