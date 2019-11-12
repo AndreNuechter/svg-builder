@@ -37,8 +37,7 @@ function serveForDev() {
     const app = express();
     app.use(express.static('src'));
     app.use(express.static('dist'));
-    app.listen(3000,
-        () => console.log('Build that SVG!'));
+    app.listen(3000, () => console.log('Build that SVG!'));
 }
 
 function serve() {

@@ -13,6 +13,7 @@ const proxiedSessionKeys = (
     drawing,
     remControlPoints,
     mkControlPoint,
+    applyTransforms,
     setFillAndStrokeFields
 ) => ({
     mode: {
@@ -38,14 +39,12 @@ const proxiedSessionKeys = (
     layer: {
         check(val) { return (+val >= 0 && +val <= drawing.layers.length); },
         onPass(val) {
-            // rem cps of prev layer
             remControlPoints();
-            // add cps for curr layer
             if (drawing.layers[val].points.length) {
                 drawing.layers[val].points.forEach(mkControlPoint);
             }
-            // adjust Fill & Stroke
             setFillAndStrokeFields(drawing.layers[val].style);
+            applyTransforms();
         }
     },
     drawingShape: {
@@ -53,6 +52,10 @@ const proxiedSessionKeys = (
         onPass() {}
     },
     reordering: {
+        check(val) { return typeof val === 'boolean'; },
+        onPass() {}
+    },
+    transformLayerNotDrawing: {
         check(val) { return typeof val === 'boolean'; },
         onPass() {}
     }

@@ -13,7 +13,7 @@ const closeToggle = document.getElementById('close-toggle');
  * Adjusts the Fill & Stroke fieldset to a given style config.
  * @param { Object } conf The config to be applied.
  */
-function setFillAndStrokeFields(conf) {
+export default function setFillAndStrokeFields(conf) {
     strokeColorSetter.value = conf.strokeColor;
     strokeOpacitySetter.value = conf.strokeOpacity;
     fillColorSetter.value = conf.fillColor;
@@ -25,5 +25,3 @@ function setFillAndStrokeFields(conf) {
     fillToggle.checked = conf.fill;
     closeToggle.checked = conf.close;
 }
-
-export default setFillAndStrokeFields;

@@ -1,23 +1,18 @@
 /**
- * Gives the mouse's x- and y-coordinates within the target in an array.
- * @param { HTMLElement } target The element over which the mouse is moving.
- * @param { Event } event The event triggering this (most likely mouseover)
+ * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
+ * @param { Event } event The event triggering this (most likely mouseover).
+ * @param { SVGSVGElement } svg The element over which the mouse is moving.
  * @returns { number[] }
  */
-function getMousePos(target, event) {
-    // TODO local transforms need to be applied to position
-    let pt = target.createSVGPoint();
+function getSVGCoords(event, svg) {
+    let pt = svg.createSVGPoint();
     pt.x = event.pageX;
     pt.y = event.pageY;
-    pt = pt.matrixTransform(target.firstElementChild.getScreenCTM().inverse());
+    // NOTE: the second child of our canvas is the control-points-container,
+    // which has drawing- as well as layer-transforms applied to it
+    pt = pt.matrixTransform(svg.children[1].getScreenCTM().inverse());
 
     return [pt.x, pt.y];
-
-    // const boundingRect = target.getBoundingClientRect();
-    // return [
-    //     Math.trunc(event.clientX - boundingRect.left),
-    //     Math.trunc(event.clientY - boundingRect.top)
-    // ];
 }
 
 /**
@@ -141,6 +136,19 @@ function stringifyTransforms(transformData) {
         .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
 }
 
+const amounts = {
+    M: 1,
+    L: 1,
+    H: 1,
+    V: 1,
+    Q: 2,
+    C: 3,
+    A: 1
+};
+const getIdOfControlPoint = (layer, id) => layer.points
+    .slice(0, id)
+    .reduce((cps, point) => cps + amounts[point.cmd], 0);
+
 const inc = num => num + 1;
 const dec = num => num - 1;
 
@@ -149,9 +157,10 @@ export {
     configClone,
     parseLayerStyle,
     hexToRGB,
-    getMousePos,
+    getSVGCoords,
     pointToMarkup,
     inc,
     dec,
-    stringifyTransforms
+    stringifyTransforms,
+    getIdOfControlPoint
 };

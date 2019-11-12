@@ -43,23 +43,6 @@ function cube(xEnd, yEnd, { x: xPrev, y: yPrev }) {
     };
 }
 
-/**
- * Returns basic defaults for a point of the arc-cmd.
- * @param { Object } config The current configuration of the arc-cmd-config fieldset.
- * @returns { Object }
- */
-function arc(config) {
-    // TODO: rethink defaults
-    // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags
-    return {
-        xR: config.xR,
-        yR: config.yR,
-        xRot: config.xRot,
-        large: +config.large,
-        sweep: +config.sweep
-    };
-}
-
 function cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev) {
     const distX = Math.abs(xPrev - xEnd);
     const distY = Math.abs(yPrev - yEnd);
@@ -83,6 +66,23 @@ function calculateOffset(distA, distB, prior, current) {
         return prior > current ? -offset : offset;
     }
     return 0;
+}
+
+/**
+ * Returns basic defaults for a point of the arc-cmd.
+ * @param { Object } config The current configuration of the arc-cmd-config fieldset.
+ * @returns { Object }
+ */
+function arc(config) {
+    // TODO: rethink defaults
+    // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags
+    return {
+        xR: config.xR,
+        yR: config.yR,
+        xRot: config.xRot,
+        large: +config.large,
+        sweep: +config.sweep
+    };
 }
 
 export {

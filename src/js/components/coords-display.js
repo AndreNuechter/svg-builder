@@ -1,8 +1,8 @@
 /* globals document */
 
-import { getMousePos } from '../helper-functions.js';
+import { getSVGCoords } from '../helper-functions.js';
 
-const svg = document.getElementById('outer-container');
+const svg = document.getElementById('canvas');
 const coords = document.getElementById('coords');
 
 svg.addEventListener('mousemove', coordToolTips);
@@ -12,7 +12,7 @@ svg.addEventListener('mouseleave', () => {
 });
 
 function coordToolTips(e) {
-    const [x, y] = getMousePos(svg, e);
+    const [x, y] = getSVGCoords(e, svg);
     coords.textContent = `x: ${x}, y: ${y}`;
     coords.style.left = `${e.pageX - 120}px`;
     coords.style.top = `${e.pageY - 40}px`;

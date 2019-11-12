@@ -16,41 +16,37 @@ import {
     configElement,
     configClone,
     parseLayerStyle,
-    getMousePos,
+    getSVGCoords,
     pointToMarkup,
-    stringifyTransforms
+    stringifyTransforms,
+    getIdOfControlPoint
 } from './helper-functions.js';
 import setFillAndStrokeFields from './components/fill-and-stroke-syncer.js';
 
-// Layers fieldset
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 const layerSelect = document.getElementById('layer-select');
-const layerSelectors = document.getElementsByName('layer');
+const layerSelectors = document.getElementsByName('layer-selector');
 const addLayerBtn = document.getElementById('add-layer');
 const undoBtn = document.getElementById('undo');
-// Preserve aspect ratio related inputs
 const ratio = document.getElementById('ratio');
-const meetOrSlice = document.getElementById('slice-or-meet');
-// Path commands (visible when in 'path' mode) and enum of allowed values
+const sliceOrMeet = document.getElementById('slice-or-meet');
 const commands = document.getElementById('commands');
 const arcCmdConfig = document.getElementById('arc-cmd-config');
-// SVG
-const svg = document.getElementById('outer-container');
-const drawingContent = svg.getElementById('inner-container');
+const svg = document.getElementById('canvas');
+const drawingContent = svg.getElementById('drawing-content');
 const layers = drawingContent.children;
-const helperContainer = svg.getElementById('svg-helpers');
+const controlPointContainer = svg.getElementById('control-point-container');
 const controlPoints = svg.getElementsByClassName('control-point');
-let transformLayerNotDrawing; // TODO: add to session
 
 const drawing = {};
 const proxiedKeys = proxiedSessionKeys(
     drawing,
     remControlPoints,
     mkControlPoint,
+    applyTransforms,
     setFillAndStrokeFields
 );
 const sessionKeys = Object.keys(proxiedKeys);
-// partially initialize session and define a trap on set
 const session = new Proxy(Object.assign({
     get current() {
         return drawing.layers[session.layer];
@@ -58,18 +54,11 @@ const session = new Proxy(Object.assign({
 }, defaults.session), {
     set(obj, key, val) {
         if (!sessionKeys.includes(key) || !proxiedKeys[key].check(val)) return false;
-
         obj[key] = val;
         proxiedKeys[key].onPass(val);
-
         return true;
     }
 });
-
-// TODO this is helpful, but only temporary
-window.global = session;
-
-// create and organize used HTML/SVG elements
 const layerSelectorTemplate = (() => {
     const label = configElement(document.createElement('label'), { draggable: true });
     const labelTextContainer = configElement(document.createElement('span'), {
@@ -77,7 +66,7 @@ const layerSelectorTemplate = (() => {
     });
     const selector = configElement(document.createElement('input'), {
         type: 'radio',
-        name: 'layer'
+        name: 'layer-selector'
     });
 
     label.append(labelTextContainer, selector);
@@ -85,15 +74,15 @@ const layerSelectorTemplate = (() => {
     return label;
 })();
 const ns = 'http://www.w3.org/2000/svg';
-const pathTemplate = document.createElementNS(ns, 'path');
-const rectTemplate = document.createElementNS(ns, 'rect');
-const ellipseTemplate = document.createElementNS(ns, 'ellipse');
 const circleTemplate = (() => configElement(document.createElementNS(ns, 'circle'), {
     r: 3,
     class: 'control-point'
 }))();
-const svgTemplates = { path: pathTemplate, rect: rectTemplate, ellipse: ellipseTemplate };
-
+const svgTemplates = {
+    path: document.createElementNS(ns, 'path'),
+    rect: document.createElementNS(ns, 'rect'),
+    ellipse: document.createElementNS(ns, 'ellipse')
+};
 const dragLayerSelector = (e) => {
     e.dataTransfer.setData('text', e.target.dataset.layerId);
     e.dataTransfer.effectAllowed = 'move';
@@ -173,7 +162,7 @@ new MutationObserver((mutationsList) => {
 
 window.addEventListener('DOMContentLoaded', () => {
     // TODO: sync arcCmdConfig (return fields to defaults and if first layer is path containing arc cmd, set it to its config)...on layer switch too (if selected layer is path containing arc cmd, set it to its config)
-    // TODO: transform fieldsets too. start: set fieldset to global config; switch: if we changed to transforming single layer, set fieldset to the config of the new layer
+    // TODO: transform fieldset too. start: set fieldset to global config; switch: if we changed to transforming single layer, set fieldset to the config of the new layer
 
     configElement(svg, {
         height: Math.trunc(window.innerHeight - svg.getBoundingClientRect().top)
@@ -203,9 +192,11 @@ window.addEventListener('DOMContentLoaded', () => {
                     d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
                 } : layer.points[0] || {},
                 parseLayerStyle(layer.style));
+        // TODO: apply transforms as well...transforms: stringifyTransforms(layer.transforms)
 
         drawingContent.append(configClone(shape)(attrs));
     });
+    // TODO apply transforms to outer-container and control-point-container...applyTransforms();
 
     // adjust inputs for changing the dimensions of the drawing
     document.getElementById('width').value = drawing.dims.width;
@@ -242,6 +233,7 @@ window.onkeydown = (e) => {
             return;
         }
 
+        // TODO: this needs refinement to work w transforms => translate here as well instead of changing coords
         // else move the layer
         move(key, session.current.points);
         drawLayer();
@@ -263,27 +255,24 @@ window.onkeydown = (e) => {
 // Layers
 layerSelect.onchange = ({ target }) => {
     const layerId = +target.value;
-    // NOTE: the order is important here, cuz control point creation (triggered by setting layer) depends on the currently selected mode
+    // NOTE: the order is important here,
+    // cuz control point creation (triggered by setting layer),
+    // depends on the currently selected mode
     session.mode = drawing.layers[layerId].mode;
     session.layer = layerId;
 };
-
 // re-ordering of layers via dragging of selector
 layerSelect.ondragover = e => e.preventDefault();
 layerSelect.ondrop = (e) => {
     e.preventDefault();
-
-    // NOTE: the dragged layer is first removed and then re-added, triggering the observer on group...
+    // NOTE: the dragged layer is first removed and then re-added, triggering the observer on drawingContent.
     // BUT since the the actions there happen after the fact, proper syncing via that is a pain
     // SO we do the necessary work here
 
-    // signify to the observer on group that we are reordering
+    // signify to the observer on drawingContent that we are reordering
     session.reordering = true;
 
-    // NOTE: the node we're dropping on may not be a wrapper of a selector (a label) but a child of one (a radio)
-    const droppedOnSelector = e.target.tagName === 'LABEL'
-        ? e.target
-        : e.target.parentNode;
+    const droppedOnSelector = e.target.closest('label');
     const droppedOnId = +droppedOnSelector.dataset.layerId;
     const droppedOnLayer = layers[droppedOnId];
     const draggedId = +e.dataTransfer.getData('text');
@@ -294,9 +283,19 @@ layerSelect.ondrop = (e) => {
     drawing.layers.splice(droppedOnId, 0, draggedLayerData);
     save();
 
-    // TODO dragging layer other than active, feels weird, since the session is set to it
-    // we want the active layer to remain active in that case
-    session.layer = droppedOnId;
+    // NOTE: we want the active layer to remain active,
+    // so we may have to add or subtract 1 from session.layer or
+    // set the id to the one dropped on
+    if (draggedId !== session.layer) {
+        if (draggedId > session.layer && droppedOnId <= session.layer) {
+            session.layer += 1;
+        } else if (draggedId < session.layer && droppedOnId > session.layer) {
+            session.layer -= 1;
+        }
+    } else {
+        session.layer = droppedOnId;
+    }
+
     layerSelectors[session.layer].checked = true;
 
     // insert dragged before or after the one dropped on depending on its origin
@@ -381,7 +380,7 @@ undoBtn.onclick = () => {
 svg.addEventListener('mousedown', (e) => {
     if (!layers.length) addLayerBtn.click();
 
-    const [x, y] = getMousePos(svg, e);
+    const [x, y] = getSVGCoords(e, svg);
     const { points } = session.current;
 
     if (session.drawingShape) {
@@ -455,9 +454,9 @@ svg.addEventListener('mousedown', (e) => {
             remLastControlPoint(session.cmd);
         }
 
-        if (['M', 'L', 'Q', 'C', 'A'].includes(session.cmd)) points.push({ cmd: session.cmd, x, y });
+        if (session.cmd === 'V') points.push({ cmd: session.cmd, y });
         else if (session.cmd === 'H') points.push({ cmd: session.cmd, x });
-        else if (session.cmd === 'V') points.push({ cmd: session.cmd, y });
+        else points.push({ cmd: session.cmd, x, y });
 
         // for Q, C and A cmds we need to add cp(s)
         if (session.cmd === 'Q') {
@@ -498,7 +497,7 @@ document.getElementById('modes').onchange = ({ target }) => {
 
     if (!layers[session.layer]) return;
 
-    // NOTE: if we change the mode on an existing layer, we add a new layer
+    // NOTE: if we change the mode on an existing layer, we add a new layer,
     // but if it has not been edited yet, we replace the shape and the mode
     if (session.current.points.length) {
         addLayerBtn.click();
@@ -518,12 +517,12 @@ arcCmdConfig.oninput = ({ target }) => {
         target.type === 'checkbox' ? 'checked' : 'value'
     ];
 
-    const lastACmd = session.current.points
+    const lastArcCmd = session.current.points
         .slice()
         .reverse()
         .find(point => point.cmd === 'A') || {};
 
-    Object.assign(lastACmd, {
+    Object.assign(lastArcCmd, {
         xR: session.arcCmdConfig.xR,
         yR: session.arcCmdConfig.yR,
         xRot: session.arcCmdConfig.xRot,
@@ -555,11 +554,12 @@ document.getElementById('fill-and-stroke').oninput = ({ target }) => {
 document.getElementById('transformations').oninput = ({ target }) => {
     if (target.name === 'target-switch') {
         // TODO: if we switched to transforming single layer, we need to sync the transform fieldset to the current layers config
-        transformLayerNotDrawing = target.checked;
+        // if we switched the other way we must apply the global tranforms
+        session.transformLayerNotDrawing = target.checked;
         return;
     }
 
-    const transformTarget = transformLayerNotDrawing
+    const transformTarget = session.transformLayerNotDrawing
         ? session.current
         : drawing.dims;
 
@@ -598,13 +598,19 @@ document.getElementById('get-markup')
  * the currently active layer and its control points.
  */
 function applyTransforms() {
-    if (!session.current) return;
-
     const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
-    const layerTransforms = stringifyTransforms(session.current.transforms);
-    const targets = [drawingContent, layers[session.layer], helperContainer];
-    const values = [drawingTransforms, layerTransforms, drawingTransforms + layerTransforms];
-    targets.forEach((t, i) => t.setAttribute('transform', values[i]));
+    const applicants = [drawingContent, controlPointContainer];
+    const transforms = [drawingTransforms];
+
+    if (layers[session.layer]) {
+        const layerTransforms = stringifyTransforms(session.current.transforms);
+        applicants.push(layers[session.layer]);
+        transforms.push(drawingTransforms + layerTransforms, layerTransforms);
+    } else {
+        transforms.push(drawingTransforms);
+    }
+
+    applicants.forEach((a, i) => a.setAttribute('transform', transforms[i]));
 }
 
 /**
@@ -630,7 +636,7 @@ function reorderLayerSelectors(startIndex, endIndex) {
  */
 function drawShape(shape, attrs) {
     return (e) => {
-        const [x1, y1] = getMousePos(svg, e);
+        const [x1, y1] = getSVGCoords(e, svg);
         configElement(shape, attrs(x1, y1));
     };
 }
@@ -654,6 +660,7 @@ function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].styl
 function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
     let attrs;
 
+    // TODO: those values could be moved out
     if (layer.mode === 'path') {
         attrs = {
             d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
@@ -731,7 +738,7 @@ function mkControlPoint(point, pointId) {
     }
 
     // NOTE: we dont add the cps to the drawingContent to keep em out of the markup
-    helperContainer.append(...cps);
+    controlPointContainer.append(...cps);
 }
 
 /**
@@ -770,7 +777,7 @@ function ControlPoint(x, y, pointId, controlPointType) {
  * @param { SVGCircleElement } controlPoint The cp that's to be dragged.
  * @returns { Function } The event-handler executed when dragging the cp.
  */
-// TODO cant we store the effects applied to the cps in controlPointTypes as well?
+// TODO store the effects applied to the cps in controlPointTypes as well
 function dragging(layer, pointId, controlPointType, controlPoint) {
     const args = controlPointTypes[controlPointType];
     const argsKeys = Object.keys(args);
@@ -799,20 +806,6 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
             }
         );
     }
-
-    const amounts = {
-        M: 1,
-        L: 1,
-        H: 1,
-        V: 1,
-        Q: 2,
-        C: 3,
-        A: 1
-    };
-
-    const getIdOfControlPoint = (layer, id) => layer.points
-        .slice(0, id)
-        .reduce((cps, point) => cps + amounts[point.cmd], 0);
 
     // move cps of affected V and H cmds
     if (point.cmd && layer.points[pointId + 1]) {
@@ -861,7 +854,7 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
     }
 
     return (e) => {
-        const [x, y] = getMousePos(svg, e);
+        const [x, y] = getSVGCoords(e, svg);
 
         // update the dragged points data
         argsKeys.forEach(key => Object.assign(point, {
@@ -924,7 +917,7 @@ function generateMarkUp() {
     height="${drawing.dims.height}" 
     viewBox="${[x, y, width, height].join(' ')}" 
     transform="${drawingTransforms}" 
-    preserveAspectRatio="${[ratio.value, meetOrSlice.value].join(' ')}">
+    preserveAspectRatio="${[ratio.value, sliceOrMeet.value].join(' ')}">
     ${drawingContent.innerHTML}
     </svg>`
         .replace(/ data-layer-id="\d+?"/g, '')

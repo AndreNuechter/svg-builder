@@ -6,6 +6,15 @@ body {
     padding: 8px;
     box-sizing: border-box;
     overflow-x: hidden;
+    display: grid;
+    grid-template-columns: min-content auto auto auto;
+    grid-template-rows: max-content min-Content auto auto auto;
+    grid-template-areas:
+        "topBar topBar topBar topBar"
+        "leftSidebar center center center"
+        "leftSidebar center center center"
+        "leftSidebar center center center"
+        "leftSidebar center center center";
 
     *,
     *::before,
@@ -14,9 +23,19 @@ body {
     }
 }
 
-#output {
-    display: inline-flex;
-    width: max-content;
+#top-bar {
+    grid-area: topBar;
+    display: flex;
+    justify-content: space-between;
+    height: min-content;
+}
+
+#output-configuration {
+    display: inline;
+
+    fieldset {
+        display: inline;
+    }
 }
 
 #dims,
@@ -25,52 +44,75 @@ body {
 }
 
 #arc-cmd-config {
-    display: inline-grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     position: absolute;
+    right: 0;
+
+    label {
+        display: flex;
+        justify-content: space-between;
+    }
 }
 
-#main {
-    display: grid;
-    grid-template-columns: min-content auto;
-    grid-template-rows: min-content auto;
-    grid-template-areas:
-        "layers canvas"
-        "config canvas";
+#left-sidebar {
+    grid-area: leftSidebar;
+    display: flex;
+    flex-direction: column;
+    margin-right: 4px;
 }
 
 #layer-management {
-    grid-area: layers;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
 
-    #layer-select {
-        padding-bottom: 1rem;
+#layer-select {
+    padding-bottom: 1rem;
 
-        label {
-            display: flex;
-            justify-content: space-between;
-        }
-    }
-
-    #layer-select,
-    #add,
-    #layer-controls {
-        display: inline-flex;
-        flex-direction: column;
+    label {
+        display: flex;
+        justify-content: space-between;
     }
 }
 
-#mode-config {
+#layer-select,
+#add,
+#layer-controls {
+    display: inline-flex;
+    flex-direction: column;
+}
+
+#center-content {
+    grid-area: center;
+}
+
+#center-top {
     display: flex;
-    margin-left: 4px;
+}
+
+#commands {
+    height: min-content;
+    align-self: center;
+}
+
+#canvas {
+    grid-area: canvas;
+    background: lightgrey;
+    min-width: 720px;
+    min-height: 405px;
+    border: 2px solid white;
+    outline: 3px solid grey;
+    margin: 8px 0 0 4px;
+    stroke-width: 2;
+    stroke: black;
+    display: block;
 }
 
 #dims,
 #modes,
-#a-cmd-config,
-#output {
+#output-configuration {
     label {
         display: inline-block;
         margin-right: 8px;
@@ -80,27 +122,6 @@ body {
             margin-right: 4px;
         }
     }
-}
-
-#commands {
-    align-self: center;
-}
-
-#canvas {
-    grid-area: canvas;
-    margin-right: 8px;
-}
-
-#outer-container {
-    background: lightgrey;
-    min-width: 720px;
-    min-height: 405px;
-    border: 2px solid white;
-    outline: 3px solid grey;
-    margin: 8px 0 0 8px;
-    stroke-width: 2;
-    stroke: black;
-    display: block;
 }
 
 #coords {
@@ -116,13 +137,6 @@ body {
     pointer-events: none;
 }
 
-#config {
-    grid-area: config;
-    display: inline-flex;
-    flex-direction: column;
-    margin-right: 2px;
-}
-
 #fill-and-stroke,
 #transformations,
 #transforms {
@@ -132,10 +146,6 @@ body {
         justify-content: space-between;
         flex-wrap: wrap;
     }
-}
-
-#overlay {
-    filter: invert(10%) hue-rotate(90deg);
 }
 
 .control-point {
@@ -158,11 +168,8 @@ select {
 input {
     &[type=number] {
         width: 5em;
-        text-align: center;
-    }
-
-    &[type=number] {
-        width: 5em;
+        border: 0;
+        padding-right: 0;
         text-align: center;
     }
 
@@ -176,7 +183,8 @@ input {
 }
 
 fieldset.togglable {
-    margin: 0.4rem 0 0.8rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.8rem;
     cursor: pointer;
     overflow: hidden;
     transition: all 0.3s;
