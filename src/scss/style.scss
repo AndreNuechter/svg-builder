@@ -4,6 +4,7 @@ body {
     color: rgb(150, 150, 140);
     margin: 0;
     padding: 8px;
+    padding-bottom: 0;
     box-sizing: border-box;
     overflow-x: hidden;
     display: grid;
@@ -98,8 +99,8 @@ body {
 }
 
 #canvas {
-    grid-area: canvas;
     background: lightgrey;
+    width: 100%;
     min-width: 720px;
     min-height: 405px;
     border: 2px solid white;

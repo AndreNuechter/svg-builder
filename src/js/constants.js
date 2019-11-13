@@ -1,6 +1,6 @@
 /* globals document */
 
-import { inc, dec } from './helper-functions.js';
+import { pointToMarkup, inc, dec } from './helper-functions.js';
 
 const modes = ['path', 'rect', 'ellipse'];
 const closeToggle = document.getElementById('close-toggle');
@@ -135,21 +135,33 @@ const controlPointTypes = {
 };
 
 const moves = {
-    ArrowUp: {
-        props: ['y', 'y1', 'y2', 'cy'],
-        cb: dec
+    ArrowUp: { prop: 1, cb: dec },
+    ArrowDown: { prop: 1, cb: inc },
+    ArrowLeft: { prop: 0, cb: dec },
+    ArrowRight: { prop: 0, cb: inc }
+};
+
+const geometryProps = {
+    path(layer) {
+        return {
+            d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
+        };
     },
-    ArrowDown: {
-        props: ['y', 'y1', 'y2', 'cy'],
-        cb: inc
+    ellipse({ points: [point] }) {
+        return {
+            cx: point.cx,
+            cy: point.cy,
+            rx: point.rx || 0,
+            ry: point.ry || 0
+        };
     },
-    ArrowLeft: {
-        props: ['x', 'x1', 'x2', 'cx'],
-        cb: dec
-    },
-    ArrowRight: {
-        props: ['x', 'x1', 'x2', 'cx'],
-        cb: inc
+    rect({ points: [point] }) {
+        return {
+            x: point.x,
+            y: point.y,
+            width: point.width || 0,
+            height: point.height || 0
+        };
     }
 };
 
@@ -158,5 +170,6 @@ export {
     defaults,
     controlPointTypes,
     moves,
-    cmds
+    cmds,
+    geometryProps
 };

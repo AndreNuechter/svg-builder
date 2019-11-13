@@ -5,7 +5,8 @@ import {
     defaults,
     controlPointTypes,
     moves,
-    cmds
+    cmds,
+    geometryProps
 } from './constants.js';
 import {
     quad,
@@ -206,38 +207,19 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[name=target-switch]').checked = false;
 });
 
-// NOTE: to not have to move control points around when moving a layer,
-// they're removed and thus need to be re-added when stoping to move
-window.onkeyup = (e) => {
-    if (!e.ctrlKey && moves[e.key]) {
-        session.current.points.forEach(mkControlPoint);
-    }
-};
-
 window.onkeydown = (e) => {
     const { key } = e;
 
     if (moves[key]) {
         e.preventDefault();
 
-        // translate the entire drawing when the ctrl key is pressed
-        if (e.ctrlKey) {
-            const { cb } = moves[key];
+        const { transforms: { translate: transformTarget } } = e.ctrlKey
+            ? drawing.dims
+            : session.current;
+        const { cb, prop } = moves[key];
 
-            drawing.dims.transforms.translate[moves[key].props[0] === 'x' ? 0 : 1] = key.match(/Arrow(?:Up|Down)/)
-                ? cb(drawing.dims.transforms.translate[1])
-                : cb(drawing.dims.transforms.translate[0]);
-
-            applyTransforms();
-
-            return;
-        }
-
-        // TODO: this needs refinement to work w transforms => translate here as well instead of changing coords
-        // else move the layer
-        move(key, session.current.points);
-        drawLayer();
-        remControlPoints();
+        transformTarget[prop] = cb(transformTarget[prop]);
+        applyTransforms();
     }
 
     // prevent interference w eg custom labeling
@@ -594,26 +576,6 @@ document.getElementById('get-markup')
     .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 /**
- * Applies transforms to the layer-container,
- * the currently active layer and its control points.
- */
-function applyTransforms() {
-    const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
-    const applicants = [drawingContent, controlPointContainer];
-    const transforms = [drawingTransforms];
-
-    if (layers[session.layer]) {
-        const layerTransforms = stringifyTransforms(session.current.transforms);
-        applicants.push(layers[session.layer]);
-        transforms.push(drawingTransforms + layerTransforms, layerTransforms);
-    } else {
-        transforms.push(drawingTransforms);
-    }
-
-    applicants.forEach((a, i) => a.setAttribute('transform', transforms[i]));
-}
-
-/**
  * Adjusts layer-ids and labels of layers and selectors affected by re-ordering or deleting.
  * @param { number } startIndex The ordinal of the first affected item.
  * @param { number } endIndex The ordinal of the last affected item.
@@ -647,42 +609,39 @@ function drawShape(shape, attrs) {
  * @param { Object } [conf=drawing.layers[layerId].style] The container of style-related attributes of the affected layer.
  */
 function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].style) {
-    const attrs = parseLayerStyle(conf);
-    configElement(layers[layerId], attrs);
+    configElement(layers[layerId], parseLayerStyle(conf));
     save();
 }
 
 /**
  * Syncs geometry attributes of a layers representation w the data.
  * @param { number } [layerId=session.layer] The ordinal number of the affected layer. Defaults to the current.
- * @param { Object } [layer=drawing.layers[layerId]] The affected layer. Defaults to the current.
+ * @param { SVGPathElement | SVGRectElement | SVGEllipseElement } [layerId=session.layer] The affected SVG-element.
+ * @param { Object } [layerData=drawing.layers[layerId]] The affected layer. Defaults to the current.
  */
-function drawLayer(layerId = session.layer, layer = drawing.layers[layerId]) {
-    let attrs;
+function drawLayer(layerId = session.layer, layer = layers[layerId], layerData = drawing.layers[layerId]) {
+    configElement(layer, geometryProps[layerData.mode](layerData));
+    save();
+}
 
-    // TODO: those values could be moved out
-    if (layer.mode === 'path') {
-        attrs = {
-            d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
-        };
-    } else if (layer.mode === 'ellipse') {
-        attrs = {
-            cx: layer.points[0].cx,
-            cy: layer.points[0].cy,
-            rx: layer.points[0].rx || 0,
-            ry: layer.points[0].ry || 0
-        };
-    } else if (layer.mode === 'rect') {
-        attrs = {
-            x: layer.points[0].x,
-            y: layer.points[0].y,
-            width: layer.points[0].width || 0,
-            height: layer.points[0].height || 0
-        };
+/**
+ * Applies transforms to the layer-container,
+ * the currently active layer and its control points.
+ */
+function applyTransforms() {
+    const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
+    const applicants = [drawingContent, controlPointContainer];
+    const transforms = [drawingTransforms];
+
+    if (layers[session.layer]) {
+        const layerTransforms = stringifyTransforms(session.current.transforms);
+        applicants.push(layers[session.layer]);
+        transforms.push(drawingTransforms + layerTransforms, layerTransforms);
+    } else {
+        transforms.push(drawingTransforms);
     }
 
-    configElement(layers[layerId], attrs);
-    save();
+    applicants.forEach((a, i) => a.setAttribute('transform', transforms[i]));
 }
 
 /**
@@ -880,22 +839,6 @@ function stopDragging() {
     svg.onmousemove = null;
     svg.onmouseleave = null;
     svg.onmouseup = null;
-}
-
-/**
- * Moves a layer in accordance with a pressed arrow-key.
- */
-function move(key, points) {
-    const { props, cb } = moves[key];
-
-    points.forEach((point) => {
-        props.forEach((prop) => {
-            // eslint-disable-next-line no-prototype-builtins
-            if (point.hasOwnProperty(prop)) {
-                point[prop] = cb(point[prop]);
-            }
-        });
-    });
 }
 
 /**

@@ -55,7 +55,7 @@ html
                     input(type="checkbox" name="sweep")
                 label
                     span X-Rotation
-                    input(type="range" name="xRot" min=0 may=360 step=1 value=0)
+                    input(type="range" name="xRot" min=0 max=360 step=1 value=0)
 
         #left-sidebar
             fieldset#layer-management
@@ -138,7 +138,7 @@ html
                     option(value="C") Cubic curve to (C)
                     option(value="A") Arc (A)
 
-            svg#canvas(width="100%")
+            svg#canvas
                 g#drawing-content
                 g#control-point-container
 
