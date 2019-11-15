@@ -45,6 +45,7 @@ const proxiedKeys = proxiedSessionKeys(
     remControlPoints,
     mkControlPoint,
     applyTransforms,
+    setArcCmdConfig,
     setFillAndStrokeFields
 );
 const sessionKeys = Object.keys(proxiedKeys);
@@ -162,9 +163,6 @@ new MutationObserver((mutationsList) => {
 }).observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
-    // TODO: sync arcCmdConfig (return fields to defaults and if first layer is path containing arc cmd, set it to its config)...on layer switch too (if selected layer is path containing arc cmd, set it to its config)
-    // TODO: transform fieldset too. start: set fieldset to global config; switch: if we changed to transforming single layer, set fieldset to the config of the new layer
-
     configElement(svg, {
         height: Math.trunc(window.innerHeight - svg.getBoundingClientRect().top)
     });
@@ -176,13 +174,18 @@ window.addEventListener('DOMContentLoaded', () => {
         layers: src.layers || []
     });
 
+    // adjust inputs for changing the dimensions of the drawing
+    document.getElementById('width').value = drawing.dims.width;
+    document.getElementById('height').value = drawing.dims.height;
+
     // initialize session.mode to that of the first layer or the default
     session.mode = (drawing.layers[0] && drawing.layers[0].mode)
         ? drawing.layers[0].mode
         : 'path';
 
-    // possibly initialize session.layer
+    // initialize session.layer or reset ar cmd config
     if (drawing.layers.length) session.layer = 0;
+    else setArcCmdConfig();
 
     // create layer representations incl selectors and config ea
     drawing.layers.forEach((layer, i) => {
@@ -192,16 +195,13 @@ window.addEventListener('DOMContentLoaded', () => {
                 layer.mode === 'path' ? {
                     d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
                 } : layer.points[0] || {},
-                parseLayerStyle(layer.style));
-        // TODO: apply transforms as well...transforms: stringifyTransforms(layer.transforms)
+                parseLayerStyle(layer.style), { transform: stringifyTransforms(layer.transforms) });
 
         drawingContent.append(configClone(shape)(attrs));
     });
-    // TODO apply transforms to outer-container and control-point-container...applyTransforms();
 
-    // adjust inputs for changing the dimensions of the drawing
-    document.getElementById('width').value = drawing.dims.width;
-    document.getElementById('height').value = drawing.dims.height;
+    applyTransforms();
+    setTransformsFieldset(drawing.dims.transforms || defaults.dims.transforms);
 
     // we want to transform the entire drawing by default
     document.querySelector('[name=target-switch]').checked = false;
@@ -448,7 +448,7 @@ svg.addEventListener('mousedown', (e) => {
             const cps = cube(x, y, points[points.length - 2]);
             Object.assign(points[points.length - 1], cps);
         } else if (session.cmd === 'A') {
-            const cp = arc(session.arcCmdConfig);
+            const cp = arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
             Object.assign(points[points.length - 1], cp);
         }
 
@@ -492,30 +492,6 @@ document.getElementById('modes').onchange = ({ target }) => {
     }
 };
 
-arcCmdConfig.oninput = ({ target }) => {
-    if (!session.current) return;
-
-    session.arcCmdConfig[target.name] = target[
-        target.type === 'checkbox' ? 'checked' : 'value'
-    ];
-
-    const lastArcCmd = session.current.points
-        .slice()
-        .reverse()
-        .find(point => point.cmd === 'A') || {};
-
-    Object.assign(lastArcCmd, {
-        xR: session.arcCmdConfig.xR,
-        yR: session.arcCmdConfig.yR,
-        xRot: session.arcCmdConfig.xRot,
-        large: +session.arcCmdConfig.large,
-        sweep: +session.arcCmdConfig.sweep
-    });
-
-    drawLayer();
-};
-
-// Fill & Stroke
 document.getElementById('fill-and-stroke').oninput = ({ target }) => {
     // NOTE: this could happen before the layer exists or has styles and
     // we still want to capture the input
@@ -533,7 +509,77 @@ document.getElementById('fill-and-stroke').oninput = ({ target }) => {
     }
 };
 
-document.getElementById('transformations').oninput = ({ target }) => {
+arcCmdConfig.oninput = ({ target }) => {
+    const prop = (target.type === 'checkbox') ? 'checked' : 'value';
+    session.arcCmdConfig[target.name] = target[prop];
+
+    if (!session.current) return;
+
+    const lastArcCmd = session.current.points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A') || {};
+
+    const updateData = Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig);
+
+    Object.assign(lastArcCmd, {
+        xR: updateData.xR,
+        yR: updateData.yR,
+        xRot: updateData.xRot,
+        large: +updateData.large,
+        sweep: +updateData.sweep
+    });
+
+    drawLayer();
+};
+
+const arcCmdConfigFields = (() => Object.keys(defaults.arcCmdConfig)
+    .reduce((obj, key) => Object.assign(obj, {
+        [key]: document.getElementsByName(key)[0]
+    }), {}))();
+
+// TODO: stay DRY, c handler above
+// this should only iterate over the fields, check their type and set the values and
+// the rest should be done before calling
+function setArcCmdConfig() {
+    const conf = session.current
+        ? (session.current.points
+            .slice()
+            .reverse()
+            .find(point => point.cmd === 'A')
+            || Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig))
+        : defaults.arcCmdConfig;
+
+    Object.assign(session.arcCmdConfig, conf);
+
+    Object
+        .entries(conf)
+        .filter(e => !['cmd', 'x', 'y'].includes(e[0]))
+        .forEach(([key, val]) => {
+            const field = arcCmdConfigFields[key];
+            const prop = (field.type === 'checkbox') ? 'checked' : 'value';
+            field[prop] = val;
+        });
+}
+
+const transforms = document.getElementById('transformations');
+
+const transformFields = (() => [...transforms.getElementsByTagName('input')]
+    .reduce((obj, child) => Object.assign(obj,
+        (child.name !== 'target-switch' ? { // NOTE: this node is not really a transform-field, but in the fieldset
+            [child.name]: child
+        } : {})), {}))();
+
+function setTransformsFieldset(conf = defaults.dims.transforms) {
+    Object.entries(conf)
+        .filter(e => e[0] !== 'translate') // NOTE: we manage translation via arrow-keys
+        .forEach(([key, val]) => {
+            const value = (key === 'rotate') ? val.slice(0, val.indexOf(',')) : val; // NOTE: rotate gets 3 params
+            transformFields[key].value = value;
+        });
+}
+
+transforms.oninput = ({ target }) => {
     if (target.name === 'target-switch') {
         // TODO: if we switched to transforming single layer, we need to sync the transform fieldset to the current layers config
         // if we switched the other way we must apply the global tranforms
@@ -631,17 +677,17 @@ function drawLayer(layerId = session.layer, layer = layers[layerId], layerData =
 function applyTransforms() {
     const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
     const applicants = [drawingContent, controlPointContainer];
-    const transforms = [drawingTransforms];
+    const transformations = [drawingTransforms];
 
     if (layers[session.layer]) {
         const layerTransforms = stringifyTransforms(session.current.transforms);
         applicants.push(layers[session.layer]);
-        transforms.push(drawingTransforms + layerTransforms, layerTransforms);
+        transformations.push(drawingTransforms + layerTransforms, layerTransforms);
     } else {
-        transforms.push(drawingTransforms);
+        transformations.push(drawingTransforms);
     }
 
-    applicants.forEach((a, i) => a.setAttribute('transform', transforms[i]));
+    applicants.forEach((a, i) => a.setAttribute('transform', transformations[i]));
 }
 
 /**

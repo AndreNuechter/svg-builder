@@ -14,6 +14,7 @@ const proxiedSessionKeys = (
     remControlPoints,
     mkControlPoint,
     applyTransforms,
+    setArcCmdConfig,
     setFillAndStrokeFields
 ) => ({
     mode: {
@@ -44,7 +45,9 @@ const proxiedSessionKeys = (
                 drawing.layers[val].points.forEach(mkControlPoint);
             }
             setFillAndStrokeFields(drawing.layers[val].style);
+            setArcCmdConfig();
             applyTransforms();
+            // TODO: sync transform fieldset on layer switch: if we changed to transforming single layer, set fieldset to the config of the new layer
         }
     },
     drawingShape: {
@@ -68,7 +71,7 @@ const defaults = {
         transforms: {
             translate: [0, 0],
             scale: 1,
-            rotate: 0,
+            rotate: '0,0,0',
             skewX: 0,
             skewY: 0
         }
@@ -83,15 +86,16 @@ const defaults = {
         fill: false,
         close: false
     },
+    arcCmdConfig: {
+        xR: 50,
+        yR: 50,
+        xRot: 0,
+        large: false,
+        sweep: false
+    },
     session: {
         cmd: 'M',
-        arcCmdConfig: {
-            xR: 50,
-            yR: 50,
-            xRot: 0,
-            large: false,
-            sweep: false
-        },
+        arcCmdConfig: {},
         drawingShape: false,
         shapeStart: {},
         reordering: false,
