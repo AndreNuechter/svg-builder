@@ -1,4 +1,30 @@
-// TODO: stay DRY...can we abstract the creation of a cp?
+// gives the ordered properties of a point of a cmd
+const pathCmds = {
+    H: ({ x }) => [x],
+    V: ({ y }) => [y],
+    Q: p => [p.x1, p.y1, p.x, p.y],
+    C: p => [
+        p.x1,
+        p.y1,
+        p.x2,
+        p.y2,
+        p.x,
+        p.y
+    ],
+    A: p => [
+        p.xR,
+        p.yR,
+        p.xRot,
+        p.large,
+        p.sweep,
+        p.x,
+        p.y
+    ],
+    M: ({ x, y }) => [x, y],
+    L: ({ x, y }) => [x, y]
+};
+
+// TODO: stay DRY...abstract the creation of a cp
 /**
  * Returns a set of somewhat ok default coords for the cps of a quad cmd.
  * @param { number } xEnd The x-coordinate of the cmd.
@@ -74,8 +100,6 @@ function calculateOffset(distA, distB, prior, current) {
  * @returns { Object }
  */
 function arc(config) {
-    // TODO: rethink defaults
-    // decide x- and y-radii (how do these work anyhow? isn't it based on distance?), and large-arc and sweep flags
     return {
         xR: config.xR,
         yR: config.yR,
@@ -86,6 +110,7 @@ function arc(config) {
 }
 
 export {
+    pathCmds,
     quad,
     cube,
     arc

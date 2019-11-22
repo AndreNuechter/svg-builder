@@ -1,3 +1,5 @@
+import { pathCmds } from './commands.js';
+
 /**
  * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
  * @param { Event } event The event triggering this (most likely mouseover).
@@ -24,7 +26,7 @@ function configClone(template) {
     return attrs => configElement(template.cloneNode(false), attrs);
 }
 
-// NOTE: the below 'exceptions' cannot be set by setAttribute as they're obj props, not attrs
+// NOTE: the below 'exceptions' cannot be set by setAttribute as they're props, not attrs
 const exceptions = ['checked', 'textContent', 'data'];
 /**
  * Applies attributes and properties to an HTMLElement.
@@ -50,49 +52,7 @@ function configElement(element, keyValPairs) {
  * @returns { string }
  */
 function pointToMarkup(point) {
-    const args = [];
-
-    /* eslint-disable */
-    switch (point.cmd) {
-        case 'H':
-            args.push(point.x);
-            break;
-        case 'V':
-            args.push(point.y);
-            break;
-        case 'A':
-            args.push(point.xR,
-                point.yR,
-                point.xRot,
-                point.large,
-                point.sweep,
-                point.x,
-                point.y);
-            break;
-        case 'Q':
-            args.push(point.x1,
-                point.y1,
-                point.x,
-                point.y);
-            break;
-        case 'C':
-            args.push(point.x1,
-                point.y1,
-                point.x2,
-                point.y2,
-                point.x,
-                point.y);
-            break;
-        case 'M':
-        case 'L':
-            args.push(point.x, point.y);
-            break;
-        default:
-            throw Error('WTF!');
-    }
-    /* eslint-enable */
-
-    return [point.cmd, ...args].join(' ');
+    return point.cmd + pathCmds[point.cmd](point).join(' ');
 }
 
 /**
@@ -136,6 +96,8 @@ function stringifyTransforms(transformData) {
         .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
 }
 
+// NOTE: ea of the given cmds has the given number of cps,
+// meaning the id of any given cp can be derived by summing the ones before it
 const amounts = {
     M: 1,
     L: 1,

@@ -1,68 +1,11 @@
 /* globals document */
 
 import { pointToMarkup, inc, dec } from './helper-functions.js';
+import { pathCmds } from './commands.js';
 
+const [transformTargeSwitch] = document.getElementsByName('transform-layer-only');
 const modes = ['path', 'rect', 'ellipse'];
-const closeToggle = document.getElementById('close-toggle');
-const arcCmdConfig = document.getElementById('arc-cmd-config');
-const commands = document.getElementById('commands');
-
-const cmds = ['M', 'L', 'H', 'V', 'Q', 'C', 'A'];
-
-const proxiedSessionKeys = (
-    drawing,
-    remControlPoints,
-    mkControlPoint,
-    applyTransforms,
-    setArcCmdConfig,
-    setFillAndStrokeFields
-) => ({
-    mode: {
-        check(val) { return modes.includes(val); },
-        onPass(val) {
-            // check the appropriate mode input
-            document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
-            // show/hide cmds depending on mode
-            commands.style.display = (val === 'path') ? 'block' : 'none';
-            // same for a cmd config
-            arcCmdConfig.style.display = (val === 'path') ? 'inline-grid' : 'none';
-            // disable checkbox for closing shape when not in path mode
-            closeToggle.disabled = (val !== 'path');
-        }
-    },
-    cmd: {
-        check(val) { return cmds.includes(val); },
-        onPass(val) {
-            // check cmd selector
-            document.querySelector(`option[value="${val}"]`).selected = true;
-        }
-    },
-    layer: {
-        check(val) { return (+val >= 0 && +val <= drawing.layers.length); },
-        onPass(val) {
-            remControlPoints();
-            if (drawing.layers[val].points.length) {
-                drawing.layers[val].points.forEach(mkControlPoint);
-            }
-            setFillAndStrokeFields(drawing.layers[val].style);
-            setArcCmdConfig();
-            applyTransforms();
-            // TODO: sync transform fieldset on layer switch: if we changed to transforming single layer, set fieldset to the config of the new layer
-        }
-    },
-    drawingShape: {
-        check(val) { return typeof val === 'boolean'; },
-        onPass() {}
-    },
-    reordering: {
-        check(val) { return typeof val === 'boolean'; },
-        onPass() {}
-    },
-    transformLayerNotDrawing: {
-        check(val) { return typeof val === 'boolean'; },
-        onPass() {}
-    }
-});
+const cmdTags = Object.keys(pathCmds);
 
 const defaults = {
     dims: {
@@ -102,6 +45,59 @@ const defaults = {
         currentStyle: {}
     }
 };
+
+const proxiedSessionKeys = (
+    drawing,
+    remControlPoints,
+    mkControlPoint,
+    applyTransforms,
+    setArcCmdConfig,
+    setFillAndStrokeFields,
+    setTransformsFieldset
+) => ({
+    mode: {
+        check(val) { return modes.includes(val); },
+        onPass(val) {
+            // check the appropriate mode input
+            document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
+            document.body.className = val;
+        }
+    },
+    cmd: {
+        check(val) { return cmdTags.includes(val); },
+        onPass(val) {
+            // check cmd selector
+            document.querySelector(`option[value="${val}"]`).selected = true;
+        }
+    },
+    layer: {
+        check(val) { return (+val >= 0 && +val <= drawing.layers.length); },
+        onPass(val) {
+            remControlPoints();
+            if (drawing.layers[val].points.length) {
+                drawing.layers[val].points.forEach(mkControlPoint);
+            }
+            setFillAndStrokeFields(drawing.layers[val].style);
+            setArcCmdConfig();
+            if (transformTargeSwitch.checked) {
+                setTransformsFieldset(drawing.layers[val].transforms || defaults.dims.transforms);
+            }
+            applyTransforms();
+        }
+    },
+    drawingShape: {
+        check(val) { return typeof val === 'boolean'; },
+        onPass() {}
+    },
+    reordering: {
+        check(val) { return typeof val === 'boolean'; },
+        onPass() {}
+    },
+    transformLayerNotDrawing: {
+        check(val) { return typeof val === 'boolean'; },
+        onPass() {}
+    }
+});
 
 const xComponent = ({ x }) => x;
 const yComponent = ({ y }) => y;
@@ -174,6 +170,5 @@ export {
     defaults,
     controlPointTypes,
     moves,
-    cmds,
     geometryProps
 };

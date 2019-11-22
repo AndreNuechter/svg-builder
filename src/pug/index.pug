@@ -39,23 +39,24 @@ html
                 button#get-markup(title="...copied to clipboard") Get Markup
                 button#preview(title="...in new tab or window") Open Preview
 
-            fieldset#arc-cmd-config
-                legend A-command config
-                label
-                    span X-Radius
-                    input(type="number" name="xR" min=1 step=1 value=50)
-                label
-                    span Y-Radius
-                    input(type="number" name="yR" min=1 step=1 value=50)
-                label
-                    span Large Arc Flag
-                    input(type="checkbox" name="large")
-                label
-                    span Sweep Flag
-                    input(type="checkbox" name="sweep")
-                label
-                    span X-Rotation
-                    input(type="range" name="xRot" min=0 max=360 step=1 value=0)
+            form#arc-cmd-config.path-only
+                fieldset.togglable
+                    legend A-command config
+                    label
+                        span X-Radius
+                        input(type="number" name="xR" min=1 step=1 value=50)
+                    label
+                        span Y-Radius
+                        input(type="number" name="yR" min=1 step=1 value=50)
+                    label
+                        span Large Arc Flag
+                        input(type="checkbox" name="large")
+                    label
+                        span Sweep Flag
+                        input(type="checkbox" name="sweep")
+                    label
+                        span X-Rotation
+                        input(type="range" name="xRot" min=0 max=360 step=1 value=0)
 
         #left-sidebar
             fieldset#layer-management
@@ -68,52 +69,54 @@ html
                     button#undo Delete last point
                     button#clear-all Clear canvas
 
-            fieldset#fill-and-stroke.togglable.closed
-                legend Fill &amp; Stroke
-                label(for="stroke-color")
-                    span Stroke-color:
-                    input#stroke-color(type="color" name="strokeColor")
-                label(for="stroke-opacity")
-                    span Stroke-opacity:
-                    input#stroke-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
-                label(for="stroke-width")
-                    span Stroke-width:
-                    input#stroke-width(type="range" min=0 max=50 step=0.1 value=2 name="strokeWidth")
-                label(for="fill-color")
-                    span Fill-color:
-                    input#fill-color(type="color" name="fillColor")
-                label(for="fill-opacity")
-                    span Fill-opacity:
-                    input#fill-opacity(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
-                label(for="fill-rule")
-                    span Fill-rule:
-                    select#fill-rule(name="fillRule")
-                        option evenodd
-                        option nonzero
-                label(for="fill-toggle")
-                    span Fill shape
-                    input#fill-toggle(type="checkbox" name="fill")
-                label(for="close-toggle")
-                    span Close shape
-                    input#close-toggle(type="checkbox" name="close" checked)
+            form#fill-and-stroke
+                fieldset.togglable.closed
+                    legend Fill &amp; Stroke
+                    label
+                        span Stroke-color:
+                        input(type="color" name="strokeColor")
+                    label
+                        span Stroke-opacity:
+                        input(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="strokeOpacity")
+                    label
+                        span Stroke-width:
+                        input(type="range" min=0 max=50 step=0.1 value=2 name="strokeWidth")
+                    label
+                        span Fill-color:
+                        input(type="color" name="fillColor")
+                    label
+                        span Fill-opacity:
+                        input(type="range" min=0 max=1 step=0.1 value=1 title="Opacity" name="fillOpacity")
+                    label.path-only
+                        span Fill-rule:
+                        select(name="fillRule")
+                            option evenodd
+                            option nonzero
+                    label
+                        span Fill shape
+                        input(type="checkbox" name="fill")
+                    label.path-only
+                        span Close shape
+                        input(type="checkbox" name="close" checked)
 
-            fieldset#transformations.togglable
+            fieldset.togglable.closed
                 legend Transformations
                 label
                     span Just the layer
-                    input(type="checkbox" name="target-switch" title="Check this to transform the active layer")
-                label
-                    span Scale
-                    input(type="number" min=0 max=100 step=0.1 value=1 name="scale")
-                label
-                    span Rotate
-                    input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
-                label
-                    span SkewX
-                    input(type="range" min=0 max=180 step=0.1 value=0 name="skewX")
-                label
-                    span SkewY
-                    input(type="range" min=0 max=180 step=0.1 value=0 name="skewY")
+                    input(type="checkbox" name="transform-layer-only" title="Check this to transform only the active layer")
+                form#transformations
+                    label
+                        span Scale
+                        input(type="number" min=0 max=100 step=0.1 value=1 name="scale")
+                    label
+                        span Rotate
+                        input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
+                    label
+                        span SkewX
+                        input(type="range" min=0 max=180 step=0.1 value=0 name="skewX")
+                    label
+                        span SkewY
+                        input(type="range" min=0 max=180 step=0.1 value=0 name="skewY")
 
         #center-content
             #center-top
@@ -129,7 +132,7 @@ html
                         span Ellipse
                         input(type="radio" name="modes" value="ellipse")
                 
-                select#commands
+                select#commands.path-only
                     option(value="M" selected) Move to (M)
                     option(value="L") Line to (L)
                     option(value="H") Horizontal line to (H)

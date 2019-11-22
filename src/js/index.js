@@ -5,14 +5,15 @@ import {
     defaults,
     controlPointTypes,
     moves,
-    cmds,
     geometryProps
 } from './constants.js';
 import {
     quad,
     cube,
-    arc
+    arc,
+    pathCmds
 } from './commands.js';
+import { layerSelectorTemplate, circleTemplate, svgTemplates } from './dom-elements.js';
 import {
     configElement,
     configClone,
@@ -38,6 +39,9 @@ const drawingContent = svg.getElementById('drawing-content');
 const layers = drawingContent.children;
 const controlPointContainer = svg.getElementById('control-point-container');
 const controlPoints = svg.getElementsByClassName('control-point');
+const [transformTargeSwitch] = document.getElementsByName('transform-layer-only');
+const transforms = document.getElementById('transformations');
+const cmds = Object.keys(pathCmds);
 
 const drawing = {};
 const proxiedKeys = proxiedSessionKeys(
@@ -46,7 +50,8 @@ const proxiedKeys = proxiedSessionKeys(
     mkControlPoint,
     applyTransforms,
     setArcCmdConfig,
-    setFillAndStrokeFields
+    setFillAndStrokeFields,
+    setTransformsFieldset
 );
 const sessionKeys = Object.keys(proxiedKeys);
 const session = new Proxy(Object.assign({
@@ -61,30 +66,7 @@ const session = new Proxy(Object.assign({
         return true;
     }
 });
-const layerSelectorTemplate = (() => {
-    const label = configElement(document.createElement('label'), { draggable: true });
-    const labelTextContainer = configElement(document.createElement('span'), {
-        contenteditable: true
-    });
-    const selector = configElement(document.createElement('input'), {
-        type: 'radio',
-        name: 'layer-selector'
-    });
 
-    label.append(labelTextContainer, selector);
-
-    return label;
-})();
-const ns = 'http://www.w3.org/2000/svg';
-const circleTemplate = (() => configElement(document.createElementNS(ns, 'circle'), {
-    r: 3,
-    class: 'control-point'
-}))();
-const svgTemplates = {
-    path: document.createElementNS(ns, 'path'),
-    rect: document.createElementNS(ns, 'rect'),
-    ellipse: document.createElementNS(ns, 'ellipse')
-};
 const dragLayerSelector = (e) => {
     e.dataTransfer.setData('text', e.target.dataset.layerId);
     e.dataTransfer.effectAllowed = 'move';
@@ -163,6 +145,7 @@ new MutationObserver((mutationsList) => {
 }).observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
+    // give canvas the entire space available
     configElement(svg, {
         height: Math.trunc(window.innerHeight - svg.getBoundingClientRect().top)
     });
@@ -174,16 +157,12 @@ window.addEventListener('DOMContentLoaded', () => {
         layers: src.layers || []
     });
 
-    // adjust inputs for changing the dimensions of the drawing
-    document.getElementById('width').value = drawing.dims.width;
-    document.getElementById('height').value = drawing.dims.height;
-
     // initialize session.mode to that of the first layer or the default
     session.mode = (drawing.layers[0] && drawing.layers[0].mode)
         ? drawing.layers[0].mode
         : 'path';
 
-    // initialize session.layer or reset ar cmd config
+    // initialize session.layer or reset arc-cmd-config
     if (drawing.layers.length) session.layer = 0;
     else setArcCmdConfig();
 
@@ -204,7 +183,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setTransformsFieldset(drawing.dims.transforms || defaults.dims.transforms);
 
     // we want to transform the entire drawing by default
-    document.querySelector('[name=target-switch]').checked = false;
+    transformTargeSwitch.checked = false;
+
+    // adjust inputs for changing the dimensions of the drawing
+    document.getElementById('width').value = drawing.dims.width;
+    document.getElementById('height').value = drawing.dims.height;
 });
 
 window.onkeydown = (e) => {
@@ -246,14 +229,6 @@ layerSelect.onchange = ({ target }) => {
 // re-ordering of layers via dragging of selector
 layerSelect.ondragover = e => e.preventDefault();
 layerSelect.ondrop = (e) => {
-    e.preventDefault();
-    // NOTE: the dragged layer is first removed and then re-added, triggering the observer on drawingContent.
-    // BUT since the the actions there happen after the fact, proper syncing via that is a pain
-    // SO we do the necessary work here
-
-    // signify to the observer on drawingContent that we are reordering
-    session.reordering = true;
-
     const droppedOnSelector = e.target.closest('label');
     const droppedOnId = +droppedOnSelector.dataset.layerId;
     const droppedOnLayer = layers[droppedOnId];
@@ -278,8 +253,6 @@ layerSelect.ondrop = (e) => {
         session.layer = droppedOnId;
     }
 
-    layerSelectors[session.layer].checked = true;
-
     // insert dragged before or after the one dropped on depending on its origin
     if (draggedId < droppedOnId) {
         droppedOnLayer.after(draggedLayer);
@@ -288,6 +261,9 @@ layerSelect.ondrop = (e) => {
     }
 
     reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId));
+    layerSelectors[session.layer].checked = true;
+    session.reordering = true;
+    e.preventDefault();
 };
 
 addLayerBtn.onclick = () => {
@@ -309,12 +285,10 @@ addLayerBtn.onclick = () => {
     // reset the current styles
     currentStyles.forEach(key => delete session.currentStyle[key]);
 
-    // config the appropriate shape
     const shape = configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layer
     });
 
-    // append the shape to the drawing
     drawingContent.append(shape);
 };
 
@@ -366,9 +340,6 @@ svg.addEventListener('mousedown', (e) => {
     const { points } = session.current;
 
     if (session.drawingShape) {
-        session.drawingShape = false;
-        svg.onmousemove = null;
-
         const size = {
             hor: Math.abs(session.shapeStart.x - x),
             vert: Math.abs(session.shapeStart.y - y)
@@ -387,73 +358,80 @@ svg.addEventListener('mousedown', (e) => {
 
         Object.assign(points[0], attrs);
         mkControlPoint(points[points.length - 1], points.length - 1);
-    } else if (session.mode === 'rect') {
-        if (points[0]) return;
+        session.drawingShape = false;
+        svg.onmousemove = null;
+    } else {
+        // TODO: move this out
+        const modes = {
+            rect() {
+                if (points[0]) return;
 
-        const rect = layers[session.layer];
-        points[0] = { x, y };
-        configElement(rect, points[0]);
-        session.drawingShape = true;
-        [session.shapeStart.x, session.shapeStart.y] = [x, y];
+                const rect = layers[session.layer];
+                points[0] = { x, y };
+                configElement(rect, points[0]);
+                session.drawingShape = true;
+                [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
-        svg.onmousemove = drawShape(rect, (x1, y1) => ({
-            x: Math.min(x, x1),
-            y: Math.min(y, y1),
-            width: Math.abs(x - x1),
-            height: Math.abs(y - y1)
-        }));
-    } else if (session.mode === 'ellipse') {
-        if (points[0]) return;
+                svg.onmousemove = drawShape(rect, (x1, y1) => ({
+                    x: Math.min(x, x1),
+                    y: Math.min(y, y1),
+                    width: Math.abs(x - x1),
+                    height: Math.abs(y - y1)
+                }));
+            },
+            ellipse() {
+                if (points[0]) return;
 
-        const ellipse = layers[session.layer];
-        points[0] = { cx: x, cy: y };
-        configElement(ellipse, points[0]);
-        session.drawingShape = true;
-        [session.shapeStart.x, session.shapeStart.y] = [x, y];
+                const ellipse = layers[session.layer];
+                points[0] = { cx: x, cy: y };
+                configElement(ellipse, points[0]);
+                session.drawingShape = true;
+                [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
-        svg.onmousemove = drawShape(ellipse, (x1, y1) => ({
-            rx: Math.abs(x - x1),
-            ry: Math.abs(y - y1)
-        }));
-    } else if (session.mode === 'path') {
-        const lastPoint = points[points.length - 1];
+                svg.onmousemove = drawShape(ellipse, (x1, y1) => ({
+                    rx: Math.abs(x - x1),
+                    ry: Math.abs(y - y1)
+                }));
+            },
+            path() {
+                const lastPoint = points[points.length - 1];
 
-        // prevent using the same point multiple times in a row
-        if (lastPoint
-            && x === lastPoint.x
-            && y === lastPoint.y) {
-            return;
-        }
+                // prevent using the same point multiple times in a row
+                if (lastPoint
+                    && x === lastPoint.x
+                    && y === lastPoint.y) return;
 
-        // ensure first point of a path is a moveTo command
-        if (!points.length) {
-            session.cmd = 'M';
-        }
+                // ensure first point of a path is a moveTo command
+                if (!points.length) session.cmd = 'M';
 
-        // ensure there're no multiple consecutive moveTo commands
-        if (lastPoint && lastPoint.cmd === 'M' && session.cmd === 'M') {
-            points.pop();
-            remLastControlPoint(session.cmd);
-        }
+                // ensure there're no multiple consecutive moveTo commands
+                if (lastPoint && lastPoint.cmd === 'M' && session.cmd === 'M') {
+                    points.pop();
+                    remLastControlPoint(session.cmd);
+                }
 
-        if (session.cmd === 'V') points.push({ cmd: session.cmd, y });
-        else if (session.cmd === 'H') points.push({ cmd: session.cmd, x });
-        else points.push({ cmd: session.cmd, x, y });
+                if (session.cmd === 'V') points.push({ cmd: session.cmd, y });
+                else if (session.cmd === 'H') points.push({ cmd: session.cmd, x });
+                else points.push({ cmd: session.cmd, x, y });
 
-        // for Q, C and A cmds we need to add cp(s)
-        if (session.cmd === 'Q') {
-            const cp = quad(x, y, points[points.length - 2]);
-            Object.assign(points[points.length - 1], cp);
-        } else if (session.cmd === 'C') {
-            const cps = cube(x, y, points[points.length - 2]);
-            Object.assign(points[points.length - 1], cps);
-        } else if (session.cmd === 'A') {
-            const cp = arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
-            Object.assign(points[points.length - 1], cp);
-        }
+                // for Q, C and A cmds we need to add cp(s)
+                if (session.cmd === 'Q') {
+                    const cp = quad(x, y, points[points.length - 2]);
+                    Object.assign(points[points.length - 1], cp);
+                } else if (session.cmd === 'C') {
+                    const cps = cube(x, y, points[points.length - 2]);
+                    Object.assign(points[points.length - 1], cps);
+                } else if (session.cmd === 'A') {
+                    const cp = arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
+                    Object.assign(points[points.length - 1], cp);
+                }
 
-        // create cp(s) for the new point
-        mkControlPoint(points[points.length - 1], points.length - 1);
+                // create cp(s) for the new point
+                mkControlPoint(points[points.length - 1], points.length - 1);
+            }
+        };
+
+        modes[session.mode]();
     }
 
     styleLayer();
@@ -495,18 +473,16 @@ document.getElementById('modes').onchange = ({ target }) => {
 document.getElementById('fill-and-stroke').oninput = ({ target }) => {
     // NOTE: this could happen before the layer exists or has styles and
     // we still want to capture the input
-    const storageLocation = drawing
-        .layers[session.layer] ? drawing.layers[session.layer].style : session.currentStyle;
+    const storageLocation = drawing.layers[session.layer]
+        ? drawing.layers[session.layer].style
+        : session.currentStyle;
 
     storageLocation[target.name] = target[target.type === 'checkbox' ? 'checked' : 'value'];
 
     if (!drawing.layers[session.layer]) return;
 
-    if (target.id === 'close-toggle') {
-        drawLayer();
-    } else {
-        styleLayer();
-    }
+    if (target.id === 'close-toggle') drawLayer();
+    else styleLayer();
 };
 
 arcCmdConfig.oninput = ({ target }) => {
@@ -515,78 +491,55 @@ arcCmdConfig.oninput = ({ target }) => {
 
     if (!session.current) return;
 
-    const lastArcCmd = session.current.points
-        .slice()
-        .reverse()
-        .find(point => point.cmd === 'A') || {};
-
+    const lastArcCmd = getLastArcCmd(session.current.points) || {};
     const updateData = Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig);
 
-    Object.assign(lastArcCmd, {
-        xR: updateData.xR,
-        yR: updateData.yR,
-        xRot: updateData.xRot,
-        large: +updateData.large,
-        sweep: +updateData.sweep
-    });
-
+    Object.assign(lastArcCmd, arc(updateData));
     drawLayer();
 };
 
-const arcCmdConfigFields = (() => Object.keys(defaults.arcCmdConfig)
-    .reduce((obj, key) => Object.assign(obj, {
-        [key]: document.getElementsByName(key)[0]
-    }), {}))();
-
-// TODO: stay DRY, c handler above
-// this should only iterate over the fields, check their type and set the values and
-// the rest should be done before calling
 function setArcCmdConfig() {
     const conf = session.current
-        ? (session.current.points
-            .slice()
-            .reverse()
-            .find(point => point.cmd === 'A')
+        ? (getLastArcCmd(session.current.points)
             || Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig))
         : defaults.arcCmdConfig;
 
     Object.assign(session.arcCmdConfig, conf);
-
-    Object
-        .entries(conf)
-        .filter(e => !['cmd', 'x', 'y'].includes(e[0]))
+    Object.entries(conf)
+        .filter(([key]) => !['cmd', 'x', 'y'].includes(key)) // NOTE: the data might be coming from a point
         .forEach(([key, val]) => {
-            const field = arcCmdConfigFields[key];
-            const prop = (field.type === 'checkbox') ? 'checked' : 'value';
-            field[prop] = val;
+            const field = arcCmdConfig.elements[key];
+            field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
         });
 }
 
-const transforms = document.getElementById('transformations');
+function getLastArcCmd(points) {
+    return points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A');
+}
 
-const transformFields = (() => [...transforms.getElementsByTagName('input')]
-    .reduce((obj, child) => Object.assign(obj,
-        (child.name !== 'target-switch' ? { // NOTE: this node is not really a transform-field, but in the fieldset
-            [child.name]: child
-        } : {})), {}))();
+transformTargeSwitch.onchange = ({ target }) => {
+    if (target.checked) {
+        setTransformsFieldset(session.current ? session.current.transforms : defaults.dims.transforms);
+    } else {
+        setTransformsFieldset(drawing.dims.transforms);
+    }
+
+    session.transformLayerNotDrawing = target.checked;
+};
 
 function setTransformsFieldset(conf = defaults.dims.transforms) {
     Object.entries(conf)
-        .filter(e => e[0] !== 'translate') // NOTE: we manage translation via arrow-keys
+        .filter(([key]) => key !== 'translate') // NOTE: we manage translations via arrow-keys
         .forEach(([key, val]) => {
             const value = (key === 'rotate') ? val.slice(0, val.indexOf(',')) : val; // NOTE: rotate gets 3 params
-            transformFields[key].value = value;
+            transforms.elements[key].value = value;
         });
 }
 
 transforms.oninput = ({ target }) => {
-    if (target.name === 'target-switch') {
-        // TODO: if we switched to transforming single layer, we need to sync the transform fieldset to the current layers config
-        // if we switched the other way we must apply the global tranforms
-        session.transformLayerNotDrawing = target.checked;
-        return;
-    }
-
     const transformTarget = session.transformLayerNotDrawing
         ? session.current
         : drawing.dims;
@@ -708,9 +661,9 @@ function remControlPoints() {
 }
 
 /**
- * The interface for control point (cp) creation (callback for on layerswitch and load; also called for a single point on mousedown)
- * @param { Object } point The point that should be controlled.
- * @param { number } pointId The ordinal number of the point within its layer (needed for highlighting).
+ * The interface for control point creation.
+ * @param { Object } point The data of the point that should be controlled.
+ * @param { number } pointId The ordinal number of the point within its layer.
  */
 function mkControlPoint(point, pointId) {
     const cps = [];
@@ -780,27 +733,26 @@ function ControlPoint(x, y, pointId, controlPointType) {
  * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
  * @param { string } controlPointType The "type" of cp we're dealing with.
  * @param { SVGCircleElement } controlPoint The cp that's to be dragged.
- * @returns { Function } The event-handler executed when dragging the cp.
+ * @returns { Function } The event-handler to be executed when dragging the cp.
  */
-// TODO store the effects applied to the cps in controlPointTypes as well
+// TODO store the effects applied to the cps in controlPointTypes
 function dragging(layer, pointId, controlPointType, controlPoint) {
     const args = controlPointTypes[controlPointType];
     const argsKeys = Object.keys(args);
     const point = layer.points[pointId];
-    // collect the affected cps and the effects applied to them
-    const toBeDragged = [{ ref: controlPoint, fx: [] }];
+    const affectedControlPoints = [{ ref: controlPoint, fx: [] }];
 
     if (!['rectLowerRight', 'ellipseRy', 'vCmd'].includes(controlPointType)) {
-        toBeDragged[0].fx.push(({ x }) => ({ cx: x }));
+        affectedControlPoints[0].fx.push(({ x }) => ({ cx: x }));
     }
 
     if (!['rectLowerRight', 'ellipseRx', 'hCmd'].includes(controlPointType)) {
-        toBeDragged[0].fx.push(({ y }) => ({ cy: y }));
+        affectedControlPoints[0].fx.push(({ y }) => ({ cy: y }));
     }
 
     // we don't want the lower right edge of a rect to move above or left of its anchor
     if (controlPointType === 'rectLowerRight') {
-        toBeDragged[0].fx.push(
+        affectedControlPoints[0].fx.push(
             ({ y }) => {
                 if (y < point.y) return { cy: point.y };
                 return { cy: y };
@@ -815,14 +767,14 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
     // move cps of affected V and H cmds
     if (point.cmd && layer.points[pointId + 1]) {
         if (layer.points[pointId + 1].cmd === 'V') {
-            toBeDragged.push({
+            affectedControlPoints.push({
                 ref: controlPoints[getIdOfControlPoint(layer, pointId + 1)],
                 fx: [
                     ({ x }) => ({ cx: x })
                 ]
             });
         } else if (layer.points[pointId + 1].cmd === 'H') {
-            toBeDragged.push({
+            affectedControlPoints.push({
                 ref: controlPoints[getIdOfControlPoint(layer, pointId + 1)],
                 fx: [
                     ({ y }) => ({ cy: y })
@@ -835,7 +787,7 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
     // we want to move the related cp(s) too
     // eslint-disable-next-line no-prototype-builtins
     if (point.hasOwnProperty('width') && args.x) {
-        toBeDragged.push({
+        affectedControlPoints.push({
             ref: controlPoints[1],
             fx: [
                 ({ x }) => ({ cx: x + point.width }),
@@ -843,7 +795,7 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
             ]
         });
     } else if (args.cx) {
-        toBeDragged.push({
+        affectedControlPoints.push({
             ref: controlPoints[1],
             fx: [
                 () => ({ cx: point.cx - point.rx }),
@@ -870,10 +822,10 @@ function dragging(layer, pointId, controlPointType, controlPoint) {
         drawLayer();
 
         // move the affected cp(s)
-        toBeDragged.forEach((currentCp) => {
-            configElement(currentCp.ref, currentCp
-                .fx
-                .reduce((keyValPairs, keyVal) => Object.assign(keyValPairs, keyVal({ x, y })), {}));
+        affectedControlPoints.forEach(({ ref, fx }) => {
+            configElement(ref, fx
+                .reduce((keyValPairs, keyVal) => Object
+                    .assign(keyValPairs, keyVal({ x, y })), {}));
         });
     };
 }
@@ -901,13 +853,14 @@ function generateMarkUp() {
 
     return `
     <svg 
-    xmlns="${ns}"
+    xmlns="http://www.w3.org/2000/svg"
     width="${drawing.dims.width}" 
     height="${drawing.dims.height}" 
     viewBox="${[x, y, width, height].join(' ')}" 
-    transform="${drawingTransforms}" 
     preserveAspectRatio="${[ratio.value, sliceOrMeet.value].join(' ')}">
-    ${drawingContent.innerHTML}
+    <g transform="${drawingTransforms}">
+        ${drawingContent.innerHTML}
+    </g>
     </svg>`
         .replace(/ data-layer-id="\d+?"/g, '')
         .replace(/\s{2,}/g, ' ');
