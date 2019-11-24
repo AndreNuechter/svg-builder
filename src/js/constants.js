@@ -102,7 +102,9 @@ const proxiedSessionKeys = (
 const xComponent = ({ x }) => x;
 const yComponent = ({ y }) => y;
 
-// NOTE: ea prop is a name for a control point type. The values are objects where the keys are the affected props of the point object and their values the callbacks to change them in relation to the current cursor position
+// NOTE: ea prop is a name for a control point type.
+// The values are objects where the keys are the affected props of the point object and
+// their values the callbacks to change them in relation to the current cursor position
 const controlPointTypes = {
     regularPoint: {
         x: xComponent,
@@ -144,7 +146,7 @@ const moves = {
 const geometryProps = {
     path(layer) {
         return {
-            d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
+            d: layer.points.map(pointToMarkup).join('') + (layer.style.close ? 'Z' : '')
         };
     },
     ellipse({ points: [point] }) {

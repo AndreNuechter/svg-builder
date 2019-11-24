@@ -3,8 +3,7 @@ body {
     background: rgb(40, 40, 40);
     color: rgb(150, 150, 140);
     margin: 0;
-    padding: 8px;
-    padding-bottom: 0;
+    padding: 2px 2px 0;
     box-sizing: border-box;
     overflow-x: hidden;
     display: grid;
@@ -46,9 +45,19 @@ body {
     }
 }
 
+fieldset#preserve-aspect-ratio {
+    display: inline-flex;
+    justify-content: space-between;
+}
+
 #dims,
 #modes {
     display: inline;
+}
+
+#btns {
+    display: inline-flex;
+    flex-direction: column;
 }
 
 #arc-cmd-config {
@@ -58,8 +67,13 @@ body {
     right: 0;
 
     label {
+        margin: 2px 0;
         display: flex;
         justify-content: space-between;
+
+        span:last-of-type {
+            padding-right: 8px;
+        }
     }
 }
 
@@ -103,6 +117,7 @@ body {
 #commands {
     height: min-content;
     align-self: center;
+    margin-left: 8px;
 }
 
 #canvas {
@@ -112,7 +127,8 @@ body {
     min-height: 405px;
     border: 2px solid white;
     outline: 3px solid grey;
-    margin: 8px 0 0 4px;
+    margin-top: 8px;
+    margin-left: 5px;
     stroke-width: 2;
     stroke: black;
     display: block;
@@ -145,9 +161,12 @@ body {
     pointer-events: none;
 }
 
+#fill-and-stroke {
+    margin: 0.3rem 0;
+}
+
 #fill-and-stroke,
-#transformations,
-#transforms {
+#transformations {
     label {
         margin: 4px 0;
         display: flex;
@@ -194,9 +213,11 @@ input {
     }
 }
 
+fieldset {
+    border-color: dimgrey;
+}
+
 fieldset.togglable {
-    margin-top: 0.4rem;
-    margin-bottom: 0.8rem;
     cursor: pointer;
     overflow: hidden;
     transition: all 0.3s;

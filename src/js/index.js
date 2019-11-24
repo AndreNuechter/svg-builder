@@ -42,7 +42,6 @@ const controlPoints = svg.getElementsByClassName('control-point');
 const [transformTargeSwitch] = document.getElementsByName('transform-layer-only');
 const transforms = document.getElementById('transformations');
 const cmds = Object.keys(pathCmds);
-
 const drawing = {};
 const proxiedKeys = proxiedSessionKeys(
     drawing,
@@ -66,7 +65,6 @@ const session = new Proxy(Object.assign({
         return true;
     }
 });
-
 const dragLayerSelector = (e) => {
     e.dataTransfer.setData('text', e.target.dataset.layerId);
     e.dataTransfer.effectAllowed = 'move';
@@ -240,6 +238,13 @@ layerSelect.ondrop = (e) => {
     drawing.layers.splice(droppedOnId, 0, draggedLayerData);
     save();
 
+    // insert dragged before or after the one dropped on depending on its origin
+    if (draggedId < droppedOnId) {
+        droppedOnLayer.after(draggedLayer);
+    } else {
+        drawingContent.insertBefore(draggedLayer, droppedOnLayer);
+    }
+
     // NOTE: we want the active layer to remain active,
     // so we may have to add or subtract 1 from session.layer or
     // set the id to the one dropped on
@@ -251,13 +256,6 @@ layerSelect.ondrop = (e) => {
         }
     } else {
         session.layer = droppedOnId;
-    }
-
-    // insert dragged before or after the one dropped on depending on its origin
-    if (draggedId < droppedOnId) {
-        droppedOnLayer.after(draggedLayer);
-    } else {
-        drawingContent.insertBefore(draggedLayer, droppedOnLayer);
     }
 
     reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId));
@@ -361,7 +359,7 @@ svg.addEventListener('mousedown', (e) => {
         session.drawingShape = false;
         svg.onmousemove = null;
     } else {
-        // TODO: move this out
+        // TODO: move this out...c. geometryProps
         const modes = {
             rect() {
                 if (points[0]) return;
@@ -481,7 +479,7 @@ document.getElementById('fill-and-stroke').oninput = ({ target }) => {
 
     if (!drawing.layers[session.layer]) return;
 
-    if (target.id === 'close-toggle') drawLayer();
+    if (target.name === 'close') drawLayer();
     else styleLayer();
 };
 
@@ -544,11 +542,11 @@ transforms.oninput = ({ target }) => {
         ? session.current
         : drawing.dims;
 
-    // NOTE otherwise getBBox might be called with undefined
+    // NOTE otherwise getBBox() might be called with undefined
     if (transformTarget === session.current && !layers.length) return;
 
     let value;
-    // NOTE: 'rotate' can take three params (deg, cx, cy)
+    // NOTE: 'rotate' can take three params (deg, cx, cy) and
     // we want to rotate from the center
     if (target.name === 'rotate') {
         const {
@@ -728,18 +726,19 @@ function ControlPoint(x, y, pointId, controlPointType) {
 }
 
 /**
- * The eventHandler-factory for a draggable cp.
+ * The eventHandler-factory for a draggable control point (cp).
  * @param { Object } layer The layer the dragged cp affects.
  * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
  * @param { string } controlPointType The "type" of cp we're dealing with.
  * @param { SVGCircleElement } controlPoint The cp that's to be dragged.
  * @returns { Function } The event-handler to be executed when dragging the cp.
  */
-// TODO store the effects applied to the cps in controlPointTypes
+// TODO store the effects applied to the cps in controlPointTypes too...put args in separate obj and fx on the same level
 function dragging(layer, pointId, controlPointType, controlPoint) {
+    const point = layer.points[pointId];
     const args = controlPointTypes[controlPointType];
     const argsKeys = Object.keys(args);
-    const point = layer.points[pointId];
+    // collect affected cps and the effects applied to them thru dragging
     const affectedControlPoints = [{ ref: controlPoint, fx: [] }];
 
     if (!['rectLowerRight', 'ellipseRy', 'vCmd'].includes(controlPointType)) {

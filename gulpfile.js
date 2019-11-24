@@ -22,9 +22,10 @@ function css() {
         .pipe(dest('dist/css'));
 }
 
-// TODO: fill this in...should concat, minify/uglify and move to dist
+// TODO: fill this in...should concat (webpack?), minify/uglify and move to dist...the script-inclusion in index.html is different!
 function js() {
-
+    return src('src/js/*.js')
+        .pipe(dest('dist/js'));
 }
 
 // TODO do this in default?
