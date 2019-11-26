@@ -143,11 +143,6 @@ new MutationObserver((mutationsList) => {
 }).observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
-    // give canvas the entire space available
-    configElement(svg, {
-        height: Math.trunc(window.innerHeight - svg.getBoundingClientRect().top)
-    });
-
     // if there's a saved drawing, use it, else use defaults
     const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
     Object.assign(drawing, {

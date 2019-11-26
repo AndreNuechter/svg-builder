@@ -4,9 +4,11 @@ html
         meta(charset="UTF-8")
         title SVG Builder
         link(rel="stylesheet" href="/css/style.css")
+        // build:js
         script(src="/js/index.js" type="module")
         script(src="/js/components/collapsable-fieldsets.js" defer)
         script(src="/js/components/coords-display.js" type="module")
+        // endbuild
 
     body
         #top-bar
@@ -140,7 +142,7 @@ html
                     option(value="V") Vertical line to (V)
                     option(value="Q") Quadratic curve to (Q)
                     option(value="C") Cubic curve to (C)
-                    option(value="A") Arc (A)
+                    option(value="A") Arc to (A)
 
             svg#canvas
                 g#drawing-content
