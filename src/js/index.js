@@ -3,10 +3,10 @@
 import {
     proxiedSessionKeys,
     defaults,
-    controlPointTypes,
     moves,
     geometryProps
 } from './constants.js';
+import controlPointTypes from './control-point-types.js';
 import {
     quad,
     cube,
@@ -20,8 +20,7 @@ import {
     parseLayerStyle,
     getSVGCoords,
     pointToMarkup,
-    stringifyTransforms,
-    getIdOfControlPoint
+    stringifyTransforms
 } from './helper-functions.js';
 import setFillAndStrokeFields from './components/fill-and-stroke-syncer.js';
 
@@ -39,9 +38,21 @@ const drawingContent = svg.getElementById('drawing-content');
 const layers = drawingContent.children;
 const controlPointContainer = svg.getElementById('control-point-container');
 const controlPoints = svg.getElementsByClassName('control-point');
-const [transformTargeSwitch] = document.getElementsByName('transform-layer-only');
-const transforms = document.getElementById('transformations');
+const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
+const transformFields = document.getElementById('transformations');
 const cmds = Object.keys(pathCmds);
+const {
+    regularPoint,
+    hCmd,
+    vCmd,
+    firstControlPoint,
+    secondControlPoint,
+    rectTopLeft,
+    rectLowerRight,
+    ellipseCenter,
+    ellipseRx,
+    ellipseRy
+} = controlPointTypes;
 const drawing = {};
 const proxiedKeys = proxiedSessionKeys(
     drawing,
@@ -73,6 +84,18 @@ const changeLayerLabel = ({ target }) => {
     // NOTE: we assume edition is preceded by selection and the edited label belongs to the active layer
     session.current.label = target.textContent.replace(/\n/g, /\s/).trim();
     save();
+};
+const stopDragging = () => {
+    svg.onmousemove = null;
+    svg.onmouseleave = null;
+    svg.onmouseup = null;
+};
+const startDragging = (layer, pointId, controlPointType, cp) => (e) => {
+    // prevent triggering svg.onmousedown
+    e.stopPropagation();
+    svg.onmousemove = dragging(layer, pointId, controlPointType, cp);
+    svg.onmouseleave = stopDragging;
+    svg.onmouseup = stopDragging;
 };
 
 // watches for additions and removals of layers and does some synchronisation
@@ -122,6 +145,8 @@ new MutationObserver((mutationsList) => {
             if (!layers.length) {
                 delete session.layer;
                 remControlPoints();
+                setTransformsFieldset(defaults.dims.transforms);
+                applyTransforms();
                 setFillAndStrokeFields(defaults.style);
                 return;
             }
@@ -146,7 +171,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // if there's a saved drawing, use it, else use defaults
     const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
     Object.assign(drawing, {
-        dims: src.dims || JSON.parse(JSON.stringify(defaults.dims)),
+        dims: src.dims || saveCloneObj(defaults.dims),
         layers: src.layers || []
     });
 
@@ -176,7 +201,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setTransformsFieldset(drawing.dims.transforms || defaults.dims.transforms);
 
     // we want to transform the entire drawing by default
-    transformTargeSwitch.checked = false;
+    transformTargetSwitch.checked = false;
 
     // adjust inputs for changing the dimensions of the drawing
     document.getElementById('width').value = drawing.dims.width;
@@ -271,7 +296,7 @@ addLayerBtn.onclick = () => {
             style: currentStyles.length
                 ? Object.assign({}, defaults.style, session.currentStyle)
                 : Object.assign({}, defaults.style),
-            transforms: JSON.parse(JSON.stringify(defaults.dims.transforms))
+            transforms: saveCloneObj(defaults.dims.transforms)
         }) - 1;
     save();
 
@@ -470,7 +495,9 @@ document.getElementById('fill-and-stroke').oninput = ({ target }) => {
         ? drawing.layers[session.layer].style
         : session.currentStyle;
 
-    storageLocation[target.name] = target[target.type === 'checkbox' ? 'checked' : 'value'];
+    storageLocation[target.name] = target[target.type === 'checkbox'
+        ? 'checked'
+        : 'value'];
 
     if (!drawing.layers[session.layer]) return;
 
@@ -513,9 +540,29 @@ function getLastArcCmd(points) {
         .find(point => point.cmd === 'A');
 }
 
-transformTargeSwitch.onchange = ({ target }) => {
+function saveCloneObj(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+document.getElementById('reset-transforms').onclick = () => {
+    const { transforms } = defaults.dims;
+
+    if (transformTargetSwitch.checked) {
+        if (session.current) session.current.transforms = saveCloneObj(transforms);
+    } else {
+        drawing.dims.transforms = saveCloneObj(transforms);
+    }
+
+    save();
+    applyTransforms();
+    setTransformsFieldset(transforms);
+};
+
+transformTargetSwitch.onchange = ({ target }) => {
     if (target.checked) {
-        setTransformsFieldset(session.current ? session.current.transforms : defaults.dims.transforms);
+        setTransformsFieldset(session.current
+            ? session.current.transforms
+            : defaults.dims.transforms);
     } else {
         setTransformsFieldset(drawing.dims.transforms);
     }
@@ -527,12 +574,14 @@ function setTransformsFieldset(conf = defaults.dims.transforms) {
     Object.entries(conf)
         .filter(([key]) => key !== 'translate') // NOTE: we manage translations via arrow-keys
         .forEach(([key, val]) => {
-            const value = (key === 'rotate') ? val.slice(0, val.indexOf(',')) : val; // NOTE: rotate gets 3 params
-            transforms.elements[key].value = value;
+            const value = (key === 'rotate')
+                ? val.slice(0, val.indexOf(','))
+                : val; // NOTE: rotate gets 3 params
+            transformFields.elements[key].value = value;
         });
 }
 
-transforms.oninput = ({ target }) => {
+transformFields.oninput = ({ target }) => {
     const transformTarget = session.transformLayerNotDrawing
         ? session.current
         : drawing.dims;
@@ -549,7 +598,9 @@ transforms.oninput = ({ target }) => {
             y,
             width,
             height
-        } = (transformTarget === session.current ? layers[session.layer] : drawingContent).getBBox();
+        } = (transformTarget === session.current
+            ? layers[session.layer]
+            : drawingContent).getBBox();
         const centerOfTransformTarget = [x + (width * 0.5), y + (height * 0.5)];
         value = [target.value, ...centerOfTransformTarget].join(',');
     } else {
@@ -585,7 +636,7 @@ function reorderLayerSelectors(startIndex, endIndex) {
 /**
  * Returns an eventHandler for drawing a shape (ellipse or rect).
  * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
- * @param { Function } attrs A lambda evaluating to the respective attributes when given the current mouse-position.
+ * @param { Function } attrs A lambda changing the affected shape based on the current mouse-position.
  * @returns { Function }
  */
 function drawShape(shape, attrs) {
@@ -597,8 +648,8 @@ function drawShape(shape, attrs) {
 
 /**
  * Changes the style-related attributes of a layer.
- * @param { number } [layerId=session.layer] The ordinal number of the affected layer. Defaults to the active layer.
- * @param { Object } [conf=drawing.layers[layerId].style] The container of style-related attributes of the affected layer.
+ * @param { number } [layerId=session.layer] The ordinal of the affected layer. Defaults to the active.
+ * @param { Object } [conf=drawing.layers[layerId].style] The style-attributes of the affected layer.
  */
 function styleLayer(layerId = session.layer, conf = drawing.layers[layerId].style) {
     configElement(layers[layerId], parseLayerStyle(conf));
@@ -663,29 +714,29 @@ function mkControlPoint(point, pointId) {
 
     if (point.cmd) {
         if (['M', 'L', 'Q', 'C', 'A'].includes(point.cmd)) {
-            cps.push(ControlPoint(point.x, point.y, pointId, 'regularPoint'));
+            cps.push(ControlPoint(point.x, point.y, pointId, regularPoint));
         } else if (point.cmd === 'H') {
-            cps.push(ControlPoint(point.x, session.current.points[pointId - 1].y, pointId, 'hCmd'));
+            cps.push(ControlPoint(point.x, session.current.points[pointId - 1].y, pointId, hCmd));
         } else if (point.cmd === 'V') {
-            cps.push(ControlPoint(session.current.points[pointId - 1].x, point.y, pointId, 'vCmd'));
+            cps.push(ControlPoint(session.current.points[pointId - 1].x, point.y, pointId, vCmd));
         }
 
         if (point.cmd === 'Q' || point.cmd === 'C') {
-            cps.push(ControlPoint(point.x1, point.y1, pointId, 'firstControlPoint'));
+            cps.push(ControlPoint(point.x1, point.y1, pointId, firstControlPoint));
         }
 
         if (point.cmd === 'C') {
-            cps.push(ControlPoint(point.x2, point.y2, pointId, 'secondControlPoint'));
+            cps.push(ControlPoint(point.x2, point.y2, pointId, secondControlPoint));
         }
         // eslint-disable-next-line no-prototype-builtins
     } else if (point.hasOwnProperty('width')) {
-        cps.push(ControlPoint(point.x, point.y, pointId, 'regularPoint'),
-            ControlPoint(point.x + point.width, point.y + point.height, pointId, 'rectLowerRight'));
+        cps.push(ControlPoint(point.x, point.y, pointId, rectTopLeft),
+            ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight));
         // eslint-disable-next-line no-prototype-builtins
     } else if (point.hasOwnProperty('cx')) {
-        cps.push(ControlPoint(point.cx, point.cy, pointId, 'ellipseCenter'),
-            ControlPoint(point.cx - point.rx, point.cy, pointId, 'ellipseRx'),
-            ControlPoint(point.cx, point.cy - point.ry, pointId, 'ellipseRy'));
+        cps.push(ControlPoint(point.cx, point.cy, pointId, ellipseCenter),
+            ControlPoint(point.cx - point.rx, point.cy, pointId, ellipseRx),
+            ControlPoint(point.cx, point.cy - point.ry, pointId, ellipseRy));
     }
 
     // NOTE: we dont add the cps to the drawingContent to keep em out of the markup
@@ -701,20 +752,9 @@ function mkControlPoint(point, pointId) {
  */
 function ControlPoint(x, y, pointId, controlPointType) {
     const layer = session.current;
+    const cp = configClone(circleTemplate)({ cx: x, cy: y });
 
-    const cp = configClone(circleTemplate)({
-        cx: x,
-        cy: y
-    });
-
-    cp.onmousedown = (e) => {
-        // prevent triggering svg.onmousedown
-        e.stopPropagation();
-        svg.onmousemove = dragging(layer, pointId, controlPointType, cp);
-        svg.onmouseleave = stopDragging;
-        svg.onmouseup = stopDragging;
-    };
-
+    cp.onmousedown = startDragging(layer, pointId, controlPointType, cp);
     cp.onmouseup = stopDragging;
 
     return cp;
@@ -728,109 +768,20 @@ function ControlPoint(x, y, pointId, controlPointType) {
  * @param { SVGCircleElement } controlPoint The cp that's to be dragged.
  * @returns { Function } The event-handler to be executed when dragging the cp.
  */
-// TODO store the effects applied to the cps in controlPointTypes too...put args in separate obj and fx on the same level
 function dragging(layer, pointId, controlPointType, controlPoint) {
     const point = layer.points[pointId];
-    const args = controlPointTypes[controlPointType];
-    const argsKeys = Object.keys(args);
-    // collect affected cps and the effects applied to them thru dragging
-    const affectedControlPoints = [{ ref: controlPoint, fx: [] }];
-
-    if (!['rectLowerRight', 'ellipseRy', 'vCmd'].includes(controlPointType)) {
-        affectedControlPoints[0].fx.push(({ x }) => ({ cx: x }));
-    }
-
-    if (!['rectLowerRight', 'ellipseRx', 'hCmd'].includes(controlPointType)) {
-        affectedControlPoints[0].fx.push(({ y }) => ({ cy: y }));
-    }
-
-    // we don't want the lower right edge of a rect to move above or left of its anchor
-    if (controlPointType === 'rectLowerRight') {
-        affectedControlPoints[0].fx.push(
-            ({ y }) => {
-                if (y < point.y) return { cy: point.y };
-                return { cy: y };
-            },
-            ({ x }) => {
-                if (x < point.x) return { cx: point.x };
-                return { cx: x };
-            }
-        );
-    }
-
-    // move cps of affected V and H cmds
-    if (point.cmd && layer.points[pointId + 1]) {
-        if (layer.points[pointId + 1].cmd === 'V') {
-            affectedControlPoints.push({
-                ref: controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                fx: [
-                    ({ x }) => ({ cx: x })
-                ]
-            });
-        } else if (layer.points[pointId + 1].cmd === 'H') {
-            affectedControlPoints.push({
-                ref: controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                fx: [
-                    ({ y }) => ({ cy: y })
-                ]
-            });
-        }
-    }
-
-    // if the dragged cp is the anchor of a rect or the center of an ellipse,
-    // we want to move the related cp(s) too
-    // eslint-disable-next-line no-prototype-builtins
-    if (point.hasOwnProperty('width') && args.x) {
-        affectedControlPoints.push({
-            ref: controlPoints[1],
-            fx: [
-                ({ x }) => ({ cx: x + point.width }),
-                ({ y }) => ({ cy: y + point.height })
-            ]
-        });
-    } else if (args.cx) {
-        affectedControlPoints.push({
-            ref: controlPoints[1],
-            fx: [
-                () => ({ cx: point.cx - point.rx }),
-                () => ({ cy: point.cy })
-            ]
-        }, {
-            ref: controlPoints[2],
-            fx: [
-                () => ({ cx: point.cx }),
-                () => ({ cy: point.cy - point.ry })
-            ]
-        });
-    }
+    const { changeData } = controlPointType;
+    const affectedControlPoints = controlPointType.getAffectedPoints(controlPoint, layer, pointId);
 
     return (e) => {
         const [x, y] = getSVGCoords(e, svg);
-
-        // update the dragged points data
-        argsKeys.forEach(key => Object.assign(point, {
-            [key]: args[key]({ x, y }, point)
-        }));
-
-        // update the affected layer's visual representation
+        // change point-data, update layer and move affected cps
+        Object.assign(point, changeData({ x, y }, point));
         drawLayer();
-
-        // move the affected cp(s)
         affectedControlPoints.forEach(({ ref, fx }) => {
-            configElement(ref, fx
-                .reduce((keyValPairs, keyVal) => Object
-                    .assign(keyValPairs, keyVal({ x, y })), {}));
+            configElement(ref, fx(x, y));
         });
     };
-}
-
-/**
- * Removes dragging-related eventlisteners from svg.
- */
-function stopDragging() {
-    svg.onmousemove = null;
-    svg.onmouseleave = null;
-    svg.onmouseup = null;
 }
 
 /**

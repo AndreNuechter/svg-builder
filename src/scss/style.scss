@@ -62,7 +62,6 @@ fieldset#preserve-aspect-ratio {
 
 #btns {
     display: inline-flex;
-    flex-direction: column;
 }
 
 #arc-cmd-config {
@@ -222,6 +221,10 @@ input {
 
 fieldset {
     border-color: dimgrey;
+}
+
+button {
+    width: 100%;
 }
 
 fieldset.togglable {

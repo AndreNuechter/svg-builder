@@ -1,9 +1,9 @@
 /* globals document */
 
-import { pointToMarkup, inc, dec } from './helper-functions.js';
+import { pointToMarkup } from './helper-functions.js';
 import { pathCmds } from './commands.js';
 
-const [transformTargeSwitch] = document.getElementsByName('transform-layer-only');
+const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
 const modes = ['path', 'rect', 'ellipse'];
 const cmdTags = Object.keys(pathCmds);
 
@@ -74,12 +74,10 @@ const proxiedSessionKeys = (
         check(val) { return (+val >= 0 && +val <= drawing.layers.length); },
         onPass(val) {
             remControlPoints();
-            if (drawing.layers[val].points.length) {
-                drawing.layers[val].points.forEach(mkControlPoint);
-            }
+            drawing.layers[val].points.forEach(mkControlPoint);
             setFillAndStrokeFields(drawing.layers[val].style);
             setArcCmdConfig();
-            if (transformTargeSwitch.checked) {
+            if (transformTargetSwitch.checked) {
                 setTransformsFieldset(drawing.layers[val].transforms || defaults.dims.transforms);
             }
             applyTransforms();
@@ -99,43 +97,8 @@ const proxiedSessionKeys = (
     }
 });
 
-const xComponent = ({ x }) => x;
-const yComponent = ({ y }) => y;
-
-// NOTE: ea prop is a name for a control point type.
-// The values are objects where the keys are the affected props of the point object and
-// their values the callbacks to change them in relation to the current cursor position
-const controlPointTypes = {
-    regularPoint: {
-        x: xComponent,
-        y: yComponent
-    },
-    firstControlPoint: {
-        x1: xComponent,
-        y1: yComponent
-    },
-    secondControlPoint: {
-        x2: xComponent,
-        y2: yComponent
-    },
-    ellipseCenter: {
-        cx: xComponent,
-        cy: yComponent
-    },
-    rectLowerRight: {
-        width({ x }, point) { return x > point.x ? x - point.x : point.width; },
-        height({ y }, point) { return y > point.y ? y - point.y : point.height; }
-    },
-    ellipseRx: {
-        rx({ x }, point) { return Math.abs(x - point.cx); }
-    },
-    ellipseRy: {
-        ry({ y }, point) { return Math.abs(y - point.cy); }
-    },
-    hCmd: { x: xComponent },
-    vCmd: { y: yComponent }
-};
-
+const inc = num => num + 1;
+const dec = num => num - 1;
 const moves = {
     ArrowUp: { prop: 1, cb: dec },
     ArrowDown: { prop: 1, cb: inc },
@@ -170,7 +133,6 @@ const geometryProps = {
 export {
     proxiedSessionKeys,
     defaults,
-    controlPointTypes,
     moves,
     geometryProps
 };

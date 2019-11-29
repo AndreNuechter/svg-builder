@@ -96,24 +96,6 @@ function stringifyTransforms(transformData) {
         .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
 }
 
-// NOTE: ea of the given cmds has the given number of cps,
-// meaning the id of any given cp can be derived by summing the ones before it
-const amounts = {
-    M: 1,
-    L: 1,
-    H: 1,
-    V: 1,
-    Q: 2,
-    C: 3,
-    A: 1
-};
-const getIdOfControlPoint = (layer, id) => layer.points
-    .slice(0, id)
-    .reduce((cps, point) => cps + amounts[point.cmd], 0);
-
-const inc = num => num + 1;
-const dec = num => num - 1;
-
 export {
     configElement,
     configClone,
@@ -121,8 +103,5 @@ export {
     hexToRGB,
     getSVGCoords,
     pointToMarkup,
-    inc,
-    dec,
-    stringifyTransforms,
-    getIdOfControlPoint
+    stringifyTransforms
 };
