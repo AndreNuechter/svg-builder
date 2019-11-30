@@ -1,6 +1,6 @@
-/* globals document */
+import { fillAndStroke } from '../dom-shared-elements.js';
 
-const { elements } = document.getElementById('fill-and-stroke');
+const { elements } = fillAndStroke;
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given style config.

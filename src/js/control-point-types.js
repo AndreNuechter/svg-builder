@@ -1,6 +1,4 @@
-/* globals document */
-
-const controlPoints = document.getElementsByClassName('control-point');
+import { controlPoints } from './dom-shared-elements.js';
 
 // NOTE: ea top-level-prop is a control point type.
 // The changeData props are functions changing the respective point-data.
@@ -75,7 +73,9 @@ const controlPointTypes = {
         }
     },
     ellipseCenter: {
-        changeData,
+        changeData({ x, y }) {
+            return { cx: x, cy: y };
+        },
         getAffectedPoints(controlPoint, layer, pointId) {
             const point = layer.points[pointId];
             return [{

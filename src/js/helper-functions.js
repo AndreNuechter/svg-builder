@@ -1,4 +1,5 @@
 import { pathCmds } from './commands.js';
+import { svg } from './dom-shared-elements.js';
 
 /**
  * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
@@ -6,15 +7,19 @@ import { pathCmds } from './commands.js';
  * @param { SVGSVGElement } svg The element over which the mouse is moving.
  * @returns { number[] }
  */
-function getSVGCoords(event, svg) {
-    let pt = svg.createSVGPoint();
-    pt.x = event.pageX;
-    pt.y = event.pageY;
+function getSVGCoords(event) {
+    let point = svg.createSVGPoint();
+    point.x = event.pageX;
+    point.y = event.pageY;
     // NOTE: the second child of our canvas is the control-points-container,
     // which has drawing- as well as layer-transforms applied to it
-    pt = pt.matrixTransform(svg.children[1].getScreenCTM().inverse());
+    point = point.matrixTransform(svg.children[1].getScreenCTM().inverse());
 
-    return [pt.x, pt.y];
+    return [point.x, point.y];
+}
+
+function saveCloneObj(obj) {
+    return JSON.parse(JSON.stringify(obj));
 }
 
 /**
@@ -96,12 +101,27 @@ function stringifyTransforms(transformData) {
         .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
 }
 
+/**
+ * Returns an eventHandler for drawing a shape (ellipse or rect).
+ * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
+ * @param { Function } attrs A lambda changing the affected shape based on the current mouse-position.
+ * @returns { Function }
+ */
+function drawShape(shape, attrs) {
+    return (e) => {
+        const [x1, y1] = getSVGCoords(e);
+        configElement(shape, attrs(x1, y1));
+    };
+}
+
 export {
     configElement,
     configClone,
+    drawShape,
     parseLayerStyle,
     hexToRGB,
     getSVGCoords,
     pointToMarkup,
+    saveCloneObj,
     stringifyTransforms
 };

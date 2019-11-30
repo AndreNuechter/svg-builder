@@ -1,12 +1,6 @@
-/* globals document */
-
 import { pointToMarkup } from './helper-functions.js';
-import { pathCmds } from './commands.js';
 
-const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
-const modes = ['path', 'rect', 'ellipse'];
-const cmdTags = Object.keys(pathCmds);
-
+// TODO: verify it makes sense to collect the entries here (session was made redundant)
 const defaults = {
     dims: {
         width: 320,
@@ -35,67 +29,8 @@ const defaults = {
         xRot: 0,
         large: false,
         sweep: false
-    },
-    session: {
-        cmd: 'M',
-        arcCmdConfig: {},
-        drawingShape: false,
-        shapeStart: {},
-        reordering: false,
-        currentStyle: {}
     }
 };
-
-const proxiedSessionKeys = (
-    drawing,
-    remControlPoints,
-    mkControlPoint,
-    applyTransforms,
-    setArcCmdConfig,
-    setFillAndStrokeFields,
-    setTransformsFieldset
-) => ({
-    mode: {
-        check(val) { return modes.includes(val); },
-        onPass(val) {
-            // check the appropriate mode input
-            document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
-            document.body.className = val;
-        }
-    },
-    cmd: {
-        check(val) { return cmdTags.includes(val); },
-        onPass(val) {
-            // check cmd selector
-            document.querySelector(`option[value="${val}"]`).selected = true;
-        }
-    },
-    layer: {
-        check(val) { return (+val >= 0 && +val <= drawing.layers.length); },
-        onPass(val) {
-            remControlPoints();
-            drawing.layers[val].points.forEach(mkControlPoint);
-            setFillAndStrokeFields(drawing.layers[val].style);
-            setArcCmdConfig();
-            if (transformTargetSwitch.checked) {
-                setTransformsFieldset(drawing.layers[val].transforms || defaults.dims.transforms);
-            }
-            applyTransforms();
-        }
-    },
-    drawingShape: {
-        check(val) { return typeof val === 'boolean'; },
-        onPass() {}
-    },
-    reordering: {
-        check(val) { return typeof val === 'boolean'; },
-        onPass() {}
-    },
-    transformLayerNotDrawing: {
-        check(val) { return typeof val === 'boolean'; },
-        onPass() {}
-    }
-});
 
 const inc = num => num + 1;
 const dec = num => num - 1;
@@ -131,7 +66,6 @@ const geometryProps = {
 };
 
 export {
-    proxiedSessionKeys,
     defaults,
     moves,
     geometryProps

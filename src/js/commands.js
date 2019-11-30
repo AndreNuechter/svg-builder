@@ -1,3 +1,5 @@
+import { arcCmdConfig } from './dom-shared-elements.js';
+
 // gives the ordered properties of a point of a cmd
 const pathCmds = {
     H: ({ x }) => [x],
@@ -109,9 +111,33 @@ function arc(config) {
     };
 }
 
+function setArcCmdConfig(session, defaults) {
+    const conf = session.current
+        ? (getLastArcCmd(session.current.points)
+            || Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig))
+        : defaults.arcCmdConfig;
+
+    Object.assign(session.arcCmdConfig, conf);
+    Object.entries(conf)
+        .filter(([key]) => !['cmd', 'x', 'y'].includes(key)) // NOTE: the data might be coming from a point
+        .forEach(([key, val]) => {
+            const field = arcCmdConfig.elements[key];
+            field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
+        });
+}
+
+function getLastArcCmd(points) {
+    return points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A');
+}
+
 export {
     pathCmds,
     quad,
+    setArcCmdConfig,
     cube,
+    getLastArcCmd,
     arc
 };
