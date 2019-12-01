@@ -21,7 +21,7 @@ const circleTemplate = (() => configElement(document.createElementNS(ns, 'circle
     r: 3,
     class: 'control-point'
 }))();
-const svgTemplates = {
+const svgTemplates = { // TODO geometryProps?
     path: document.createElementNS(ns, 'path'),
     rect: document.createElementNS(ns, 'rect'),
     ellipse: document.createElementNS(ns, 'ellipse')

@@ -26,7 +26,6 @@ const pathCmds = {
     L: ({ x, y }) => [x, y]
 };
 
-// TODO: stay DRY...abstract the creation of a cp
 /**
  * Returns a set of somewhat ok default coords for the cps of a quad cmd.
  * @param { number } xEnd The x-coordinate of the cmd.
@@ -134,10 +133,10 @@ function getLastArcCmd(points) {
 }
 
 export {
-    pathCmds,
-    quad,
-    setArcCmdConfig,
+    arc,
     cube,
     getLastArcCmd,
-    arc
+    pathCmds,
+    quad,
+    setArcCmdConfig
 };

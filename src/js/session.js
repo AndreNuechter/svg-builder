@@ -66,8 +66,9 @@ const session = new Proxy(Object.assign({
 Object.assign(proxiedKeys.layer, {
     validate(val) { return (+val >= 0 && +val <= drawing.layers.length); },
     onPass(val) {
+        const cb = mkControlPoint(val);
         remControlPoints();
-        drawing.layers[val].points.forEach(mkControlPoint(val));
+        drawing.layers[val].points.forEach(cb);
         setFillAndStrokeFields(drawing.layers[val].style);
         setArcCmdConfig(session, defaults);
         if (transformTargetSwitch.checked) {

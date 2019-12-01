@@ -5,122 +5,47 @@ import { drawing, generateMarkUp, save } from './drawing.js';
 import { defaults, moves } from './constants.js';
 import { remLastControlPoint, remControlPoints, mkControlPoint } from './control-point-handling.js';
 import {
-    quad,
-    setArcCmdConfig,
-    getLastArcCmd,
-    cube,
     arc,
-    pathCmds
+    getLastArcCmd,
+    pathCmds,
+    setArcCmdConfig
 } from './commands.js';
-import { drawLayer, styleLayer, reorderLayerSelectors } from './layer-handling.js';
+import {
+    drawLayer,
+    observeLayers,
+    reorderLayerSelectors,
+    styleLayer
+} from './layer-handling.js';
 import {
     arcCmdConfig,
     drawingContent,
     layers,
     layerSelect,
+    layerSelectors,
     svg,
     transformFields,
     transformTargetSwitch,
     fillAndStroke
 } from './dom-shared-elements.js';
-import { layerSelectorTemplate, svgTemplates } from './dom-created-elements.js';
+import { svgTemplates } from './dom-created-elements.js';
 import {
-    configElement,
     configClone,
-    drawShape,
-    parseLayerStyle,
     getSVGCoords,
+    parseLayerStyle,
     pointToMarkup,
     saveCloneObj,
     stringifyTransforms
 } from './helper-functions.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
-import setFillAndStrokeFields from './components/fill-and-stroke-syncer.js';
+import modes from './modes.js';
 
-const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
-const layerSelectors = document.getElementsByName('layer-selector');
 const addLayerBtn = document.getElementById('add-layer');
-const undoBtn = document.getElementById('undo');
-const commands = document.getElementById('commands');
 const cmds = Object.keys(pathCmds);
-const dragLayerSelector = (e) => {
-    e.dataTransfer.setData('text', e.target.dataset.layerId);
-    e.dataTransfer.effectAllowed = 'move';
-};
-const changeLayerLabel = ({ target }) => {
-    // NOTE: we assume edition is preceded by selection and the edited label belongs to the active layer
-    session.current.label = target.textContent.replace(/\n/g, /\s/).trim();
-    save();
-};
+const undoBtn = document.getElementById('undo');
 
 // watches for additions and removals of layers and does some synchronisation
-new MutationObserver((mutationsList) => { // TODO: own module, layer-handling?!
-    // hide/show a message when no layers exist
-    vacancyMsgStyle.display = drawingContent.childElementCount ? 'none' : 'initial';
-
-    // prevent interfering w reordering
-    if (session.reordering) {
-        session.reordering = false;
-        return;
-    }
-
-    mutationsList.forEach((mutation) => {
-        // deal w addition of layer (add a corresponding selector)
-        if (mutation.addedNodes.length) {
-            const layerId = layerSelect.childElementCount;
-            const layerSelector = layerSelectorTemplate.cloneNode(true);
-            const [label, selector] = layerSelector.children;
-            layerSelector.dataset.layerId = layerId;
-            configElement(label, {
-                textContent: drawing.layers[layerId]
-                    ? drawing.layers[layerId].label || `Layer ${layerId + 1}`
-                    : `Layer ${layerId + 1}`
-            });
-            configElement(selector, {
-                value: layerId,
-                checked: session.layer === layerSelectors.length
-            });
-            layerSelector.ondragstart = dragLayerSelector;
-            label.oninput = changeLayerLabel;
-            layerSelect.append(layerSelector);
-        }
-
-        // deal w removal of layer(s)
-        if (mutation.removedNodes.length) {
-            // delete selector
-            const id = +mutation
-                .removedNodes[0]
-                .dataset
-                .layerId;
-            layerSelect
-                .lastChild
-                .remove();
-
-            // if there're no layers left, we do some clean-up and are done
-            if (!layers.length) {
-                delete session.layer;
-                remControlPoints();
-                setTransformsFieldset(defaults.dims.transforms);
-                applyTransforms(session);
-                setFillAndStrokeFields(defaults.style);
-                return;
-            }
-
-            if (session.layer === layers.length) {
-                session.layer -= 1;
-            } else {
-                session.mode = session.current.mode;
-                remControlPoints();
-                session.current.points.forEach(mkControlPoint(session.layer));
-                setFillAndStrokeFields(session.current.style);
-                reorderLayerSelectors(id, layerSelect.childElementCount - 1);
-            }
-
-            // check the active layer's selector
-            layerSelectors[session.layer].checked = true;
-        }
-    });
-}).observe(drawingContent, { childList: true });
+new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
+    .observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', () => {
     // if there's a saved drawing, use it, else use defaults
@@ -190,82 +115,8 @@ window.onkeydown = (e) => {
     }
 };
 
-arcCmdConfig.oninput = ({ target }) => {
-    const prop = (target.type === 'checkbox') ? 'checked' : 'value';
-    session.arcCmdConfig[target.name] = target[prop];
-
-    if (!session.current) return;
-
-    const lastArcCmd = getLastArcCmd(session.current.points) || {};
-    const updateData = Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig);
-
-    Object.assign(lastArcCmd, arc(updateData));
-    drawLayer(session.layer);
-};
-
-document.getElementById('reset-transforms').onclick = () => {
-    const { transforms } = defaults.dims;
-
-    if (transformTargetSwitch.checked) {
-        if (session.current) session.current.transforms = saveCloneObj(transforms);
-    } else {
-        drawing.dims.transforms = saveCloneObj(transforms);
-    }
-
-    save();
-    applyTransforms(session);
-    setTransformsFieldset(transforms);
-};
-
-transformTargetSwitch.onchange = ({ target }) => {
-    if (target.checked) {
-        setTransformsFieldset(session.current
-            ? session.current.transforms
-            : defaults.dims.transforms);
-    } else {
-        setTransformsFieldset(drawing.dims.transforms);
-    }
-
-    session.transformLayerNotDrawing = target.checked;
-};
-
-transformFields.oninput = ({ target }) => {
-    const transformTarget = session.transformLayerNotDrawing
-        ? session.current
-        : drawing.dims;
-
-    // NOTE otherwise getBBox() might be called with undefined
-    if (transformTarget === session.current && !layers.length) return;
-
-    let value;
-    // NOTE: 'rotate' can take three params (deg, cx, cy) and
-    // we want to rotate from the center
-    if (target.name === 'rotate') {
-        const {
-            x,
-            y,
-            width,
-            height
-        } = (transformTarget === session.current
-            ? layers[session.layer]
-            : drawingContent).getBBox();
-        const centerOfTransformTarget = [x + (width * 0.5), y + (height * 0.5)];
-        value = [target.value, ...centerOfTransformTarget].join(',');
-    } else {
-        ({ value } = target);
-    }
-
-    transformTarget.transforms[target.name] = value;
-    save();
-    applyTransforms(session);
-};
-
-// Layers
 layerSelect.onchange = ({ target }) => {
     const layerId = +target.value;
-    // NOTE: the order is important here,
-    // cuz control point creation (triggered by setting layer),
-    // depends on the currently selected mode
     session.mode = drawing.layers[layerId].mode;
     session.layer = layerId;
 };
@@ -310,7 +161,6 @@ layerSelect.ondrop = (e) => {
 };
 
 addLayerBtn.onclick = () => {
-    const currentStyles = Object.keys(session.currentStyle);
     // add new vanilla layer-data and set session-focus to it
     session.layer = drawing
         .layers
@@ -318,15 +168,13 @@ addLayerBtn.onclick = () => {
             mode: session.mode,
             points: [],
             // NOTE: the user might have configured styles before starting to draw the layer
-            style: currentStyles.length
-                ? Object.assign({}, defaults.style, session.currentStyle)
-                : Object.assign({}, defaults.style),
+            style: Object.assign({}, defaults.style, session.currentStyle),
             transforms: saveCloneObj(defaults.dims.transforms)
         }) - 1;
     save();
 
     // reset the current styles
-    currentStyles.forEach(key => delete session.currentStyle[key]);
+    Object.keys(session.currentStyle).forEach(key => delete session.currentStyle[key]);
 
     const shape = configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layer
@@ -400,94 +248,47 @@ svg.addEventListener('mousedown', (e) => {
             };
 
         Object.assign(points[0], attrs);
-        mkControlPoint(session.layer)(points[points.length - 1], points.length - 1);
+        mkControlPoint(session.layer)(
+            points[points.length - 1],
+            points.length - 1
+        );
         session.drawingShape = false;
         svg.onmousemove = null;
     } else {
-        // TODO: move this out...c. geometryProps
-        const modes = {
-            rect() {
-                if (points[0]) return;
-
-                const rect = layers[session.layer];
-                points[0] = { x, y };
-                configElement(rect, points[0]);
-                session.drawingShape = true;
-                [session.shapeStart.x, session.shapeStart.y] = [x, y];
-
-                svg.onmousemove = drawShape(rect, (x1, y1) => ({
-                    x: Math.min(x, x1),
-                    y: Math.min(y, y1),
-                    width: Math.abs(x - x1),
-                    height: Math.abs(y - y1)
-                }));
-            },
-            ellipse() {
-                if (points[0]) return;
-
-                const ellipse = layers[session.layer];
-                points[0] = { cx: x, cy: y };
-                configElement(ellipse, points[0]);
-                session.drawingShape = true;
-                [session.shapeStart.x, session.shapeStart.y] = [x, y];
-
-                svg.onmousemove = drawShape(ellipse, (x1, y1) => ({
-                    rx: Math.abs(x - x1),
-                    ry: Math.abs(y - y1)
-                }));
-            },
-            path() {
-                const lastPoint = points[points.length - 1];
-
-                // prevent using the same point multiple times in a row
-                if (lastPoint
-                    && x === lastPoint.x
-                    && y === lastPoint.y) return;
-
-                // ensure first point of a path is a moveTo command
-                if (!points.length) session.cmd = 'M';
-
-                // ensure there're no multiple consecutive moveTo commands
-                if (lastPoint && lastPoint.cmd === 'M' && session.cmd === 'M') {
-                    points.pop();
-                    remLastControlPoint(session.cmd);
-                }
-
-                if (session.cmd === 'V') points.push({ cmd: session.cmd, y });
-                else if (session.cmd === 'H') points.push({ cmd: session.cmd, x });
-                else points.push({ cmd: session.cmd, x, y });
-
-                // for Q, C and A cmds we need to add cp(s)
-                if (session.cmd === 'Q') {
-                    const cp = quad(x, y, points[points.length - 2]);
-                    Object.assign(points[points.length - 1], cp);
-                } else if (session.cmd === 'C') {
-                    const cps = cube(x, y, points[points.length - 2]);
-                    Object.assign(points[points.length - 1], cps);
-                } else if (session.cmd === 'A') {
-                    const cp = arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
-                    Object.assign(points[points.length - 1], cp);
-                }
-
-                // create cp(s) for the new point
-                mkControlPoint(session.layer)(points[points.length - 1], points.length - 1);
-            }
-        };
-
-        modes[session.mode]();
+        modes[session.mode]
+            .mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
     }
 
     styleLayer(session.layer);
     drawLayer(session.layer);
 }, false);
 
-commands.onchange = ({ target }) => {
+document.getElementById('commands').onchange = ({ target }) => {
     session.cmd = cmds[cmds.indexOf(target.value)] || cmds[0];
 };
 
 document.getElementById('dims').onchange = ({ target }) => {
     drawing.dims[target.id] = target.value || drawing.dims[target.id];
     save();
+};
+
+document.getElementById('preview')
+    .onclick = () => window.open('').document.write(generateMarkUp());
+
+document.getElementById('get-markup')
+    .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());
+
+arcCmdConfig.oninput = ({ target }) => {
+    const prop = (target.type === 'checkbox') ? 'checked' : 'value';
+    session.arcCmdConfig[target.name] = target[prop];
+
+    if (!session.current) return;
+
+    const lastArcCmd = getLastArcCmd(session.current.points) || {};
+    const updateData = Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig);
+
+    Object.assign(lastArcCmd, arc(updateData));
+    drawLayer(session.layer);
 };
 
 document.getElementById('modes').onchange = ({ target }) => {
@@ -530,8 +331,59 @@ fillAndStroke.oninput = ({ target }) => {
     else styleLayer(session.layer);
 };
 
-document.getElementById('preview')
-    .onclick = () => window.open('').document.write(generateMarkUp());
+transformTargetSwitch.onchange = ({ target }) => {
+    if (target.checked) {
+        setTransformsFieldset(session.current
+            ? session.current.transforms
+            : defaults.dims.transforms);
+    } else {
+        setTransformsFieldset(drawing.dims.transforms);
+    }
 
-document.getElementById('get-markup')
-    .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());
+    session.transformLayerNotDrawing = target.checked;
+};
+
+transformFields.oninput = ({ target }) => {
+    const transformTarget = session.transformLayerNotDrawing
+        ? session.current
+        : drawing.dims;
+
+    // NOTE otherwise getBBox() might be called with undefined
+    if (transformTarget === session.current && !layers.length) return;
+
+    let value;
+    // NOTE: 'rotate' can take three params (deg, cx, cy) and
+    // we want to rotate from the center
+    if (target.name === 'rotate') {
+        const {
+            x,
+            y,
+            width,
+            height
+        } = (transformTarget === session.current
+            ? layers[session.layer]
+            : drawingContent).getBBox();
+        const centerOfTransformTarget = [x + (width * 0.5), y + (height * 0.5)];
+        value = [target.value, ...centerOfTransformTarget].join(',');
+    } else {
+        ({ value } = target);
+    }
+
+    transformTarget.transforms[target.name] = value;
+    save();
+    applyTransforms(session);
+};
+
+document.getElementById('reset-transforms').onclick = () => {
+    const { transforms } = defaults.dims;
+
+    if (transformTargetSwitch.checked) {
+        if (session.current) session.current.transforms = saveCloneObj(transforms);
+    } else {
+        drawing.dims.transforms = saveCloneObj(transforms);
+    }
+
+    save();
+    applyTransforms(session);
+    setTransformsFieldset(transforms);
+};

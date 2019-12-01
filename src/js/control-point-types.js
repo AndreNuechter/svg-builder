@@ -148,7 +148,7 @@ function yComponent(x, y) {
 
 // NOTE: ea of the given cmds has the given number of cps,
 // meaning the id of any given cp can be derived by summing the ones before it
-const amounts = { // TODO: include this in pathCmds?
+const amounts = { // TODO: pathCmds?
     M: 1,
     L: 1,
     H: 1,

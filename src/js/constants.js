@@ -1,6 +1,3 @@
-import { pointToMarkup } from './helper-functions.js';
-
-// TODO: verify it makes sense to collect the entries here (session was made redundant)
 const defaults = {
     dims: {
         width: 320,
@@ -41,32 +38,7 @@ const moves = {
     ArrowRight: { prop: 0, cb: inc }
 };
 
-const geometryProps = {
-    path(layer) {
-        return {
-            d: layer.points.map(pointToMarkup).join('') + (layer.style.close ? 'Z' : '')
-        };
-    },
-    ellipse({ points: [point] }) {
-        return {
-            cx: point.cx,
-            cy: point.cy,
-            rx: point.rx || 0,
-            ry: point.ry || 0
-        };
-    },
-    rect({ points: [point] }) {
-        return {
-            x: point.x,
-            y: point.y,
-            width: point.width || 0,
-            height: point.height || 0
-        };
-    }
-};
-
 export {
     defaults,
-    moves,
-    geometryProps
+    moves
 };
