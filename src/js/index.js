@@ -224,7 +224,7 @@ undoBtn.onclick = () => {
 };
 
 // adds a point
-svg.addEventListener('mousedown', (e) => {
+svg.addEventListener('pointerdown', (e) => {
     if (!layers.length) addLayerBtn.click();
 
     const [x, y] = getSVGCoords(e);
@@ -253,7 +253,7 @@ svg.addEventListener('mousedown', (e) => {
             points.length - 1
         );
         session.drawingShape = false;
-        svg.onmousemove = null;
+        svg.onpointermove = null;
     } else {
         modes[session.mode]
             .mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);

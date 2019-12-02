@@ -5,9 +5,9 @@ import { svg } from '../dom-shared-elements.js';
 
 const coords = document.getElementById('coords');
 
-svg.addEventListener('mousemove', coordToolTips);
-svg.addEventListener('mouseover', coordToolTips);
-svg.addEventListener('mouseleave', () => {
+svg.addEventListener('pointermove', coordToolTips);
+svg.addEventListener('pointerover', coordToolTips);
+svg.addEventListener('pointerleave', () => {
     coords.style = null;
 });
 

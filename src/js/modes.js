@@ -14,7 +14,7 @@ const modes = {
             session.drawingShape = true;
             [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
-            svg.onmousemove = drawShape(rect, (x1, y1) => ({
+            svg.onpointermove = drawShape(rect, (x1, y1) => ({
                 x: Math.min(x, x1),
                 y: Math.min(y, y1),
                 width: Math.abs(x - x1),
@@ -40,7 +40,7 @@ const modes = {
             session.drawingShape = true;
             [session.shapeStart.x, session.shapeStart.y] = [x, y];
 
-            svg.onmousemove = drawShape(ellipse, (x1, y1) => ({
+            svg.onpointermove = drawShape(ellipse, (x1, y1) => ({
                 rx: Math.abs(x - x1),
                 ry: Math.abs(y - y1)
             }));

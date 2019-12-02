@@ -3,8 +3,8 @@ import { svg } from './dom-shared-elements.js';
 
 /**
  * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
- * @param { Event } event The event triggering this (most likely mouseover).
- * @param { SVGSVGElement } svg The element over which the mouse is moving.
+ * @param { Event } event The event triggering this (most likely pointerover).
+ * @param { SVGSVGElement } svg The element over which the pointer is moving.
  * @returns { number[] }
  */
 function getSVGCoords(event) {
@@ -104,7 +104,7 @@ function stringifyTransforms(transformData) {
 /**
  * Returns an eventHandler for drawing a shape (ellipse or rect).
  * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
- * @param { Function } attrs A lambda changing the affected shape based on the current mouse-position.
+ * @param { Function } attrs A lambda changing the affected shape based on the current pointer-position.
  * @returns { Function }
  */
 function drawShape(shape, attrs) {

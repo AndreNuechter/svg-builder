@@ -18,16 +18,16 @@ const {
     ellipseRy
 } = controlPointTypes;
 const stopDragging = () => {
-    svg.onmousemove = null;
-    svg.onmouseleave = null;
-    svg.onmouseup = null;
+    svg.onpointermove = null;
+    svg.onpointerleave = null;
+    svg.onpointerup = null;
 };
 const startDragging = (layer, pointId, controlPointType, cp) => (e) => {
-    // prevent triggering svg.onmousedown
+    // prevent triggering svg.onpointerdown
     e.stopPropagation();
-    svg.onmousemove = dragging(layer, pointId, controlPointType, cp);
-    svg.onmouseleave = stopDragging;
-    svg.onmouseup = stopDragging;
+    svg.onpointermove = dragging(layer, pointId, controlPointType, cp);
+    svg.onpointerleave = stopDragging;
+    svg.onpointerup = stopDragging;
 };
 
 /**
@@ -99,8 +99,8 @@ function mkControlPoint(layerId) {
 function ControlPoint(x, y, pointId, controlPointType, layerId) {
     const cp = configClone(circleTemplate)({ cx: x, cy: y });
 
-    cp.onmousedown = startDragging(layerId, pointId, controlPointType, cp);
-    cp.onmouseup = stopDragging;
+    cp.onpointerdown = startDragging(layerId, pointId, controlPointType, cp);
+    cp.onpointerup = stopDragging;
 
     return cp;
 }
