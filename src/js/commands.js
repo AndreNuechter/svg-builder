@@ -22,6 +22,8 @@ const pathCmds = {
         p.x,
         p.y
     ],
+    S: p => [p.x1, p.y1, p.x, p.y],
+    T: ({ x, y }) => [x, y],
     M: ({ x, y }) => [x, y],
     L: ({ x, y }) => [x, y]
 };

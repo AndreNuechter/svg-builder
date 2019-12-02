@@ -36,7 +36,7 @@ const startDragging = (layer, pointId, controlPointType, cp) => (e) => {
  */
 function remLastControlPoint(cmd) {
     controlPoints[controlPoints.length - 1].remove();
-    if (cmd === 'Q' || cmd === 'C') controlPoints[controlPoints.length - 1].remove();
+    if (['Q', 'C', 'S'].includes(cmd)) controlPoints[controlPoints.length - 1].remove();
     if (cmd === 'C') controlPoints[controlPoints.length - 1].remove();
 }
 
@@ -57,7 +57,7 @@ function mkControlPoint(layerId) {
         const cps = [];
 
         if (point.cmd) {
-            if (['M', 'L', 'Q', 'C', 'A'].includes(point.cmd)) {
+            if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
                 cps.push(ControlPoint(point.x, point.y, pointId, regularPoint, layerId));
             } else if (point.cmd === 'H') {
                 cps.push(ControlPoint(point.x, layerId.points[pointId - 1].y, pointId, hCmd, layerId));
@@ -65,7 +65,7 @@ function mkControlPoint(layerId) {
                 cps.push(ControlPoint(layerId.points[pointId - 1].x, point.y, pointId, vCmd, layerId));
             }
 
-            if (point.cmd === 'Q' || point.cmd === 'C') {
+            if (['Q', 'C', 'S'].includes(point.cmd)) {
                 cps.push(ControlPoint(point.x1, point.y1, pointId, firstControlPoint, layerId));
             }
 

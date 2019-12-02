@@ -77,7 +77,7 @@ const modes = {
             else points.push({ cmd: session.cmd, x, y });
 
             // for Q, C and A cmds we need to add cp(s)
-            if (session.cmd === 'Q') {
+            if (session.cmd === 'Q' || session.cmd === 'S') {
                 const cp = quad(x, y, points[points.length - 2]);
                 Object.assign(points[points.length - 1], cp);
             } else if (session.cmd === 'C') {

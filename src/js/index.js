@@ -64,13 +64,16 @@ window.addEventListener('DOMContentLoaded', () => {
     if (drawing.layers.length) session.layer = 0;
     else setArcCmdConfig(session, defaults);
 
+    // set selected cmd
+    document.querySelector('option[value="M"]').selected = true;
+
     // create layer representations incl selectors and config ea
     drawing.layers.forEach((layer, i) => {
         const shape = svgTemplates[layer.mode];
         const attrs = Object
             .assign({ 'data-layer-id': i },
                 layer.mode === 'path' ? {
-                    d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? ' Z' : '')
+                    d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? 'Z' : '')
                 } : layer.points[0] || {},
                 parseLayerStyle(layer.style), { transform: stringifyTransforms(layer.transforms) });
 

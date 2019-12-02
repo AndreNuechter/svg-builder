@@ -148,14 +148,16 @@ function yComponent(x, y) {
 
 // NOTE: ea of the given cmds has the given number of cps,
 // meaning the id of any given cp can be derived by summing the ones before it
-const amounts = { // TODO: pathCmds?
+const amounts = { // TODO: pathCmds...text on cmd-select too...the part going into mkControlPoint feels redundant as well...remControlPoint too
     M: 1,
     L: 1,
     H: 1,
     V: 1,
     Q: 2,
     C: 3,
-    A: 1
+    A: 1,
+    S: 2,
+    T: 1
 };
 
 function getIdOfControlPoint(layer, id) {
