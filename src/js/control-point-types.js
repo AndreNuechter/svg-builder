@@ -94,13 +94,13 @@ const controlPointTypes = {
             }];
         }
     },
-    ellipseRx: {
+    rx: {
         changeData({ x }, point) { return { rx: Math.abs(x - point.cx) }; },
         getAffectedPoints(controlPoint) {
             return [{ ref: controlPoint, fx: xComponent }];
         }
     },
-    ellipseRy: {
+    ry: {
         changeData({ y }, point) { return { ry: Math.abs(y - point.cy) }; },
         getAffectedPoints(controlPoint) {
             return [{ ref: controlPoint, fx: yComponent }];

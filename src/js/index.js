@@ -42,6 +42,7 @@ import modes from './modes.js';
 const addLayerBtn = document.getElementById('add-layer');
 const cmds = Object.keys(pathCmds);
 const undoBtn = document.getElementById('undo');
+const preview = document.getElementById('preview');
 
 // watches for additions and removals of layers and does some synchronisation
 new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
@@ -262,7 +263,7 @@ svg.addEventListener('pointerdown', (e) => {
             .mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
     }
 
-    styleLayer(session.layer);
+    styleLayer(session.layer); // TODO: is this needed?
     drawLayer(session.layer);
 }, false);
 
@@ -275,8 +276,8 @@ document.getElementById('dims').onchange = ({ target }) => {
     save();
 };
 
-document.getElementById('preview')
-    .onclick = () => window.open('').document.write(generateMarkUp());
+document.getElementById('get-preview')
+    .onclick = () => { preview.innerHTML = generateMarkUp(); };
 
 document.getElementById('get-markup')
     .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());

@@ -1,5 +1,8 @@
 const defaults = {
     dims: {
+        // TODO: do we want to store w and h here or get them like preserve-aspect...?
+        // have those here as well?
+        // move transforms up?
         width: 320,
         height: 180,
         transforms: {

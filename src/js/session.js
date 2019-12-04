@@ -16,7 +16,7 @@ const proxiedKeys = {
         onPass(val) {
             // check the appropriate mode input
             document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
-            document.body.className = val;
+            document.body.dataset.mode = val;
         }
     },
     cmd: {

@@ -10,16 +10,6 @@ body {
     padding: 2px 2px 0;
     height: 100%;
     box-sizing: border-box;
-    overflow-x: hidden;
-    display: grid;
-    grid-template-columns: min-content auto auto auto;
-    grid-template-rows: max-content min-Content auto auto auto;
-    grid-template-areas:
-        "topBar topBar topBar topBar"
-        "leftSidebar center center center"
-        "leftSidebar center center center"
-        "leftSidebar center center center"
-        "leftSidebar center center center";
 
     *,
     *::before,
@@ -27,58 +17,68 @@ body {
         box-sizing: inherit;
     }
 
-    &.rect,
-    &.ellipse {
+    &[data-mode="rect"],
+    &[data-mode="ellipse"] {
         .path-only {
-            display: none !important;
+            display: none !important; // TODO: turn this around so as to not have flashes on start
         }
     }
 }
 
-#top-bar {
-    grid-area: topBar;
-    display: flex;
-    justify-content: space-between;
-    height: min-content;
+.tab-content {
+    position: absolute;
+    visibility: hidden;
+    height: 99%;
+    width: 99%;
+    overflow-x: hidden;
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: min-content max-content auto;
+    grid-template-areas:
+        "tabs tabs"
+        "leftSidebar center"
+        ". center"
+    ;
+
+    &:target {
+        visibility: visible;
+    }
+}
+
+#tabs {
+    position: absolute;
+    right: 2rem;
+    z-index: 1;
+    grid-area: tabs;
+
+    a {
+        color: whitesmoke;
+        text-decoration: none;
+
+        &:visited {
+            color: whitesmoke;
+        }
+    }
+}
+
+.tab {
+    padding: 4px 8px;
+    margin-right: 8px;
+
+    &.active {
+        background: slategrey;
+        color: whitesmoke;
+    }
 }
 
 #output-configuration {
-    display: inline;
-
-    fieldset {
-        display: inline;
-    }
+    grid-area: leftSidebar;
 }
 
-fieldset#preserve-aspect-ratio {
-    display: inline-flex;
-    justify-content: space-between;
-}
-
-#dims,
-#modes {
-    display: inline;
-}
-
-#btns {
-    display: inline-flex;
-}
-
-#arc-cmd-config {
-    display: flex;
-    flex-wrap: wrap;
-    position: absolute;
-    right: 0;
-
-    label {
-        margin: 2px 0;
-        display: flex;
-        justify-content: space-between;
-
-        span:last-of-type {
-            padding-right: 8px;
-        }
-    }
+#preview {
+    grid-area: center;
+    background: lightgrey;
+    width: min-content;
 }
 
 #left-sidebar {
@@ -86,6 +86,7 @@ fieldset#preserve-aspect-ratio {
     display: flex;
     flex-direction: column;
     margin-right: 4px;
+    width: 12rem;
 }
 
 #layer-management {
@@ -104,10 +105,22 @@ fieldset#preserve-aspect-ratio {
 }
 
 #layer-select,
-#add,
 #layer-controls {
     display: inline-flex;
     flex-direction: column;
+}
+
+#dims,
+#output-configuration,
+#fill-and-stroke,
+#transforms,
+#arc-cmd-config {
+    label {
+        margin: 4px 0;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
 }
 
 #center-content {
@@ -116,9 +129,20 @@ fieldset#preserve-aspect-ratio {
     flex-direction: column;
 }
 
-#center-top {
+#center-top,
+#modes {
     display: flex;
 }
+
+#modes {
+    label {
+        margin: 0 4px;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+}
+
 
 #commands {
     height: min-content;
@@ -140,20 +164,6 @@ fieldset#preserve-aspect-ratio {
     height: 100%;
 }
 
-#dims,
-#modes,
-#output-configuration {
-    label {
-        display: inline-block;
-        margin-right: 8px;
-        vertical-align: middle;
-
-        span {
-            margin-right: 4px;
-        }
-    }
-}
-
 #coords {
     position: absolute;
     left: -100px;
@@ -165,20 +175,6 @@ fieldset#preserve-aspect-ratio {
     color: black;
     text-align: center;
     pointer-events: none;
-}
-
-#fill-and-stroke {
-    margin: 0.3rem 0;
-}
-
-#fill-and-stroke,
-#transformations {
-    label {
-        margin: 4px 0;
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
 }
 
 .control-point {
@@ -224,6 +220,9 @@ fieldset {
 }
 
 button {
+    padding: 0;
+    margin: 0;
+    border: width 1px;
     width: 100%;
 }
 

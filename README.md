@@ -34,7 +34,7 @@ The thusly created points may be adjusted by dragging the corresponding control 
 
 #### Commands
 
-A subset of the path commands defined in the svg specification are available when in path mode (M, L, H, V, Q, C and A).
+A subset of the path commands defined in the svg specification are available when in path mode (M, L, H, V, Q, S, C, T and A).
 When in path mode, a command can be selectet either by selecting it in the respective fieldset or pressing the corresponding letter on the keyboard.
 
 ### Rect

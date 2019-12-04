@@ -71,7 +71,7 @@ function parseLayerStyle(conf) {
         fill: conf.fill
             ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
             : 'transparent',
-        stroke: `rgba(${[hexToRGB(conf.strokeColor), conf.strokeOpacity].join(',')})`,
+        stroke: `rgba(${hexToRGB(conf.strokeColor)}, ${conf.strokeOpacity})`,
         'stroke-width': conf.strokeWidth
     };
 }
