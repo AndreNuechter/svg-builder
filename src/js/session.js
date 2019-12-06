@@ -4,11 +4,11 @@ import { pathCmds, setArcCmdConfig } from './commands.js';
 import { defaults } from './constants.js';
 import { drawing } from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import setFillAndStrokeFields from './components/fill-and-stroke-syncer.js';
+import setFillAndStrokeFields from './fill-and-stroke-syncer.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
 import { transformTargetSwitch } from './dom-shared-elements.js';
 
-const modes = ['path', 'rect', 'ellipse']; // TODO: c. geometryProps
+const modes = ['path', 'rect', 'ellipse']; // TODO: c. modes
 const cmdTags = Object.keys(pathCmds);
 const proxiedKeys = {
     mode: {
@@ -72,7 +72,7 @@ Object.assign(proxiedKeys.layer, {
         setFillAndStrokeFields(drawing.layers[val].style);
         setArcCmdConfig(session, defaults);
         if (transformTargetSwitch.checked) {
-            setTransformsFieldset(drawing.layers[val].transforms || defaults.dims.transforms);
+            setTransformsFieldset(drawing.layers[val].transforms || defaults.transforms);
         }
         applyTransforms(session, defaults);
     }

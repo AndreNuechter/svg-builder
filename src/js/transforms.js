@@ -8,7 +8,7 @@ import {
 } from './dom-shared-elements.js';
 import { stringifyTransforms } from './helper-functions.js';
 
-function setTransformsFieldset(conf = defaults.dims.transforms) {
+function setTransformsFieldset(conf = defaults.transforms) {
     Object.entries(conf)
         .filter(([key]) => key !== 'translate') // NOTE: we manage translations via arrow-keys
         .forEach(([key, val]) => {
@@ -24,7 +24,7 @@ function setTransformsFieldset(conf = defaults.dims.transforms) {
  * the currently active layer and its control points.
  */
 function applyTransforms(session) {
-    const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
+    const drawingTransforms = stringifyTransforms(drawing.transforms);
     const applicants = [drawingContent, controlPointContainer];
     const transformations = [drawingTransforms];
 

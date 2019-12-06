@@ -1,17 +1,15 @@
 const defaults = {
     dims: {
-        // TODO: do we want to store w and h here or get them like preserve-aspect...?
-        // have those here as well?
-        // move transforms up?
+        // TODO: store other output related values as well or read this of ui as well
         width: 320,
-        height: 180,
-        transforms: {
-            translate: [0, 0],
-            scale: 1,
-            rotate: '0,0,0',
-            skewX: 0,
-            skewY: 0
-        }
+        height: 180
+    },
+    transforms: {
+        translate: [0, 0],
+        scale: 1,
+        rotate: '0,0,0',
+        skewX: 0,
+        skewY: 0
     },
     style: {
         strokeColor: '#000000',
@@ -19,7 +17,6 @@ const defaults = {
         strokeWidth: 2,
         fillColor: '#000000',
         fillOpacity: 1,
-        fillRule: 'evenodd',
         fill: false,
         close: false
     },

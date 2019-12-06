@@ -66,14 +66,20 @@ function pointToMarkup(point) {
  * @returns { Object }
  */
 function parseLayerStyle(conf) {
-    return {
-        'fill-rule': conf.fillRule,
+    // NOTE: props added on top are on all shapes, the others are optional
+    const res = {
         fill: conf.fill
             ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
             : 'transparent',
         stroke: `rgba(${hexToRGB(conf.strokeColor)}, ${conf.strokeOpacity})`,
         'stroke-width': conf.strokeWidth
     };
+
+    if (conf.fillRule) res['fill-rule'] = conf.fillRule;
+    if (conf.linejoin) res['stroke-linejoin'] = conf.linejoin;
+    if (conf.linecap) res['stroke-linecap'] = conf.linecap;
+
+    return res;
 }
 
 const re = /[a-z\d]{2}/gi;

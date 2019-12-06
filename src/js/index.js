@@ -12,6 +12,7 @@ import {
 } from './commands.js';
 import {
     drawLayer,
+    Layer,
     observeLayers,
     reorderLayerSelectors,
     styleLayer
@@ -52,7 +53,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // if there's a saved drawing, use it, else use defaults
     const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
     Object.assign(drawing, {
-        dims: src.dims || saveCloneObj(defaults.dims),
+        dims: src.dims || Object.assign({}, defaults.dims),
+        transforms: src.transforms || saveCloneObj(defaults.transforms),
         layers: src.layers || []
     });
 
@@ -68,21 +70,21 @@ window.addEventListener('DOMContentLoaded', () => {
     // set selected cmd
     document.querySelector('option[value="M"]').selected = true;
 
-    // create layer representations incl selectors and config ea
+    // create layer representations and config ea
     drawing.layers.forEach((layer, i) => {
         const shape = svgTemplates[layer.mode];
         const attrs = Object
             .assign({ 'data-layer-id': i },
-                layer.mode === 'path' ? {
-                    d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? 'Z' : '')
-                } : layer.points[0] || {},
+                layer.mode === 'path'
+                    ? { d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? 'Z' : '') }
+                    : layer.points[0] || {},
                 parseLayerStyle(layer.style), { transform: stringifyTransforms(layer.transforms) });
 
         drawingContent.append(configClone(shape)(attrs));
     });
 
     applyTransforms(session);
-    setTransformsFieldset(drawing.dims.transforms || defaults.dims.transforms);
+    setTransformsFieldset(drawing.transforms || defaults.transforms);
 
     // we want to transform the entire drawing by default
     transformTargetSwitch.checked = false;
@@ -99,7 +101,7 @@ window.onkeydown = (e) => {
         e.preventDefault();
 
         const { transforms: { translate: transformTarget } } = e.ctrlKey
-            ? drawing.dims
+            ? drawing
             : session.current;
         const { cb, prop } = moves[key];
 
@@ -124,6 +126,7 @@ layerSelect.onchange = ({ target }) => {
     session.mode = drawing.layers[layerId].mode;
     session.layer = layerId;
 };
+
 // re-ordering of layers via dragging of selector
 layerSelect.ondragover = e => e.preventDefault();
 layerSelect.ondrop = (e) => {
@@ -168,13 +171,11 @@ addLayerBtn.onclick = () => {
     // add new vanilla layer-data and set session-focus to it
     session.layer = drawing
         .layers
-        .push({
-            mode: session.mode,
-            points: [],
-            // NOTE: the user might have configured styles before starting to draw the layer
-            style: Object.assign({}, defaults.style, session.currentStyle),
-            transforms: saveCloneObj(defaults.dims.transforms)
-        }) - 1;
+        .push(Layer(
+            session.mode,
+            Object.assign({}, defaults.style, session.currentStyle),
+            saveCloneObj(defaults.transforms)
+        )) - 1;
     save();
 
     // reset the current styles
@@ -198,6 +199,7 @@ document.getElementById('clear-all').onclick = () => {
     window.localStorage.removeItem('drawing');
     drawing.layers.length = 0;
     drawing.dims = Object.assign({}, defaults.dims);
+    drawing.transforms = saveCloneObj(defaults.transforms);
     [...layers].forEach(layer => layer.remove());
 };
 
@@ -263,24 +265,13 @@ svg.addEventListener('pointerdown', (e) => {
             .mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
     }
 
-    styleLayer(session.layer); // TODO: is this needed?
+    styleLayer(session.layer);
     drawLayer(session.layer);
 }, false);
 
 document.getElementById('commands').onchange = ({ target }) => {
     session.cmd = cmds[cmds.indexOf(target.value)] || cmds[0];
 };
-
-document.getElementById('dims').onchange = ({ target }) => {
-    drawing.dims[target.id] = target.value || drawing.dims[target.id];
-    save();
-};
-
-document.getElementById('get-preview')
-    .onclick = () => { preview.innerHTML = generateMarkUp(); };
-
-document.getElementById('get-markup')
-    .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());
 
 arcCmdConfig.oninput = ({ target }) => {
     const prop = (target.type === 'checkbox') ? 'checked' : 'value';
@@ -315,6 +306,10 @@ document.getElementById('modes').onchange = ({ target }) => {
             'data-layer-id': session.layer
         });
         drawingContent.replaceChild(shape, layers[session.layer]);
+        // remove non-default props
+        Object.keys(session.current.style).forEach((key) => {
+            if (!defaults.style[key]) delete session.current.style[key];
+        });
     }
 };
 
@@ -339,9 +334,9 @@ transformTargetSwitch.onchange = ({ target }) => {
     if (target.checked) {
         setTransformsFieldset(session.current
             ? session.current.transforms
-            : defaults.dims.transforms);
+            : defaults.transforms);
     } else {
-        setTransformsFieldset(drawing.dims.transforms);
+        setTransformsFieldset(drawing.transforms);
     }
 
     session.transformLayerNotDrawing = target.checked;
@@ -350,7 +345,7 @@ transformTargetSwitch.onchange = ({ target }) => {
 transformFields.oninput = ({ target }) => {
     const transformTarget = session.transformLayerNotDrawing
         ? session.current
-        : drawing.dims;
+        : drawing;
 
     // NOTE otherwise getBBox() might be called with undefined
     if (transformTarget === session.current && !layers.length) return;
@@ -379,15 +374,26 @@ transformFields.oninput = ({ target }) => {
 };
 
 document.getElementById('reset-transforms').onclick = () => {
-    const { transforms } = defaults.dims;
+    const { transforms } = defaults;
 
     if (transformTargetSwitch.checked) {
         if (session.current) session.current.transforms = saveCloneObj(transforms);
     } else {
-        drawing.dims.transforms = saveCloneObj(transforms);
+        drawing.transforms = saveCloneObj(transforms);
     }
 
     save();
     applyTransforms(session);
     setTransformsFieldset(transforms);
 };
+
+document.querySelector('a[data-tab-name="output"]')
+    .onclick = () => { preview.innerHTML = generateMarkUp(); };
+
+document.getElementById('dims').onchange = ({ target }) => {
+    drawing.dims[target.id] = target.value || drawing.dims[target.id];
+    save();
+};
+
+document.getElementById('get-markup')
+    .onclick = () => window.navigator.clipboard.writeText(generateMarkUp());

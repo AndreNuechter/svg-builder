@@ -20,7 +20,13 @@ body {
     &[data-mode="rect"],
     &[data-mode="ellipse"] {
         .path-only {
-            display: none !important; // TODO: turn this around so as to not have flashes on start
+            display: none !important;
+        }
+    }
+
+    &[data-mode="ellipse"] {
+        .path-and-rect-only {
+            display: none !important;
         }
     }
 }
@@ -33,9 +39,8 @@ body {
     overflow-x: hidden;
     display: grid;
     grid-template-columns: min-content auto;
-    grid-template-rows: min-content max-content auto;
+    grid-template-rows: max-content auto;
     grid-template-areas:
-        "tabs tabs"
         "leftSidebar center"
         ". center"
     ;
@@ -49,7 +54,6 @@ body {
     position: absolute;
     right: 2rem;
     z-index: 1;
-    grid-area: tabs;
 
     a {
         color: whitesmoke;
@@ -77,8 +81,11 @@ body {
 
 #preview {
     grid-area: center;
-    background: lightgrey;
-    width: min-content;
+
+    svg {
+        background: lightgrey;
+        margin: 8px;
+    }
 }
 
 #left-sidebar {
@@ -135,6 +142,8 @@ body {
 }
 
 #modes {
+    flex-direction: row;
+
     label {
         margin: 0 4px;
         display: flex;
@@ -151,17 +160,17 @@ body {
 }
 
 #canvas {
-    background: lightgrey;
     width: 100%;
+    height: 100%;
     min-width: 720px;
     min-height: 405px;
     border: 2px solid white;
     outline: 3px solid grey;
     margin-top: 8px;
     margin-left: 5px;
+    background: lightgrey;
     stroke-width: 2;
     stroke: black;
-    height: 100%;
 }
 
 #coords {
@@ -217,12 +226,14 @@ input {
 
 fieldset {
     border-color: dimgrey;
+    border-style: solid;
 }
 
 button {
+    cursor: pointer;
     padding: 0;
-    margin: 0;
-    border: width 1px;
+    margin: 1px;
+    border-width: 1px;
     width: 100%;
 }
 

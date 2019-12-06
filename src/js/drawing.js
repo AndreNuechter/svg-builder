@@ -24,7 +24,7 @@ function generateMarkUp() {
         width,
         height
     } = drawingContent.getBBox();
-    const drawingTransforms = stringifyTransforms(drawing.dims.transforms);
+    const drawingTransforms = stringifyTransforms(drawing.transforms);
 
     return `
     <svg 

@@ -1,4 +1,4 @@
-import { fillAndStroke } from '../dom-shared-elements.js';
+import { fillAndStroke } from './dom-shared-elements.js';
 
 const { elements } = fillAndStroke;
 

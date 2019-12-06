@@ -1,40 +1,29 @@
 /* globals window, document */
 
 (() => {
+    const activeTab = window.location.hash.slice(1);
+    const { body } = document;
     const tabContainer = document.getElementById('tabs');
     const tabs = [...tabContainer.children];
     const tabNames = ['drawing', 'output'];
-    const activeTab = window.location.hash.slice(1);
 
-    // NOTE: ensure there's exactly one active tab on start
-    tabs.forEach(t => t.classList.remove('active'));
+    // ensure a tab is selected on start
+    window.addEventListener('DOMContentLoaded',
+        () => selectTab(tabNames.includes(activeTab) ? activeTab : tabNames[0]));
 
-    // NOTE: ensure a tab is selected
-    if (activeTab && tabNames.includes(activeTab)) {
-        selectTab(activeTab);
-    } else {
-        selectTab(tabNames[0]);
-    }
-
-    function selectTab(tabName) {
-        window.location.hash = tabName;
-        document.body.dataset.activeTab = tabName;
-        document.querySelector(`[data-tab-name="${tabName}"`).classList.add('active');
-    }
-
-    tabContainer.onclick = (e) => {
-        const el = e.target.closest('a');
+    tabContainer.onclick = ({ target }) => {
+        const el = target.closest('.tab');
 
         if (!el) return;
 
-        document.body.dataset.activeTab = el.dataset.tabName;
-
-        // NOTE: force browser to repaint to prevent "lingering" elements...duz not work really:(
-        document.body.style.display = 'none';
-        document.body.offsetHeight;
-        document.body.style.display = '';
-
+        body.dataset.activeTab = el.dataset.tabName;
         tabs.forEach(t => t.classList.remove('active'));
         el.classList.add('active');
     };
+
+    function selectTab(tabName) {
+        window.location.hash = tabName;
+        body.dataset.activeTab = tabName;
+        document.querySelector(`a[data-tab-name="${tabName}"]`).click();
+    }
 })();

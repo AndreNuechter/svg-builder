@@ -10,7 +10,7 @@ import {
     layerSelectors
 } from './dom-shared-elements.js';
 import { layerSelectorTemplate } from './dom-created-elements.js';
-import setFillAndStrokeFields from './components/fill-and-stroke-syncer.js';
+import setFillAndStrokeFields from './fill-and-stroke-syncer.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
 import modes from './modes.js';
 
@@ -105,7 +105,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
                 if (!layers.length) {
                     delete session.layer;
                     remControlPoints();
-                    setTransformsFieldset(defaults.dims.transforms);
+                    setTransformsFieldset(defaults.transforms);
                     applyTransforms(session);
                     setFillAndStrokeFields(defaults.style);
                     return;
@@ -144,8 +144,25 @@ function reorderLayerSelectors(startIndex, endIndex) {
     }
 }
 
+/**
+ * Constructor for a default layer.
+ * @param { string } mode [ path | rect | ellipse ]
+ * @param { Object } style
+ * @param { Object } transforms
+ * @returns { Object }
+ */
+function Layer(mode, style, transforms) {
+    return {
+        mode,
+        points: [],
+        style,
+        transforms
+    };
+}
+
 export {
     drawLayer,
+    Layer,
     observeLayers,
     reorderLayerSelectors,
     styleLayer

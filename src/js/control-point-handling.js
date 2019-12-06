@@ -75,9 +75,7 @@ function mkControlPoint(layerId) {
             // eslint-disable-next-line no-prototype-builtins
         } else if (point.hasOwnProperty('width')) {
             cps.push(ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
-                ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId),
-                ControlPoint(point.x, point.y - (point.height * 0.5), pointId, ry, layerId),
-                ControlPoint(point.x - (point.width * 0.5), point.y, pointId, rx, layerId));
+                ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId));
             // eslint-disable-next-line no-prototype-builtins
         } else if (point.hasOwnProperty('cx')) {
             cps.push(ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
