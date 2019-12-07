@@ -13,7 +13,7 @@ const webpack = require('webpack-stream');
 const webpackConfig = require('./webpack.config.js');
 
 function html() {
-    return src('src/pug/*.pug')
+    return src('src/pug/index.pug')
         .pipe(pug())
         .pipe(dest('dist/'));
 }

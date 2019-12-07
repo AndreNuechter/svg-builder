@@ -1,7 +1,12 @@
 /* globals window, document, MutationObserver */
 
 import session from './session.js';
-import { drawing, generateMarkUp, save } from './drawing.js';
+import {
+    drawing,
+    generateMarkUp,
+    updateViewBox,
+    save
+} from './drawing.js';
 import { defaults, moves } from './constants.js';
 import { remLastControlPoint, remControlPoints, mkControlPoint } from './control-point-handling.js';
 import {
@@ -23,6 +28,7 @@ import {
     layers,
     layerSelect,
     layerSelectors,
+    preview,
     svg,
     transformFields,
     transformTargetSwitch,
@@ -43,7 +49,6 @@ import modes from './modes.js';
 const addLayerBtn = document.getElementById('add-layer');
 const cmds = Object.keys(pathCmds);
 const undoBtn = document.getElementById('undo');
-const preview = document.getElementById('preview');
 
 // watches for additions and removals of layers and does some synchronisation
 new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
@@ -89,9 +94,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // we want to transform the entire drawing by default
     transformTargetSwitch.checked = false;
 
-    // adjust inputs for changing the dimensions of the drawing
-    document.getElementById('width').value = drawing.dims.width;
-    document.getElementById('height').value = drawing.dims.height;
+    // TODO sync output-config form w dims
 });
 
 window.onkeydown = (e) => {
@@ -390,9 +393,10 @@ document.getElementById('reset-transforms').onclick = () => {
 document.querySelector('a[data-tab-name="output"]')
     .onclick = () => { preview.innerHTML = generateMarkUp(); };
 
-document.getElementById('dims').onchange = ({ target }) => {
-    drawing.dims[target.id] = target.value || drawing.dims[target.id];
+document.getElementById('output-configuration').onchange = ({ target }) => {
+    drawing.dims[target.name] = target.value || drawing.dims[target.name];
     save();
+    updateViewBox();
 };
 
 document.getElementById('get-markup')

@@ -8,6 +8,7 @@ const fillAndStroke = document.getElementById('fill-and-stroke');
 const layers = drawingContent.children;
 const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer-selector');
+const preview = document.getElementById('preview');
 const svg = document.getElementById('canvas');
 const transformFields = document.getElementById('transformations');
 const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
@@ -21,6 +22,7 @@ export {
     layers,
     layerSelect,
     layerSelectors,
+    preview,
     svg,
     transformFields,
     transformTargetSwitch

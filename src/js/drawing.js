@@ -1,11 +1,9 @@
-/* globals window, document */
+/* globals window */
 
-import { drawingContent } from './dom-shared-elements.js';
-import { stringifyTransforms } from './helper-functions.js';
+import { drawingContent, preview } from './dom-shared-elements.js';
+import { stringifyTransforms, configElement } from './helper-functions.js';
 
 const drawing = {};
-const ratio = document.getElementById('ratio');
-const sliceOrMeet = document.getElementById('slice-or-meet');
 
 /**
  * Saves drawing to localStorage.
@@ -24,7 +22,6 @@ function generateMarkUp() {
         width,
         height
     } = drawingContent.getBBox();
-    const drawingTransforms = stringifyTransforms(drawing.transforms);
 
     return `
     <svg 
@@ -32,8 +29,8 @@ function generateMarkUp() {
     width="${drawing.dims.width}" 
     height="${drawing.dims.height}" 
     viewBox="${[x, y, width, height].join(' ')}" 
-    preserveAspectRatio="${[ratio.value, sliceOrMeet.value].join(' ')}">
-    <g transform="${drawingTransforms}">
+    preserveAspectRatio="${[drawing.dims.ratio, drawing.dims['slice-or-meet']].join(' ')}">
+    <g transform="${stringifyTransforms(drawing.transforms)}">
         ${drawingContent.innerHTML}
     </g>
     </svg>`
@@ -41,8 +38,30 @@ function generateMarkUp() {
         .replace(/\s{2,}/g, ' ');
 }
 
+function updateViewBox() {
+    const {
+        x,
+        y,
+        width,
+        height
+    } = drawingContent.getBBox();
+
+    configElement(preview.firstElementChild, {
+        width: drawing.dims.width,
+        height: drawing.dims.height,
+        viewBox: [
+            x - drawing.dims['padding-left'],
+            y - drawing.dims['padding-top'],
+            width + (+drawing.dims['padding-left'] + +drawing.dims['padding-right']),
+            height + (+drawing.dims['padding-top'] + +drawing.dims['padding-bottom'])
+        ].join(' '),
+        preserveAspectRatio: [drawing.dims.ratio, drawing.dims['slice-or-meet']].join(' ')
+    });
+}
+
 export {
     drawing,
     generateMarkUp,
+    updateViewBox,
     save
 };

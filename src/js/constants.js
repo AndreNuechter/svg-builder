@@ -1,8 +1,13 @@
 const defaults = {
     dims: {
-        // TODO: store other output related values as well or read this of ui as well
         width: 320,
-        height: 180
+        height: 180,
+        'padding-top': 0,
+        'padding-right': 0,
+        'padding-bottom': 0,
+        'padding-left': 0,
+        ratio: 'xMidYMid',
+        'slice-or-meet': 'meet'
     },
     transforms: {
         translate: [0, 0],
