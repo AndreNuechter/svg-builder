@@ -3,15 +3,15 @@
 (() => {
     const activeTab = window.location.hash.slice(1);
     const { body } = document;
-    const tabContainer = document.getElementById('tabs');
-    const tabs = [...tabContainer.children];
+    const tabsContainer = document.getElementById('tabs');
+    const tabs = [...tabsContainer.children];
     const tabNames = ['drawing', 'output'];
 
     // ensure a tab is selected on start
     window.addEventListener('DOMContentLoaded',
         () => selectTab(tabNames.includes(activeTab) ? activeTab : tabNames[0]));
 
-    tabContainer.onclick = ({ target }) => {
+    tabsContainer.onclick = ({ target }) => {
         const el = target.closest('.tab');
 
         if (!el) return;

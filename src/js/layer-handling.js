@@ -10,7 +10,7 @@ import {
     layerSelectors
 } from './dom-shared-elements.js';
 import { layerSelectorTemplate } from './dom-created-elements.js';
-import setFillAndStrokeFields from './fill-and-stroke-syncer.js';
+import { setFillAndStrokeFields } from './fill-and-stroke-syncer.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
 import modes from './modes.js';
 

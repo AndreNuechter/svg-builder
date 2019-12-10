@@ -4,7 +4,7 @@ import { pathCmds, setArcCmdConfig } from './commands.js';
 import { defaults } from './constants.js';
 import { drawing } from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import setFillAndStrokeFields from './fill-and-stroke-syncer.js';
+import { setFillAndStrokeFields } from './fill-and-stroke-syncer.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
 import { transformTargetSwitch } from './dom-shared-elements.js';
 
@@ -51,8 +51,7 @@ const session = new Proxy(Object.assign({
     arcCmdConfig: {},
     drawingShape: false,
     shapeStart: {},
-    reordering: false,
-    currentStyle: {}
+    reordering: false
 }), {
     set(obj, key, val) {
         if (!session.keys.includes(key) || !proxiedKeys[key].validate(val)) return false;

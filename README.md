@@ -60,9 +60,18 @@ The entire drawing may be translated by holding down ctrl while using the arrow 
 
 Other SVG transforms can also be applied to the whole drawing or individual layers via the respectively labeled fieldset.
 
-## Dimensions
+## The Output
 
 The dimension of the canvas try to maximize available screen-real-estate.
+To not have the result include unnecessary whitespace, the viewBox of the output is automatically calculated and coincides with the result of calling `getBBox()` on the entire drawing, so that all of its content remains visible.
 
-The dimensions of the output may be controlled via the fielset titled "Output".
-The viewBox of the output is automatically calculated and coincides with the result of calling `getBBox()` on the entire drawing, so that the entire content remains visible.
+This can be previewed in the correspondingly labeled tab, where the width and the height of the output can also be defined.
+
+Also, since the above described way of calculating the bounding-box of the output does not work very well when transforms are added to the mix --- and because whitespace may actually be desired --- "padding" can be added to the output here as well.
+(In quoatation marks since this acts somewhat different from CSS-padding. The way of applying the inputed values is as follows:
+- "Top" is subtracted from `y` of the viewBox and added to its `height`
+- "Right" is added to the `width` of the viewBox
+- "Bottom" is added to the `height` of the viewBox
+- "Left" is subtracted from the `x` of the viewBox and added to its `width`)
+
+Clicking on the appropriately labeled button will copy the current mark-up to the clipboard.

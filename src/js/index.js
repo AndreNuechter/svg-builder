@@ -5,6 +5,7 @@ import {
     drawing,
     generateMarkUp,
     updateViewBox,
+    setOutputConfiguration,
     save
 } from './drawing.js';
 import { defaults, moves } from './constants.js';
@@ -28,6 +29,7 @@ import {
     layers,
     layerSelect,
     layerSelectors,
+    outputConfig,
     preview,
     svg,
     transformFields,
@@ -45,6 +47,7 @@ import {
 } from './helper-functions.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
 import modes from './modes.js';
+import { getNonDefaultStyles } from './fill-and-stroke-syncer.js';
 
 const addLayerBtn = document.getElementById('add-layer');
 const cmds = Object.keys(pathCmds);
@@ -94,10 +97,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // we want to transform the entire drawing by default
     transformTargetSwitch.checked = false;
 
-    // TODO sync output-config form w dims
+    setOutputConfiguration();
 });
 
 window.onkeydown = (e) => {
+    if (window.location.hash !== '#drawing') return;
+
     const { key } = e;
 
     if (moves[key]) {
@@ -123,6 +128,8 @@ window.onkeydown = (e) => {
         session.cmd = key.toUpperCase();
     }
 };
+
+window.onsubmit = e => e.preventDefault();
 
 layerSelect.onchange = ({ target }) => {
     const layerId = +target.value;
@@ -171,18 +178,17 @@ layerSelect.ondrop = (e) => {
 };
 
 addLayerBtn.onclick = () => {
+    const untrackedStyle = getNonDefaultStyles(session.mode);
+
     // add new vanilla layer-data and set session-focus to it
     session.layer = drawing
         .layers
         .push(Layer(
             session.mode,
-            Object.assign({}, defaults.style, session.currentStyle),
+            Object.assign({}, defaults.style, untrackedStyle),
             saveCloneObj(defaults.transforms)
         )) - 1;
     save();
-
-    // reset the current styles
-    Object.keys(session.currentStyle).forEach(key => delete session.currentStyle[key]);
 
     const shape = configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layer
@@ -309,23 +315,22 @@ document.getElementById('modes').onchange = ({ target }) => {
             'data-layer-id': session.layer
         });
         drawingContent.replaceChild(shape, layers[session.layer]);
-        // remove non-default props
+        // remove non-default props of old layer
         Object.keys(session.current.style).forEach((key) => {
-            if (!defaults.style[key]) delete session.current.style[key];
+            if (defaults.style[key] === undefined) delete session.current.style[key];
         });
+        // add non-default props for new layer
+        Object.assign(session.current.style, getNonDefaultStyles(session.mode));
     }
 };
 
 fillAndStroke.oninput = ({ target }) => {
-    // NOTE: this could happen before the layer exists or has styles and
-    // we still want to capture the input
-    const storageLocation = drawing.layers[session.layer]
-        ? drawing.layers[session.layer].style
-        : session.currentStyle;
+    if (!drawing.layers[session.layer]) return;
 
-    storageLocation[target.name] = target[target.type === 'checkbox'
-        ? 'checked'
-        : 'value'];
+    drawing.layers[session.layer]
+        .style[target.name] = target[target.type === 'checkbox'
+            ? 'checked'
+            : 'value'];
 
     if (!drawing.layers[session.layer]) return;
 
@@ -393,7 +398,7 @@ document.getElementById('reset-transforms').onclick = () => {
 document.querySelector('a[data-tab-name="output"]')
     .onclick = () => { preview.innerHTML = generateMarkUp(); };
 
-document.getElementById('output-configuration').onchange = ({ target }) => {
+outputConfig.oninput = ({ target }) => {
     drawing.dims[target.name] = target.value || drawing.dims[target.name];
     save();
     updateViewBox();

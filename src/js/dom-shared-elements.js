@@ -8,6 +8,7 @@ const fillAndStroke = document.getElementById('fill-and-stroke');
 const layers = drawingContent.children;
 const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer-selector');
+const outputConfig = document.getElementById('output-configuration');
 const preview = document.getElementById('preview');
 const svg = document.getElementById('canvas');
 const transformFields = document.getElementById('transformations');
@@ -22,6 +23,7 @@ export {
     layers,
     layerSelect,
     layerSelectors,
+    outputConfig,
     preview,
     svg,
     transformFields,

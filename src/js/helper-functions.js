@@ -69,9 +69,9 @@ function parseLayerStyle(conf) {
     // NOTE: props added on top are on all shapes, the others are optional
     const res = {
         fill: conf.fill
-            ? `rgba(${hexToRGB(conf.fillColor)}, ${conf.fillOpacity})`
+            ? `rgba(${hexToRGB(conf.fillColor)},${conf.fillOpacity})`
             : 'transparent',
-        stroke: `rgba(${hexToRGB(conf.strokeColor)}, ${conf.strokeOpacity})`,
+        stroke: `rgba(${hexToRGB(conf.strokeColor)},${conf.strokeOpacity})`,
         'stroke-width': conf.strokeWidth
     };
 

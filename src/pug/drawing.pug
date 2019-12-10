@@ -5,9 +5,9 @@
         #layer-select
         #layer-controls
             button#add-layer Add Layer
-            button#del-layer(title="Delete the active layer") Delete layer
-            button#undo Delete last point
-            button#clear-all Clear canvas
+            button#del-layer(title="Delete the active layer") Delete Layer
+            button#undo Delete Last Point
+            button#clear-all Clear Canvas
 
     div
         fieldset#transforms.togglable.closed
@@ -18,7 +18,7 @@
             form#transformations
                 label
                     span Scale
-                    input(type="number" min=0 max=100 step=0.1 value=1 name="scale")
+                    input(type="number" min=-100 max=100 step=0.1 value=1 name="scale")
                 label
                     span Rotate
                     input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
@@ -34,22 +34,22 @@
         fieldset.togglable.closed
             legend Fill &amp; Stroke
             label
-                span Stroke-color:
+                span Stroke-color
                 input(type="color" name="strokeColor")
             label
-                span Stroke-opacity:
+                span Stroke-opacity
                 input(type="range" min=0 max=1 step=0.1 value=1 name="strokeOpacity")
             label
-                span Stroke-width:
+                span Stroke-width
                 input(type="range" min=0 max=50 step=0.1 value=2 name="strokeWidth")
-            label.path-only
-                span Stroke-linecap:
+            label.for-path
+                span Stroke-linecap
                 select(name="linecap")
                     option butt
                     option round
                     option square
-            label.path-and-rect-only
-                span Stroke-linejoin:
+            label.for-path.for-rect
+                span Stroke-linejoin
                 select(name="linejoin")
                     option arcs
                     option bevel
@@ -57,24 +57,24 @@
                     option miter-clip
                     option round
             label
-                span Fill-color:
+                span Fill-color
                 input(type="color" name="fillColor")
             label
-                span Fill-opacity:
+                span Fill-opacity
                 input(type="range" min=0 max=1 step=0.1 value=1 name="fillOpacity")
-            label.path-only
-                span Fill-rule:
+            label.for-path
+                span Fill-rule
                 select(name="fillRule")
                     option evenodd
                     option nonzero
             label
                 span Fill shape
                 input(type="checkbox" name="fill")
-            label.path-only
+            label.for-path
                 span Close shape
                 input(type="checkbox" name="close" checked)
 
-    form#arc-cmd-config.path-only
+    form#arc-cmd-config.for-path
         fieldset.togglable.closed
             legend A-command config
             label
@@ -106,17 +106,20 @@
             label
                 span Ellipse
                 input(type="radio" name="modes" value="ellipse")
-        
-        select#commands.path-only
-            option(value="M" selected) Move to (M)
-            option(value="L") Line to (L)
-            option(value="H") Horizontal line to (H)
-            option(value="V") Vertical line to (V)
-            option(value="Q") Quadratic curve to (Q)
-            option(value="C") Cubic curve to (C)
-            option(value="A") Arc to (A)
-            option(value="S") Smooth curve to (S)
-            option(value="T") Smooth quadratic curve to (T)
+
+        fieldset.for-path
+            legend Path commands
+            label Command
+                select#commands
+                    option(value="M" selected) Move to (M)
+                    option(value="L") Line to (L)
+                    option(value="H") Horizontal line to (H)
+                    option(value="V") Vertical line to (V)
+                    option(value="Q") Quadratic curve to (Q)
+                    option(value="S") Smooth curve to (S)
+                    option(value="C") Cubic curve to (C)
+                    option(value="T") Smooth quadratic curve to (T)
+                    option(value="A") Arc to (A)
 
     svg#canvas
         g#drawing-content

@@ -17,28 +17,32 @@ body {
         box-sizing: inherit;
     }
 
-    &[data-mode="rect"],
-    &[data-mode="ellipse"] {
-        .path-only {
-            display: none !important;
+    &[data-mode="path"] {
+        .for-path {
+            display: block;
         }
     }
 
-    &[data-mode="ellipse"] {
-        .path-and-rect-only {
-            display: none !important;
+    &[data-mode="rect"] {
+        .for-rect {
+            display: block;
         }
     }
 }
 
+.for-path,
+.for-rect {
+    display: none;
+}
+
 .tab-content {
     position: absolute;
-    visibility: hidden;
+    opacity: 0;
+    overflow: hidden;
     height: 99%;
     width: 99%;
-    overflow-x: hidden;
     display: grid;
-    grid-template-columns: min-content auto;
+    grid-template-columns: 12rem auto;
     grid-template-rows: max-content auto;
     grid-template-areas:
         "leftSidebar center"
@@ -46,14 +50,16 @@ body {
     ;
 
     &:target {
-        visibility: visible;
+        overflow: visible;
+        z-index: 1;
+        opacity: 1;
     }
 }
 
 #tabs {
     position: absolute;
     right: 2rem;
-    z-index: 1;
+    z-index: 2;
 
     a {
         color: whitesmoke;
@@ -80,6 +86,7 @@ body {
 }
 
 #preview {
+    margin-top: 2rem;
     grid-area: center;
 
     svg {
@@ -93,7 +100,6 @@ body {
     display: flex;
     flex-direction: column;
     margin-right: 4px;
-    width: 12rem;
 }
 
 #layer-management {
@@ -106,8 +112,7 @@ body {
     padding-bottom: 1rem;
 
     label {
-        display: flex;
-        justify-content: space-between;
+        flex-wrap: initial;
     }
 }
 
@@ -117,17 +122,10 @@ body {
     flex-direction: column;
 }
 
-#dims,
-#output-configuration,
-#fill-and-stroke,
-#transforms,
-#arc-cmd-config {
-    label {
-        margin: 4px 0;
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
+label {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 #center-content {
@@ -136,26 +134,18 @@ body {
     flex-direction: column;
 }
 
-#center-top,
-#modes {
+#center-top {
     display: flex;
 }
 
 #modes {
-    flex-direction: row;
-
     label {
-        margin: 0 4px;
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        display: inline;
+        margin-right: 8px;
     }
 }
 
-
 #commands {
-    height: min-content;
-    align-self: center;
     margin-left: 8px;
 }
 
@@ -164,10 +154,10 @@ body {
     height: 100%;
     min-width: 720px;
     min-height: 405px;
-    border: 2px solid white;
-    outline: 3px solid grey;
+    border: 1px solid white;
+    outline: 1px solid grey;
     margin-top: 8px;
-    margin-left: 5px;
+    margin-left: 3px;
     background: lightgrey;
     stroke-width: 2;
     stroke: black;
@@ -200,7 +190,7 @@ body {
 }
 
 select {
-    width: max-content;
+    padding: 0;
 }
 
 input {
@@ -209,6 +199,7 @@ input {
         border: 0;
         padding-right: 0;
         text-align: center;
+        margin: 2px 0;
     }
 
     &[type=range] {
@@ -216,7 +207,11 @@ input {
         height: 5px;
         width: 100%;
         border-radius: 5px;
-        margin: 6px 0 4px;
+        margin: 8px 0;
+    }
+
+    &[type="radio"] {
+        margin: 0 0 0 4px;
     }
 
     &:checked {
@@ -227,6 +222,7 @@ input {
 fieldset {
     border-color: dimgrey;
     border-style: solid;
+    border-width: 1px;
 }
 
 button {

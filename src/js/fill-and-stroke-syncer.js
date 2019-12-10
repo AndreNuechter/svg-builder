@@ -6,7 +6,7 @@ const { elements } = fillAndStroke;
  * Adjusts the Fill & Stroke fieldset to a given style config.
  * @param { Object } conf The config to be applied.
  */
-export default function setFillAndStrokeFields(conf) {
+function setFillAndStrokeFields(conf) {
     Object.entries(conf).forEach(([key, val]) => {
         const field = elements[key];
 
@@ -19,3 +19,17 @@ export default function setFillAndStrokeFields(conf) {
         }
     });
 }
+
+function getNonDefaultStyles(mode) {
+    return [...elements]
+        .filter(e => e.hasAttribute('name')
+            && e.closest('label').classList.contains(`for-${mode}`))
+        .reduce((obj, { name, value }) => Object.assign(obj, {
+            [name]: value
+        }), {});
+}
+
+export {
+    getNonDefaultStyles,
+    setFillAndStrokeFields
+};
