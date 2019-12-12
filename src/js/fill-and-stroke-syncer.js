@@ -24,8 +24,8 @@ function getNonDefaultStyles(mode) {
     return [...elements]
         .filter(e => e.hasAttribute('name')
             && e.closest('label').classList.contains(`for-${mode}`))
-        .reduce((obj, { name, value }) => Object.assign(obj, {
-            [name]: value
+        .reduce((obj, e) => Object.assign(obj, {
+            [e.name]: e[e.type === 'checkbox' ? 'checked' : 'value']
         }), {});
 }
 

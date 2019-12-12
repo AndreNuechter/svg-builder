@@ -12,7 +12,7 @@ import {
 import { layerSelectorTemplate } from './dom-created-elements.js';
 import { setFillAndStrokeFields } from './fill-and-stroke-syncer.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
-import modes from './modes.js';
+import layerTypes from './layer-types.js';
 
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 
@@ -37,7 +37,7 @@ function drawLayer(
     layer = layers[layerId],
     layerData = drawing.layers[layerId]
 ) {
-    configElement(layer, modes[layerData.mode].geometryProps(layerData));
+    configElement(layer, layerTypes[layerData.mode].geometryProps(layerData));
     save();
 }
 
@@ -114,7 +114,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
                 if (session.layer === layers.length) {
                     session.layer -= 1;
                 } else {
-                    const cb = mkControlPoint(session.layer);
+                    const cb = mkControlPoint(session.current, session.layer);
                     session.mode = session.current.mode;
                     remControlPoints();
                     session.current.points.forEach(cb);

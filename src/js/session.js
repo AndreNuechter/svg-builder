@@ -1,14 +1,15 @@
 /* globals document */
 
-import { pathCmds, setArcCmdConfig } from './commands.js';
+import { pathCmds, setArcCmdConfig } from './path-commands.js';
 import { defaults } from './constants.js';
 import { drawing } from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
 import { setFillAndStrokeFields } from './fill-and-stroke-syncer.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
 import { transformTargetSwitch } from './dom-shared-elements.js';
+import layerTypes from './layer-types.js';
 
-const modes = ['path', 'rect', 'ellipse']; // TODO: c. modes
+const modes = Object.keys(layerTypes);
 const cmdTags = Object.keys(pathCmds);
 const proxiedKeys = {
     mode: {
@@ -65,7 +66,7 @@ const session = new Proxy(Object.assign({
 Object.assign(proxiedKeys.layer, {
     validate(val) { return (+val >= 0 && +val <= drawing.layers.length); },
     onPass(val) {
-        const cb = mkControlPoint(val);
+        const cb = mkControlPoint(session.current, val);
         remControlPoints();
         drawing.layers[val].points.forEach(cb);
         setFillAndStrokeFields(drawing.layers[val].style);

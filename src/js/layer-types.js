@@ -1,9 +1,9 @@
 import { layers, svg } from './dom-shared-elements.js';
 import { configElement, drawShape, pointToMarkup } from './helper-functions.js';
-import { arc, cube, quad } from './commands.js';
+import { arc, cube, quad } from './path-commands.js';
 import { defaults } from './constants.js';
 
-const modes = {
+const layerTypes = {
     rect: {
         mkPoint(session, points, x, y) {
             if (points[0]) return;
@@ -12,7 +12,7 @@ const modes = {
             points[0] = { x, y };
             configElement(rect, points[0]);
             session.drawingShape = true;
-            [session.shapeStart.x, session.shapeStart.y] = [x, y];
+            Object.assign(session.shapeStart, { x, y });
 
             svg.onpointermove = drawShape(rect, (x1, y1) => ({
                 x: Math.min(x, x1),
@@ -38,7 +38,7 @@ const modes = {
             points[0] = { cx: x, cy: y };
             configElement(ellipse, points[0]);
             session.drawingShape = true;
-            [session.shapeStart.x, session.shapeStart.y] = [x, y];
+            Object.assign(session.shapeStart, { x, y });
 
             svg.onpointermove = drawShape(ellipse, (x1, y1) => ({
                 rx: Math.abs(x - x1),
@@ -66,15 +66,12 @@ const modes = {
             // ensure first point of a path is a moveTo command
             if (!points.length) session.cmd = 'M';
 
-            // ensure there're no multiple consecutive moveTo commands
-            if (lastPoint && lastPoint.cmd === 'M' && session.cmd === 'M') {
-                points.pop();
-                remLastControlPoint(session.cmd);
+            // ensure there're no multiple consecutive M, V or H commands
+            if (lastPoint && lastPoint.cmd === session.cmd && ['M', 'V', 'H'].includes(session.cmd)) {
+                remLastControlPoint(points.pop().cmd);
             }
 
-            if (session.cmd === 'V') points.push({ cmd: session.cmd, y });
-            else if (session.cmd === 'H') points.push({ cmd: session.cmd, x });
-            else points.push({ cmd: session.cmd, x, y });
+            points.push({ cmd: session.cmd, x, y });
 
             // for Q, C and A cmds we need to add cp(s)
             if (session.cmd === 'Q' || session.cmd === 'S') {
@@ -89,7 +86,7 @@ const modes = {
             }
 
             // create cp(s) for the new point
-            mkControlPoint(session.layer)(points[points.length - 1], points.length - 1);
+            mkControlPoint(session.current, session.layer)(points[points.length - 1], points.length - 1);
         },
         geometryProps(layer) {
             return {
@@ -99,4 +96,4 @@ const modes = {
     }
 };
 
-export default modes;
+export default layerTypes;

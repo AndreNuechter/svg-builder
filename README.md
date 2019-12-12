@@ -74,4 +74,6 @@ Also, since the above described way of calculating the bounding-box of the outpu
 - "Bottom" is added to the `height` of the viewBox
 - "Left" is subtracted from the `x` of the viewBox and added to its `width`)
 
+The preserve-aspect-ratio property can be defined here as well.
+
 Clicking on the appropriately labeled button will copy the current mark-up to the clipboard.

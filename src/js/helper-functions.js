@@ -1,4 +1,4 @@
-import { pathCmds } from './commands.js';
+import { pathCmds } from './path-commands.js';
 import { svg } from './dom-shared-elements.js';
 
 /**

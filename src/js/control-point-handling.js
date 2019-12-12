@@ -52,7 +52,7 @@ function remControlPoints() {
  * @param { number } layerId The ordinal of the layer the controlled point belongs to.
  * @returns { Function } A function creating and appending the control point(s) for the given point.
  */
-function mkControlPoint(layerId) {
+function mkControlPoint(layer, layerId) {
     return (point, pointId) => {
         const cps = [];
 
@@ -60,9 +60,9 @@ function mkControlPoint(layerId) {
             if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
                 cps.push(ControlPoint(point.x, point.y, pointId, regularPoint, layerId));
             } else if (point.cmd === 'H') {
-                cps.push(ControlPoint(point.x, layerId.points[pointId - 1].y, pointId, hCmd, layerId));
+                cps.push(ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId));
             } else if (point.cmd === 'V') {
-                cps.push(ControlPoint(layerId.points[pointId - 1].x, point.y, pointId, vCmd, layerId));
+                cps.push(ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId));
             }
 
             if (['Q', 'C', 'S'].includes(point.cmd)) {

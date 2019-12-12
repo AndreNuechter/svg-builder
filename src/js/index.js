@@ -15,7 +15,7 @@ import {
     getLastArcCmd,
     pathCmds,
     setArcCmdConfig
-} from './commands.js';
+} from './path-commands.js';
 import {
     drawLayer,
     Layer,
@@ -46,7 +46,7 @@ import {
     stringifyTransforms
 } from './helper-functions.js';
 import { applyTransforms, setTransformsFieldset } from './transforms.js';
-import modes from './modes.js';
+import layerTypes from './layer-types.js';
 import { getNonDefaultStyles } from './fill-and-stroke-syncer.js';
 
 const addLayerBtn = document.getElementById('add-layer');
@@ -263,14 +263,14 @@ svg.addEventListener('pointerdown', (e) => {
             };
 
         Object.assign(points[0], attrs);
-        mkControlPoint(session.layer)(
+        mkControlPoint(session.current, session.layer)(
             points[points.length - 1],
             points.length - 1
         );
         session.drawingShape = false;
         svg.onpointermove = null;
     } else {
-        modes[session.mode]
+        layerTypes[session.mode]
             .mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
     }
 
