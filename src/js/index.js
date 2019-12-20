@@ -81,12 +81,10 @@ window.addEventListener('DOMContentLoaded', () => {
     // create layer representations and config ea
     drawing.layers.forEach((layer, i) => {
         const shape = svgTemplates[layer.mode];
-        const attrs = Object
-            .assign({ 'data-layer-id': i },
-                layer.mode === 'path'
-                    ? { d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? 'Z' : '') }
-                    : layer.points[0] || {},
-                parseLayerStyle(layer.style), { transform: stringifyTransforms(layer.transforms) });
+        const attrs = Object.assign({ 'data-layer-id': i }, layer.mode === 'path'
+            ? { d: layer.points.map(pointToMarkup).join(' ') + (layer.style.close ? 'Z' : '') }
+            : layer.points[0]
+            || {}, parseLayerStyle(layer.style), { transform: stringifyTransforms(layer.transforms) });
 
         drawingContent.append(configClone(shape)(attrs));
     });
@@ -107,6 +105,8 @@ window.onkeydown = (e) => {
 
     if (moves[key]) {
         e.preventDefault();
+
+        if (!e.ctrlKey && !session.current) return;
 
         const { transforms: { translate: transformTarget } } = e.ctrlKey
             ? drawing
@@ -221,19 +221,14 @@ undoBtn.onclick = () => {
         remLastControlPoint(latestPoint.cmd);
         drawLayer(session.layer);
     } else {
-        // NOTE: to make this work properly for rects or ellipses,
-        // and still have changing mode work as expected,
-        // we cache the layer-id, remove all attrs and re-add the layer-id.
-        remControlPoints();
-
         const layer = layers[session.layer];
-        const { layerId } = layer.dataset;
+        const steadyAttrs = ['data-layer-id', 'transform'];
 
-        while (layer.attributes.length) {
-            layer.removeAttribute(layer.attributes[0].name);
-        }
+        remControlPoints();
+        layer.getAttributeNames()
+            .filter(n => !steadyAttrs.includes(n))
+            .forEach(n => layer.removeAttribute(n));
 
-        layer.dataset.layerId = layerId;
         save();
     }
 };
@@ -355,28 +350,13 @@ transformFields.oninput = ({ target }) => {
         ? session.current
         : drawing;
 
-    // NOTE otherwise getBBox() might be called with undefined
-    if (transformTarget === session.current && !layers.length) return;
-
-    let value;
-    // NOTE: 'rotate' can take three params (deg, cx, cy) and
-    // we want to rotate from the center
-    if (target.name === 'rotate') {
-        const {
-            x,
-            y,
-            width,
-            height
-        } = (transformTarget === session.current
-            ? layers[session.layer]
-            : drawingContent).getBBox();
-        const centerOfTransformTarget = [x + (width * 0.5), y + (height * 0.5)];
-        value = [target.value, ...centerOfTransformTarget].join(',');
+    // NOTE: 'rotate' has three params (deg, cx, cy)
+    if (target.classList.contains('rotate-config')) {
+        transformTarget.transforms.rotate[+target.dataset.id] = target.value;
     } else {
-        ({ value } = target);
+        transformTarget.transforms[target.name] = target.value;
     }
 
-    transformTarget.transforms[target.name] = value;
     save();
     applyTransforms(session);
 };

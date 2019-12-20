@@ -72,7 +72,7 @@ Object.assign(proxiedKeys.layer, {
         setFillAndStrokeFields(drawing.layers[val].style);
         setArcCmdConfig(session, defaults);
         if (transformTargetSwitch.checked) {
-            setTransformsFieldset(drawing.layers[val].transforms || defaults.transforms);
+            setTransformsFieldset(drawing.layers[val].transforms);
         }
         applyTransforms(session, defaults);
     }

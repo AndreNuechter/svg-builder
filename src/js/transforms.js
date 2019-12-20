@@ -1,5 +1,4 @@
 import { drawing } from './drawing.js';
-import { defaults } from './constants.js';
 import {
     layers,
     drawingContent,
@@ -8,14 +7,17 @@ import {
 } from './dom-shared-elements.js';
 import { stringifyTransforms } from './helper-functions.js';
 
-function setTransformsFieldset(conf = defaults.transforms) {
+const rotateInputs = transformFields.elements.rotate.getElementsByTagName('input');
+
+function setTransformsFieldset(conf) {
     Object.entries(conf)
         .filter(([key]) => key !== 'translate') // NOTE: we manage translations via arrow-keys
         .forEach(([key, val]) => {
-            const value = (key === 'rotate')
-                ? val.slice(0, val.indexOf(','))
-                : val; // NOTE: rotate gets 3 params
-            transformFields.elements[key].value = value;
+            if (key === 'rotate') {
+                val.forEach((v, i) => { rotateInputs[i].value = v; });
+            } else {
+                transformFields.elements[key].value = val;
+            }
         });
 }
 

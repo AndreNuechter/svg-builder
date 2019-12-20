@@ -19,9 +19,17 @@
                 label
                     span Scale
                     input(type="number" min=-100 max=100 step=0.1 value=1 name="scale")
-                label
-                    span Rotate
-                    input(type="range" min=-180 max=180 step=0.1 value=0 name="rotate")
+                fieldset(name="rotate")
+                    legend Rotate
+                    label
+                        span Deg
+                        input.rotate-config(type="number" step=0.1 value=0 data-id=0)
+                    label
+                        span Cx
+                        input.rotate-config(type="number" step=0.1 value=0 data-id=1)
+                    label
+                        span Cy
+                        input.rotate-config(type="number" step=0.1 value=0 data-id=2)
                 label
                     span SkewX
                     input(type="range" min=0 max=180 step=0.1 value=0 name="skewX")
@@ -35,22 +43,22 @@
             legend Fill &amp; Stroke
             label
                 span Stroke-color
-                input(type="color" name="strokeColor")
+                input(type="color" name="stroke-color")
             label
                 span Stroke-opacity
-                input(type="range" min=0 max=1 step=0.1 value=1 name="strokeOpacity")
+                input(type="range" min=0 max=1 step=0.1 value=1 name="stroke-opacity")
             label
                 span Stroke-width
-                input(type="range" min=0 max=50 step=0.1 value=2 name="strokeWidth")
+                input(type="range" min=0 max=50 step=0.1 value=2 name="stroke-width")
             label.for-path
                 span Stroke-linecap
-                select(name="linecap")
+                select(name="stroke-linecap")
                     option butt
                     option round
                     option square
             label.for-path.for-rect
                 span Stroke-linejoin
-                select(name="linejoin")
+                select(name="stroke-linejoin")
                     option arcs
                     option bevel
                     option miter
@@ -58,13 +66,13 @@
                     option round
             label
                 span Fill-color
-                input(type="color" name="fillColor")
+                input(type="color" name="fill-color")
             label
                 span Fill-opacity
-                input(type="range" min=0 max=1 step=0.1 value=1 name="fillOpacity")
+                input(type="range" min=0 max=1 step=0.1 value=1 name="fill-opacity")
             label.for-path
                 span Fill-rule
-                select(name="fillRule")
+                select(name="fill-rule")
                     option evenodd
                     option nonzero
             label

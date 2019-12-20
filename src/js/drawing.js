@@ -8,6 +8,7 @@ const drawing = {};
 /**
  * Saves drawing to localStorage.
  */
+// TODO: have this be done automatically when drawing mutates
 function save() {
     window.localStorage.setItem('drawing', JSON.stringify(drawing));
 }

@@ -7,10 +7,10 @@ import { svg } from './dom-shared-elements.js';
  * @param { SVGSVGElement } svg The element over which the pointer is moving.
  * @returns { number[] }
  */
-function getSVGCoords(event) {
+function getSVGCoords({ x, y }) {
     let point = svg.createSVGPoint();
-    point.x = event.pageX;
-    point.y = event.pageY;
+    point.x = x;
+    point.y = y;
     // NOTE: the second child of our canvas is the control-points-container,
     // which has drawing- as well as layer-transforms applied to it
     point = point.matrixTransform(svg.children[1].getScreenCTM().inverse());
@@ -68,32 +68,18 @@ function pointToMarkup(point) {
 function parseLayerStyle(conf) {
     // NOTE: props added on top are on all shapes, the others are optional
     const res = {
-        fill: conf.fill
-            ? `rgba(${hexToRGB(conf.fillColor)},${conf.fillOpacity})`
-            : 'transparent',
-        stroke: `rgba(${hexToRGB(conf.strokeColor)},${conf.strokeOpacity})`,
-        'stroke-width': conf.strokeWidth
+        fill: conf.fill ? conf['fill-color'] : 'none',
+        'fill-opacity': conf['fill-opacity'],
+        stroke: conf['stroke-color'],
+        'stroke-opacity': conf['stroke-opacity'],
+        'stroke-width': conf['stroke-width']
     };
 
-    if (conf.fillRule) res['fill-rule'] = conf.fillRule;
-    if (conf.linejoin) res['stroke-linejoin'] = conf.linejoin;
-    if (conf.linecap) res['stroke-linecap'] = conf.linecap;
+    if (conf['fill-rule']) res['fill-rule'] = conf['fill-rule'];
+    if (conf['stroke-linejoin']) res['stroke-linejoin'] = conf['stroke-linejoin'];
+    if (conf['stroke-linecap']) res['stroke-linecap'] = conf['stroke-linecap'];
 
     return res;
-}
-
-const re = /[a-z\d]{2}/gi;
-/**
- * Converts a string of hexadecimals into a stringified triplet of integers to be used as RGB color values.
- * @param { string } hex The hexadecimal representation to be converted.
- * @returns { string }
- */
-function hexToRGB(hex) {
-    return hex
-        .slice(1) // cut off hash-symbol
-        .match(re) // split into pairs of word-chars or hex nums
-        .map(e => parseInt(e, 16)) // parse em to base 10
-        .join(',');
 }
 
 /**
@@ -125,7 +111,6 @@ export {
     configClone,
     drawShape,
     parseLayerStyle,
-    hexToRGB,
     getSVGCoords,
     pointToMarkup,
     saveCloneObj,

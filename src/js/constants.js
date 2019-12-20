@@ -12,16 +12,16 @@ const defaults = {
     transforms: {
         translate: [0, 0],
         scale: 1,
-        rotate: '0,0,0',
+        rotate: [0, 0, 0],
         skewX: 0,
         skewY: 0
     },
     style: {
-        strokeColor: '#000000',
-        strokeOpacity: 1,
-        strokeWidth: 2,
-        fillColor: '#000000',
-        fillOpacity: 1,
+        'stroke-color': '#000',
+        'stroke-opacity': 1,
+        'stroke-width': 2,
+        'fill-color': '#000',
+        'fill-opacity': 1,
         fill: false,
         close: false
     },
