@@ -1,25 +1,43 @@
 import { pathCmds } from './path-commands.js';
-import { svg } from './dom-shared-elements.js';
+import {
+    svg,
+    drawingContent,
+    controlPointContainer,
+    layers,
+    transformFields
+} from './dom-shared-elements.js';
+import { complexTransforms } from './constants.js';
+
+export {
+    applyTransforms,
+    configElement,
+    configClone,
+    drawShape,
+    getSVGCoords,
+    pointToMarkup,
+    saveCloneObj,
+    setTransformsFieldset,
+    stringifyTransforms
+};
 
 /**
- * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
- * @param { Event } event The event triggering this (most likely pointerover).
- * @param { SVGSVGElement } svg The element over which the pointer is moving.
- * @returns { number[] }
+ * Applies transforms to the layer-container,
+ * the currently active layer and its control points.
  */
-function getSVGCoords({ x, y }) {
-    let point = svg.createSVGPoint();
-    point.x = x;
-    point.y = y;
-    // NOTE: the second child of our canvas is the control-points-container,
-    // which has drawing- as well as layer-transforms applied to it
-    point = point.matrixTransform(svg.children[1].getScreenCTM().inverse());
+function applyTransforms(drawing, session) {
+    const drawingTransforms = stringifyTransforms(drawing.transforms);
+    const applicants = [drawingContent, controlPointContainer];
+    const transformations = [drawingTransforms];
 
-    return [point.x, point.y];
-}
+    if (layers[session.layer]) {
+        const layerTransforms = stringifyTransforms(session.current.transforms);
+        applicants.push(layers[session.layer]);
+        transformations.push(drawingTransforms + layerTransforms, layerTransforms);
+    } else {
+        transformations.push(drawingTransforms);
+    }
 
-function saveCloneObj(obj) {
-    return JSON.parse(JSON.stringify(obj));
+    applicants.forEach((a, i) => a.setAttribute('transform', transformations[i]));
 }
 
 /**
@@ -52,48 +70,6 @@ function configElement(element, keyValPairs) {
 }
 
 /**
- * Turns a single point-object into a string that may be inserted into a path's d-attribute.
- * @param { Object } point The point we are trying to draw.
- * @returns { string }
- */
-function pointToMarkup(point) {
-    return point.cmd + pathCmds[point.cmd](point).join(' ');
-}
-
-/**
- * Prepares a style config to be usable in configElement, since the fill and stroke-attribute-values are computed.
- * @param { Object } conf The config that should be parsed.
- * @returns { Object }
- */
-function parseLayerStyle(conf) {
-    // NOTE: props added on top are on all shapes, the others are optional
-    const res = {
-        fill: conf.fill ? conf['fill-color'] : 'none',
-        'fill-opacity': conf['fill-opacity'],
-        stroke: conf['stroke-color'],
-        'stroke-opacity': conf['stroke-opacity'],
-        'stroke-width': conf['stroke-width']
-    };
-
-    if (conf['fill-rule']) res['fill-rule'] = conf['fill-rule'];
-    if (conf['stroke-linejoin']) res['stroke-linejoin'] = conf['stroke-linejoin'];
-    if (conf['stroke-linecap']) res['stroke-linecap'] = conf['stroke-linecap'];
-
-    return res;
-}
-
-/**
- * Reduces an object of svg-transforms into a string, readily inserted into HTML.
- * @param { Object } transformData The transforms to be stringified.
- * @returns { string } The stringified transforms.
- */
-function stringifyTransforms(transformData) {
-    return Object
-        .entries(transformData)
-        .reduce((str, [key, val]) => `${str}${key}(${val})`, '');
-}
-
-/**
  * Returns an eventHandler for drawing a shape (ellipse or rect).
  * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
  * @param { Function } attrs A lambda changing the affected shape based on the current pointer-position.
@@ -106,13 +82,56 @@ function drawShape(shape, attrs) {
     };
 }
 
-export {
-    configElement,
-    configClone,
-    drawShape,
-    parseLayerStyle,
-    getSVGCoords,
-    pointToMarkup,
-    saveCloneObj,
-    stringifyTransforms
-};
+/**
+ * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
+ * @param { Event } event The event triggering this (most likely pointerover).
+ * @param { SVGSVGElement } svg The element over which the pointer is moving.
+ * @returns { number[] }
+ */
+function getSVGCoords({ x, y }) {
+    let point = svg.createSVGPoint();
+    Object.assign(point, { x, y });
+    // // NOTE: the second child of our canvas is the control-points-container,
+    // which has drawing- as well as layer-transforms applied to it
+    point = point.matrixTransform((svg.children[1] || svg).getScreenCTM().inverse());
+
+    return [point.x, point.y];
+}
+
+/**
+ * Turns a single point-object into a string that may be inserted into a path's d-attribute.
+ * @param { Object } point The point we are trying to draw.
+ * @returns { string }
+ */
+function pointToMarkup(point) {
+    return point.cmd + pathCmds[point.cmd](point).join(' ');
+}
+
+function saveCloneObj(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function setTransformsFieldset(conf) {
+    Object.entries(conf)
+        .filter(([key]) => key !== 'translate') // NOTE: we manage translations via arrow-keys
+        .forEach(([key, val]) => {
+            if (complexTransforms[key]) {
+                val.forEach((v, i) => { complexTransforms[key][i].value = v; });
+            } else {
+                transformFields[key].value = val;
+            }
+        });
+}
+
+/**
+ * Reduces an object of svg-transforms into a string, readily inserted into HTML.
+ * @param { Object } transformData The transforms to be stringified.
+ * @returns { string } The stringified transforms.
+ */
+function stringifyTransforms(transformData) {
+    return Object
+        .entries(transformData)
+        .reduce((str, [key, val]) => `${str}${key}(${typeof val === 'object'
+            ? val.filter(v => v !== '')
+            : val})`, '');
+}

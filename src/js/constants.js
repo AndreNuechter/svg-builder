@@ -1,29 +1,37 @@
+import { rotateInputs, scaleInputs } from './dom-shared-elements.js';
+import { pathCmds } from './path-commands.js';
+
+const cmdTags = Object.keys(pathCmds);
+const complexTransforms = {
+    scale: scaleInputs,
+    rotate: rotateInputs
+};
 const defaults = {
-    dims: {
+    mode: 'path',
+    closePath: false,
+    outputDims: {
         width: 320,
         height: 180,
-        'padding-top': 0,
-        'padding-right': 0,
-        'padding-bottom': 0,
-        'padding-left': 0,
+        'vb-min-x': 0,
+        'vb-min-y': 0,
+        'vb-width': 0,
+        'vb-height': 0,
         ratio: 'xMidYMid',
         'slice-or-meet': 'meet'
     },
     transforms: {
         translate: [0, 0],
-        scale: 1,
+        scale: [1, 1],
         rotate: [0, 0, 0],
         skewX: 0,
         skewY: 0
     },
     style: {
-        'stroke-color': '#000',
+        stroke: '#000',
         'stroke-opacity': 1,
         'stroke-width': 2,
-        'fill-color': '#000',
-        'fill-opacity': 1,
-        fill: false,
-        close: false
+        fill: 'none',
+        'fill-opacity': 1
     },
     arcCmdConfig: {
         xR: 50,
@@ -33,7 +41,6 @@ const defaults = {
         sweep: false
     }
 };
-
 const inc = num => num + 1;
 const dec = num => num - 1;
 const moves = {
@@ -44,6 +51,8 @@ const moves = {
 };
 
 export {
+    cmdTags,
+    complexTransforms,
     defaults,
     moves
 };

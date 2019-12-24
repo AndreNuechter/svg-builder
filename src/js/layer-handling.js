@@ -1,7 +1,7 @@
 /* globals document */
 
-import { drawing, save } from './drawing.js';
-import { configElement, parseLayerStyle } from './helper-functions.js';
+import drawing, { save } from './drawing.js';
+import { applyTransforms, configElement, setTransformsFieldset } from './helper-functions.js';
 import { defaults } from './constants.js';
 import {
     drawingContent,
@@ -10,11 +10,18 @@ import {
     layerSelectors
 } from './dom-shared-elements.js';
 import { layerSelectorTemplate } from './dom-created-elements.js';
-import { setFillAndStrokeFields } from './fill-and-stroke-syncer.js';
-import { applyTransforms, setTransformsFieldset } from './transforms.js';
+import { setFillAndStrokeFields } from './fill-and-stroke.js';
 import layerTypes from './layer-types.js';
 
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
+
+export {
+    drawLayer,
+    Layer,
+    observeLayers,
+    reorderLayerSelectors,
+    styleLayer
+};
 
 /**
  * Changes the style-related attributes of a layer.
@@ -22,7 +29,7 @@ const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
  * @param { Object } [conf=drawing.layers[layerId].style] The style-attributes of the affected layer.
  */
 function styleLayer(layerId, conf = drawing.layers[layerId].style) {
-    configElement(layers[layerId], parseLayerStyle(conf));
+    configElement(layers[layerId], conf);
     save();
 }
 
@@ -106,7 +113,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
                     delete session.layer;
                     remControlPoints();
                     setTransformsFieldset(defaults.transforms);
-                    applyTransforms(session);
+                    applyTransforms(drawing, session);
                     setFillAndStrokeFields(defaults.style);
                     return;
                 }
@@ -159,11 +166,3 @@ function Layer(mode, style, transforms) {
         transforms
     };
 }
-
-export {
-    drawLayer,
-    Layer,
-    observeLayers,
-    reorderLayerSelectors,
-    styleLayer
-};

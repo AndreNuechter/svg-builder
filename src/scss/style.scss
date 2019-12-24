@@ -5,7 +5,7 @@ html {
 body {
     font-family: Helvetica, Arial, sans-serif;
     background: rgb(40, 40, 40);
-    color: rgb(150, 150, 140);
+    color: rgb(182, 182, 182);
     margin: 0;
     padding: 2px 2px 0;
     height: 100%;
@@ -19,20 +19,111 @@ body {
 
     &[data-mode="path"] {
         .for-path {
-            display: block;
+            display: flex;
         }
     }
 
     &[data-mode="rect"] {
         .for-rect {
-            display: block;
+            display: flex;
         }
+    }
+}
+
+select {
+    padding: 0 5px;
+}
+
+input {
+    &[type=number] {
+        width: 5em;
+        border: 0;
+        padding-right: 0;
+        text-align: center;
+        margin: 2px 0;
+    }
+
+    &[type=range] {
+        -webkit-appearance: none;
+        height: 5px;
+        width: 100%;
+        border-radius: 5px;
+        margin: 8px 0;
+    }
+
+    &[type=radio] {
+        margin: 0 4px 0 8px;
+    }
+
+    &[type=checkbox] {
+        margin: 0 4px 0 8px;
+    }
+
+    &:checked {
+        box-shadow: 0 0 0 2px orange;
+    }
+}
+
+label {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+button {
+    cursor: pointer;
+    padding: 0;
+    margin: 1px;
+    border-width: 1px;
+    width: 100%;
+}
+
+fieldset {
+    border-color: rgb(182, 182, 182);
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 2px 3px 2px rgb(182, 182, 182), inset 3px 4px 4px rgb(27, 27, 27);
+
+    fieldset {
+        box-shadow: none;
+    }
+}
+
+fieldset.togglable {
+    margin-top: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    legend {
+        cursor: pointer;
+    }
+
+    &.open {
+        max-height: 100rem;
+    }
+
+    &.closed {
+        max-height: 1rem;
+        padding-bottom: 0;
     }
 }
 
 .for-path,
 .for-rect {
     display: none;
+}
+
+.control-point {
+    fill: orange;
+    stroke: dimgrey;
+
+    &:hover {
+        stroke-width: 10;
+    }
+
+    &:last-of-type {
+        fill: red;
+    }
 }
 
 .tab-content {
@@ -56,6 +147,16 @@ body {
     }
 }
 
+.tab {
+    padding: 4px 8px;
+    margin-right: 8px;
+
+    &.active {
+        background: slategrey;
+        color: whitesmoke;
+    }
+}
+
 #tabs {
     position: absolute;
     right: 2rem;
@@ -68,16 +169,6 @@ body {
         &:visited {
             color: whitesmoke;
         }
-    }
-}
-
-.tab {
-    padding: 4px 8px;
-    margin-right: 8px;
-
-    &.active {
-        background: slategrey;
-        color: whitesmoke;
     }
 }
 
@@ -122,12 +213,6 @@ body {
     flex-direction: column;
 }
 
-label {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
 #center-content {
     grid-area: center;
     display: flex;
@@ -136,9 +221,7 @@ label {
 
 #center-top {
     display: flex;
-}
 
-#modes {
     label {
         display: inline;
         margin-right: 8px;
@@ -159,8 +242,6 @@ label {
     margin-top: 8px;
     margin-left: 3px;
     background: lightgrey;
-    stroke-width: 2;
-    stroke: black;
 }
 
 #coords {
@@ -174,76 +255,4 @@ label {
     color: black;
     text-align: center;
     pointer-events: none;
-}
-
-.control-point {
-    fill: orange;
-    stroke: dimgrey;
-
-    &:hover {
-        stroke-width: 10;
-    }
-
-    &:last-of-type {
-        fill: red;
-    }
-}
-
-select {
-    padding: 0;
-}
-
-input {
-    &[type=number] {
-        width: 5em;
-        border: 0;
-        padding-right: 0;
-        text-align: center;
-        margin: 2px 0;
-    }
-
-    &[type=range] {
-        -webkit-appearance: none;
-        height: 5px;
-        width: 100%;
-        border-radius: 5px;
-        margin: 8px 0;
-    }
-
-    &[type="radio"] {
-        margin: 0 0 0 4px;
-    }
-
-    &:checked {
-        box-shadow: 0 0 0 2px orange;
-    }
-}
-
-fieldset {
-    border-color: dimgrey;
-    border-style: solid;
-    border-width: 1px;
-}
-
-button {
-    cursor: pointer;
-    padding: 0;
-    margin: 1px;
-    border-width: 1px;
-    width: 100%;
-}
-
-fieldset.togglable {
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.3s;
-
-    &.open {
-        max-height: 100rem;
-    }
-
-    &.closed {
-        max-height: 1rem;
-        padding-bottom: 0;
-    }
 }

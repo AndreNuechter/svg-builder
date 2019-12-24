@@ -6,24 +6,25 @@ form#output-configuration
             legend Dimensions
             label
                 span Width
-                input(type="number" min=1 value=320 name="width")
+                input(type="number" min=1 value=320 name="width" required)
             label
                 span Height
-                input(type="number" min=1 value=180 name="height")
-        fieldset#viewbox-padding
-            legend ViewBox Padding
+                input(type="number" min=1 value=180 name="height" required)
+        fieldset#viewbox
+            legend ViewBox
             label
-                span Top
-                input(type="number" value=0 name="padding-top")
+                span min-x
+                input(type="number" name="vb-min-x" required)
             label
-                span Right
-                input(type="number" value=0 name="padding-right")
+                span min-y
+                input(type="number" name="vb-min-y" required)
             label
-                span Bottom
-                input(type="number" value=0 name="padding-bottom")
+                span width
+                input(type="number" name="vb-width" required)
             label
-                span Left
-                input(type="number" value=0 name="padding-left")
+                span height
+                input(type="number" name="vb-height" required)
+            button#center-vb Set to bBox
         fieldset#preserve-aspect-ratio
             legend Preserve Aspect Ratio
             label Alignment Values

@@ -1,4 +1,4 @@
-import { drawing } from './drawing.js';
+import drawing from './drawing.js';
 import { circleTemplate } from './dom-created-elements.js';
 import { controlPoints, controlPointContainer, svg } from './dom-shared-elements.js';
 import controlPointTypes from './control-point-types.js';
@@ -28,6 +28,12 @@ const startDragging = (layer, pointId, controlPointType, cp) => (e) => {
     svg.onpointermove = dragging(layer, pointId, controlPointType, cp);
     svg.onpointerleave = stopDragging;
     svg.onpointerup = stopDragging;
+};
+
+export {
+    remLastControlPoint,
+    remControlPoints,
+    mkControlPoint
 };
 
 /**
@@ -127,9 +133,3 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
         affectedControlPoints.forEach(({ ref, fx }) => configElement(ref, fx(x, y)));
     };
 }
-
-export {
-    remLastControlPoint,
-    remControlPoints,
-    mkControlPoint
-};

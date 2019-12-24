@@ -27,6 +27,16 @@ const pathCmds = {
     M: ({ x, y }) => [x, y],
     L: ({ x, y }) => [x, y]
 };
+const offset = 33;
+
+export {
+    arc,
+    cube,
+    getLastArcCmd,
+    pathCmds,
+    quad,
+    setArcCmdConfig
+};
 
 /**
  * Returns a set of somewhat ok default coords for the cps of a quad cmd.
@@ -88,8 +98,6 @@ function cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev) {
     };
 }
 
-const offset = 33;
-
 function calculateOffset(distA, distB, prior, current) {
     if (distA < distB) {
         return prior > current ? -offset : offset;
@@ -112,6 +120,13 @@ function arc(config) {
     };
 }
 
+function getLastArcCmd(points) {
+    return points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A');
+}
+
 function setArcCmdConfig(session, defaults) {
     const conf = session.current
         ? (getLastArcCmd(session.current.points)
@@ -126,19 +141,3 @@ function setArcCmdConfig(session, defaults) {
             field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
         });
 }
-
-function getLastArcCmd(points) {
-    return points
-        .slice()
-        .reverse()
-        .find(point => point.cmd === 'A');
-}
-
-export {
-    arc,
-    cube,
-    getLastArcCmd,
-    pathCmds,
-    quad,
-    setArcCmdConfig
-};

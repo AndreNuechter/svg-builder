@@ -1,46 +1,53 @@
 import { controlPoints } from './dom-shared-elements.js';
 
-// NOTE: ea top-level-prop is a control point type.
-// The changeData props are functions changing the respective point-data.
-// The getAffectedPoints props return an array containing objects pointing to
-// affected control-points and effects to be applied to them.
+// NOTE: ea of the given cmds has the given number of cps,
+// meaning the id of any given cp can be derived by summing the ones before it
+// TODO: should this be stored on pathCmds?
+// TODO: to add a new cmd, this, text on cmd-select, the part going into mkControlPoint and remControlPoint (could be based on this?!) need to be provided
+const amounts = {
+    M: 1,
+    L: 1,
+    H: 1,
+    V: 1,
+    Q: 2,
+    C: 3,
+    A: 1,
+    S: 2,
+    T: 1
+};
 const controlPointTypes = {
-    regularPoint: {
-        changeData,
-        getAffectedPoints(controlPoint, layer, pointId) {
+    regularPoint: ControlPointType(
+        basicChangeData,
+        (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [{ ref: controlPoint, fx }, ...addOns];
         }
-    },
-    hCmd: {
-        changeData({ x }) { return { x }; },
-        getAffectedPoints(controlPoint, layer, pointId) {
+    ),
+    hCmd: ControlPointType(
+        ({ x }) => ({ x }),
+        (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [{ ref: controlPoint, fx: xComponent }, ...addOns];
         }
-    },
-    vCmd: {
-        changeData({ y }) { return { y }; },
-        getAffectedPoints(controlPoint, layer, pointId) {
+    ),
+    vCmd: ControlPointType(
+        ({ y }) => ({ y }),
+        (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [{ ref: controlPoint, fx: yComponent }, ...addOns];
         }
-    },
-    firstControlPoint: {
-        changeData({ x, y }) { return { x1: x, y1: y }; },
-        getAffectedPoints(controlPoint) {
-            return [{ ref: controlPoint, fx }];
-        }
-    },
-    secondControlPoint: {
-        changeData({ x, y }) { return { x2: x, y2: y }; },
-        getAffectedPoints(controlPoint) {
-            return [{ ref: controlPoint, fx }];
-        }
-    },
-    rectTopLeft: {
-        changeData,
-        getAffectedPoints(controlPoint, layer, pointId) {
+    ),
+    firstControlPoint: ControlPointType(
+        ({ x, y }) => ({ x1: x, y1: y }),
+        controlPoint => [{ ref: controlPoint, fx }]
+    ),
+    secondControlPoint: ControlPointType(
+        ({ x, y }) => ({ x2: x, y2: y }),
+        controlPoint => [{ ref: controlPoint, fx }]
+    ),
+    rectTopLeft: ControlPointType(
+        basicChangeData,
+        (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
             return [{
                 ref: controlPoint,
@@ -52,15 +59,13 @@ const controlPointTypes = {
                 }
             }];
         }
-    },
-    rectLowerRight: {
-        changeData({ x, y }, point) {
-            return {
-                width: x > point.x ? x - point.x : point.width,
-                height: y > point.y ? y - point.y : point.height
-            };
-        },
-        getAffectedPoints(controlPoint, layer, pointId) {
+    ),
+    rectLowerRight: ControlPointType(
+        ({ x, y }, point) => ({
+            width: x > point.x ? x - point.x : point.width,
+            height: y > point.y ? y - point.y : point.height
+        }),
+        (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
             return [{
                 ref: controlPoint,
@@ -71,12 +76,10 @@ const controlPointTypes = {
                 }
             }];
         }
-    },
-    ellipseCenter: {
-        changeData({ x, y }) {
-            return { cx: x, cy: y };
-        },
-        getAffectedPoints(controlPoint, layer, pointId) {
+    ),
+    ellipseCenter: ControlPointType(
+        ({ x, y }) => ({ cx: x, cy: y }),
+        (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
             return [{
                 ref: controlPoint,
@@ -93,20 +96,21 @@ const controlPointTypes = {
                 }
             }];
         }
-    },
-    rx: {
-        changeData({ x }, point) { return { rx: Math.abs(x - point.cx) }; },
-        getAffectedPoints(controlPoint) {
-            return [{ ref: controlPoint, fx: xComponent }];
-        }
-    },
-    ry: {
-        changeData({ y }, point) { return { ry: Math.abs(y - point.cy) }; },
-        getAffectedPoints(controlPoint) {
-            return [{ ref: controlPoint, fx: yComponent }];
-        }
-    }
+    ),
+    rx: ControlPointType(
+        ({ x }, point) => ({ rx: Math.abs(x - point.cx) }),
+        controlPoint => [{ ref: controlPoint, fx: xComponent }]
+    ),
+    ry: ControlPointType(({ y }, point) => ({ ry: Math.abs(y - point.cy) }),
+        controlPoint => [{ ref: controlPoint, fx: yComponent }])
 };
+
+export default controlPointTypes;
+
+// NOTE: The changeData props are functions changing the respective point-data.
+// The getAffectedPoints props return an array containing objects pointing to
+// affected control-points and effects to be applied to them.
+function ControlPointType(changeData, getAffectedPoints) { return { changeData, getAffectedPoints }; }
 
 function getAffectedVAndHCmds(layer, pointId) {
     const addOns = [];
@@ -130,40 +134,16 @@ function getAffectedVAndHCmds(layer, pointId) {
     return addOns;
 }
 
-function changeData({ x, y }) {
-    return { x, y };
-}
+function basicChangeData({ x, y }) { return { x, y }; }
 
-function fx(x, y) {
-    return { cx: x, cy: y };
-}
+function fx(x, y) { return { cx: x, cy: y }; }
 
-function xComponent(x) {
-    return { cx: x };
-}
+function xComponent(x) { return { cx: x }; }
 
-function yComponent(x, y) {
-    return { cy: y };
-}
-
-// NOTE: ea of the given cmds has the given number of cps,
-// meaning the id of any given cp can be derived by summing the ones before it
-const amounts = { // TODO: pathCmds...text on cmd-select too...the part going into mkControlPoint feels redundant as well...remControlPoint too
-    M: 1,
-    L: 1,
-    H: 1,
-    V: 1,
-    Q: 2,
-    C: 3,
-    A: 1,
-    S: 2,
-    T: 1
-};
+function yComponent(x, y) { return { cy: y }; }
 
 function getIdOfControlPoint(layer, id) {
     return layer.points
         .slice(0, id)
         .reduce((cps, point) => cps + amounts[point.cmd], 0);
 }
-
-export default controlPointTypes;

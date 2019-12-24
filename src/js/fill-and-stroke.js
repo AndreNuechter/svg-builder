@@ -1,6 +1,13 @@
+// TODO: include under heler funcs?
+
 import { fillAndStroke } from './dom-shared-elements.js';
 
 const { elements } = fillAndStroke;
+
+export {
+    getNonDefaultStyles,
+    setFillAndStrokeFields
+};
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given style config.
@@ -11,7 +18,7 @@ function setFillAndStrokeFields(conf) {
         const field = elements[key];
 
         if (field.tagName === 'INPUT') {
-            field[field.type === 'checkbox' ? 'checked' : 'value'] = val;
+            field.value = val;
         } else {
             [...field.children].forEach((child) => {
                 child.selected = (child.value === val);
@@ -22,14 +29,9 @@ function setFillAndStrokeFields(conf) {
 
 function getNonDefaultStyles(mode) {
     return [...elements]
-        .filter(e => e.hasAttribute('name')
-            && e.closest('label').classList.contains(`for-${mode}`))
-        .reduce((obj, e) => Object.assign(obj, {
-            [e.name]: e[e.type === 'checkbox' ? 'checked' : 'value']
+        .filter(element => element.hasAttribute('name')
+            && element.closest('label').classList.contains(`for-${mode}`))
+        .reduce((obj, element) => Object.assign(obj, {
+            [element.name]: element.value
         }), {});
 }
-
-export {
-    getNonDefaultStyles,
-    setFillAndStrokeFields
-};
