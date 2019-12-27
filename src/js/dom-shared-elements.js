@@ -3,6 +3,7 @@
 const arcCmdConfig = document.getElementById('arc-cmd-config');
 const controlPoints = document.getElementsByClassName('control-point');
 const controlPointContainer = document.getElementById('control-point-container');
+const downloadAsPngLink = document.getElementById('get-png');
 const drawingContent = document.getElementById('drawing-content');
 const fillAndStroke = document.getElementById('fill-and-stroke');
 const layers = drawingContent.children;
@@ -22,6 +23,7 @@ export {
     arcCmdConfig,
     controlPoints,
     controlPointContainer,
+    downloadAsPngLink,
     drawingContent,
     fillAndStroke,
     layers,

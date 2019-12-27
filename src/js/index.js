@@ -2,7 +2,7 @@
 
 import session from './session.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import { showPreview } from './drawing.js';
+import { centerViewBox, setPngDownloadLink, switchToOutputTab } from './drawing.js';
 import { observeLayers } from './layer-handling.js';
 import {
     arcCmdConfig,
@@ -19,10 +19,10 @@ import {
     addLayer,
     addPoint,
     centerRotation,
-    centerViewBox,
     clearDrawing,
     configArcCmd,
     configOutput,
+    dataURIToClipboard,
     deleteLastPoint,
     initializeDrawing,
     deleteLayer,
@@ -44,8 +44,8 @@ new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
     .observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', initializeDrawing);
-window.onkeydown = pressKey;
 window.onsubmit = e => e.preventDefault();
+window.onkeydown = pressKey;
 layerSelect.onchange = setLayer;
 layerSelect.ondrop = reorderLayers;
 pathClosingToggle.onchange = togglePathClosing;
@@ -53,16 +53,18 @@ arcCmdConfig.oninput = configArcCmd;
 fillAndStroke.oninput = setFillOrStroke;
 transformTargetSwitch.onchange = setTransformTarget;
 transformFieldSet.oninput = setTransform;
-svg.addEventListener('pointerdown', addPoint);
 outputConfig.oninput = configOutput;
+outputConfig.onchange = setPngDownloadLink;
+svg.addEventListener('pointerdown', addPoint);
 document.getElementById('commands').onchange = setCmd;
 document.getElementById('modes').onchange = setMode;
 document.getElementById('reset-transforms').onclick = resetTransforms;
 document.getElementById('get-markup').onclick = markupToClipboard;
+document.getElementById('get-data-uri').onclick = dataURIToClipboard;
 document.getElementById('center-rotation-btn').onclick = centerRotation;
 document.getElementById(('center-vb')).onclick = centerViewBox;
 document.getElementById('add-layer').onclick = addLayer;
 document.getElementById('del-layer').onclick = deleteLayer;
 document.getElementById('clear-all').onclick = clearDrawing;
 document.getElementById('undo').onclick = deleteLastPoint;
-document.querySelector('a[data-tab-name="output"]').onclick = showPreview;
+document.querySelector('a[data-tab-name="output"]').onclick = switchToOutputTab;

@@ -1,8 +1,12 @@
 /* globals window, document */
 
-import { getNonDefaultStyles } from './fill-and-stroke.js';
 import session from './session.js';
-import drawing, { generateMarkUp, save, setOutputConfiguration } from './drawing.js';
+import drawing, {
+    generateDataURI,
+    generateMarkUp,
+    updateViewBox,
+    save
+} from './drawing.js';
 import {
     drawLayer,
     Layer,
@@ -18,11 +22,14 @@ import {
 import {
     applyTransforms,
     configClone,
-    configElement,
+    getLastArcCmd,
+    getNonDefaultStyles,
     getSVGCoords,
     pointToMarkup,
     saveCloneObj,
+    setArcCmdConfig,
     setTransformsFieldset,
+    setOutputConfiguration,
     stringifyTransforms
 } from './helper-functions.js';
 import { svgTemplates } from './dom-created-elements.js';
@@ -31,26 +38,21 @@ import {
     layers,
     layerSelectors,
     pathClosingToggle,
-    preview,
     svg,
     transformTargetSwitch
 } from './dom-shared-elements.js';
 import layerTypes from './layer-types.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-point-handling.js';
-import {
-    arc,
-    getLastArcCmd,
-    setArcCmdConfig
-} from './path-commands.js';
+import { arc } from './path-commands.js';
 
 export {
     addLayer,
     addPoint,
     centerRotation,
-    centerViewBox,
     clearDrawing,
     configArcCmd,
     configOutput,
+    dataURIToClipboard,
     deleteLastPoint,
     deleteLayer,
     initializeDrawing,
@@ -100,7 +102,7 @@ function addPoint(event) {
             hor: Math.abs(session.shapeStart.x - x),
             vert: Math.abs(session.shapeStart.y - y)
         };
-        const attrs = session.mode === 'rect'
+        const attrs = (session.mode === 'rect')
             ? {
                 x: Math.min(session.shapeStart.x, x),
                 y: Math.min(session.shapeStart.y, y),
@@ -171,32 +173,6 @@ function configArcCmd({ target }) {
     drawLayer(session.layer);
 }
 
-function centerViewBox() {
-    const {
-        x,
-        y,
-        width,
-        height
-    } = drawingContent.getBBox();
-
-    drawing.outputDims['vb-min-x'] = Math.trunc(x);
-    drawing.outputDims['vb-min-y'] = Math.trunc(y);
-    drawing.outputDims['vb-width'] = Math.trunc(width);
-    drawing.outputDims['vb-height'] = Math.trunc(height);
-
-    updateViewBox();
-    setOutputConfiguration();
-}
-
-function updateViewBox() {
-    configElement(preview.firstElementChild, {
-        width: drawing.outputDims.width,
-        height: drawing.outputDims.height,
-        viewBox: drawing.viewBox,
-        preserveAspectRatio: [drawing.outputDims.ratio, drawing.outputDims['slice-or-meet']].join(' ')
-    });
-}
-
 function configOutput({ target }) {
     drawing.outputDims[target.name] = target.value;
     save();
@@ -204,6 +180,8 @@ function configOutput({ target }) {
 }
 
 function markupToClipboard() { window.navigator.clipboard.writeText(generateMarkUp()); }
+
+function dataURIToClipboard() { window.navigator.clipboard.writeText(generateDataURI()); }
 
 function pressKey(event) {
     if (window.location.hash !== '#drawing') return;
@@ -346,7 +324,7 @@ function initializeDrawing() {
     setTransformsFieldset(drawing.transforms || defaults.transforms);
     transformTargetSwitch.checked = false;
     setArcCmdConfig(session, defaults);
-    setOutputConfiguration();
+    setOutputConfiguration(drawing);
 }
 
 function reorderLayers(event) {

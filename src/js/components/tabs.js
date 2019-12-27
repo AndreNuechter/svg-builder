@@ -12,13 +12,11 @@
         () => selectTab(tabNames.includes(activeTab) ? activeTab : tabNames[0]));
 
     tabsContainer.onclick = ({ target }) => {
-        const el = target.closest('.tab');
+        if (!target.classList.contains('tab')) return;
 
-        if (!el) return;
-
-        body.dataset.activeTab = el.dataset.tabName;
+        body.dataset.activeTab = target.dataset.tabName;
         tabs.forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
+        target.classList.add('active');
     };
 
     function selectTab(tabName) {

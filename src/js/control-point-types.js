@@ -20,44 +20,40 @@ const controlPointTypes = {
         basicChangeData,
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
-            return [{ ref: controlPoint, fx }, ...addOns];
+            return [AffectedControlPoint(controlPoint, basicFx), ...addOns];
         }
     ),
     hCmd: ControlPointType(
         ({ x }) => ({ x }),
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
-            return [{ ref: controlPoint, fx: xComponent }, ...addOns];
+            return [AffectedControlPoint(controlPoint, xComponent), ...addOns];
         }
     ),
     vCmd: ControlPointType(
         ({ y }) => ({ y }),
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
-            return [{ ref: controlPoint, fx: yComponent }, ...addOns];
+            return [AffectedControlPoint(controlPoint, yComponent), ...addOns];
         }
     ),
     firstControlPoint: ControlPointType(
         ({ x, y }) => ({ x1: x, y1: y }),
-        controlPoint => [{ ref: controlPoint, fx }]
+        controlPoint => [AffectedControlPoint(controlPoint, basicFx)]
     ),
     secondControlPoint: ControlPointType(
         ({ x, y }) => ({ x2: x, y2: y }),
-        controlPoint => [{ ref: controlPoint, fx }]
+        controlPoint => [AffectedControlPoint(controlPoint, basicFx)]
     ),
     rectTopLeft: ControlPointType(
         basicChangeData,
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
-            return [{
-                ref: controlPoint,
-                fx
-            }, {
-                ref: controlPoints[1],
-                fx(x, y) {
-                    return { cx: x + point.width, cy: y + point.height };
-                }
-            }];
+            return [
+                AffectedControlPoint(controlPoint, basicFx),
+                AffectedControlPoint(controlPoints[1],
+                    (x, y) => ({ cx: x + point.width, cy: y + point.height }))
+            ];
         }
     ),
     rectLowerRight: ControlPointType(
@@ -67,50 +63,47 @@ const controlPointTypes = {
         }),
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
-            return [{
-                ref: controlPoint,
-                fx(x, y) {
-                    const cx = (x < point.x) ? point.x : x;
-                    const cy = (y < point.y) ? point.y : y;
-                    return { cx, cy };
-                }
-            }];
+            return [AffectedControlPoint(controlPoint, (x, y) => {
+                const cx = (x < point.x) ? point.x : x;
+                const cy = (y < point.y) ? point.y : y;
+                return { cx, cy };
+            })];
         }
     ),
     ellipseCenter: ControlPointType(
         ({ x, y }) => ({ cx: x, cy: y }),
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
-            return [{
-                ref: controlPoint,
-                fx
-            }, {
-                ref: controlPoints[1],
-                fx() {
-                    return { cx: point.cx - point.rx, cy: point.cy };
-                }
-            }, {
-                ref: controlPoints[2],
-                fx() {
-                    return { cx: point.cx, cy: point.cy - point.ry };
-                }
-            }];
+            return [
+                AffectedControlPoint(controlPoint, basicFx),
+                AffectedControlPoint(controlPoints[1], () => ({ cx: point.cx - point.rx, cy: point.cy })),
+                AffectedControlPoint(controlPoints[2], () => ({ cx: point.cx, cy: point.cy - point.ry }))
+            ];
         }
     ),
     rx: ControlPointType(
         ({ x }, point) => ({ rx: Math.abs(x - point.cx) }),
-        controlPoint => [{ ref: controlPoint, fx: xComponent }]
+        controlPoint => [AffectedControlPoint(controlPoint, xComponent)]
     ),
     ry: ControlPointType(({ y }, point) => ({ ry: Math.abs(y - point.cy) }),
-        controlPoint => [{ ref: controlPoint, fx: yComponent }])
+        controlPoint => [AffectedControlPoint(controlPoint, yComponent)])
 };
 
 export default controlPointTypes;
 
-// NOTE: The changeData props are functions changing the respective point-data.
-// The getAffectedPoints props return an array containing objects pointing to
-// affected control-points and effects to be applied to them.
+/**
+ * @param { Function } changeData A function used to change the respective point-data.
+ * @param { Function } getAffectedPoints A function returning an array of objects of affected control-points and effects to be applied to them.
+ * @returns { Object }
+ */
 function ControlPointType(changeData, getAffectedPoints) { return { changeData, getAffectedPoints }; }
+
+/**
+ * @param { SVGCircleElement } cp The control-point affected by dragging.
+ * @param { Function } fx The effects applied to the cp.
+ * @returns { Object }
+ */
+function AffectedControlPoint(cp, fx) { return { ref: cp, fx }; }
 
 function getAffectedVAndHCmds(layer, pointId) {
     const addOns = [];
@@ -119,15 +112,15 @@ function getAffectedVAndHCmds(layer, pointId) {
         const { cmd } = layer.points[pointId + 1];
 
         if (cmd === 'V') {
-            addOns.push({
-                ref: controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                fx: xComponent
-            });
+            addOns.push(AffectedControlPoint(
+                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
+                xComponent
+            ));
         } else if (cmd === 'H') {
-            addOns.push({
-                ref: controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                fx: yComponent
-            });
+            addOns.push(AffectedControlPoint(
+                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
+                yComponent
+            ));
         }
     }
 
@@ -136,7 +129,7 @@ function getAffectedVAndHCmds(layer, pointId) {
 
 function basicChangeData({ x, y }) { return { x, y }; }
 
-function fx(x, y) { return { cx: x, cy: y }; }
+function basicFx(x, y) { return { cx: x, cy: y }; }
 
 function xComponent(x) { return { cx: x }; }
 

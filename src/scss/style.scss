@@ -82,7 +82,7 @@ fieldset {
     border-color: rgb(182, 182, 182);
     border-style: solid;
     border-width: 1px;
-    box-shadow: 2px 3px 2px rgb(182, 182, 182), inset 3px 4px 4px rgb(27, 27, 27);
+    box-shadow: 2px 3px 2px black, inset 3px 4px 4px rgb(80, 80, 80);
 
     fieldset {
         box-shadow: none;
@@ -103,7 +103,7 @@ fieldset.togglable {
     }
 
     &.closed {
-        max-height: 1rem;
+        max-height: 1.5rem;
         padding-bottom: 0;
     }
 }
@@ -177,7 +177,7 @@ fieldset.togglable {
 }
 
 #preview {
-    margin-top: 2rem;
+    margin-top: 3rem;
     grid-area: center;
 
     svg {

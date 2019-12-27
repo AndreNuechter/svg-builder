@@ -1,7 +1,12 @@
 /* globals document */
 
 import drawing, { save } from './drawing.js';
-import { applyTransforms, configElement, setTransformsFieldset } from './helper-functions.js';
+import {
+    applyTransforms,
+    configElement,
+    setFillAndStrokeFields,
+    setTransformsFieldset
+} from './helper-functions.js';
 import { defaults } from './constants.js';
 import {
     drawingContent,
@@ -10,7 +15,6 @@ import {
     layerSelectors
 } from './dom-shared-elements.js';
 import { layerSelectorTemplate } from './dom-created-elements.js';
-import { setFillAndStrokeFields } from './fill-and-stroke.js';
 import layerTypes from './layer-types.js';
 
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;

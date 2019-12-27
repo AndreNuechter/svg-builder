@@ -1,21 +1,33 @@
 import { pathCmds } from './path-commands.js';
 import {
-    svg,
-    drawingContent,
+    arcCmdConfig,
     controlPointContainer,
+    drawingContent,
+    fillAndStroke,
     layers,
-    transformFields
+    outputConfig,
+    transformFields,
+    svg
 } from './dom-shared-elements.js';
 import { complexTransforms } from './constants.js';
+
+const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
+const { elements: fillAndStrokeFields } = fillAndStroke;
+const { elements: outputConfigFields } = outputConfig;
 
 export {
     applyTransforms,
     configElement,
     configClone,
     drawShape,
+    getLastArcCmd,
+    getNonDefaultStyles,
     getSVGCoords,
     pointToMarkup,
     saveCloneObj,
+    setArcCmdConfig,
+    setFillAndStrokeFields,
+    setOutputConfiguration,
     setTransformsFieldset,
     stringifyTransforms
 };
@@ -49,8 +61,6 @@ function configClone(template) {
     return attrs => configElement(template.cloneNode(false), attrs);
 }
 
-// NOTE: the below 'exceptions' cannot be set by setAttribute as they're props, not attrs
-const exceptions = ['checked', 'textContent', 'data'];
 /**
  * Applies attributes and properties to an HTMLElement.
  * @param { HTMLElement } element The element to be configured.
@@ -70,16 +80,32 @@ function configElement(element, keyValPairs) {
 }
 
 /**
- * Returns an eventHandler for drawing a shape (ellipse or rect).
+ * A helper for initializing ellipses and rects.
  * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
- * @param { Function } attrs A lambda changing the affected shape based on the current pointer-position.
- * @returns { Function }
+ * @param { Function } getAttrs A lambda determining the new geometry of the shape based on the current pointer-position.
+ * @returns { Function } An eventHandler for drawing a shape (ellipse or rect).
  */
-function drawShape(shape, attrs) {
+function drawShape(shape, getAttrs) {
     return (e) => {
         const [x1, y1] = getSVGCoords(e);
-        configElement(shape, attrs(x1, y1));
+        configElement(shape, getAttrs(x1, y1));
     };
+}
+
+function getLastArcCmd(points) {
+    return points
+        .slice()
+        .reverse()
+        .find(point => point.cmd === 'A');
+}
+
+function getNonDefaultStyles(mode) {
+    return [...fillAndStrokeFields]
+        .filter(field => field.hasAttribute('name')
+            && field.closest('label').classList.contains(`for-${mode}`))
+        .reduce((obj, field) => Object.assign(obj, {
+            [field.name]: field.value
+        }), {});
 }
 
 /**
@@ -91,9 +117,9 @@ function drawShape(shape, attrs) {
 function getSVGCoords({ x, y }) {
     let point = svg.createSVGPoint();
     Object.assign(point, { x, y });
-    // // NOTE: the second child of our canvas is the control-points-container,
+    // NOTE: the second child of our canvas is the control-points-container,
     // which has drawing- as well as layer-transforms applied to it
-    point = point.matrixTransform((svg.children[1] || svg).getScreenCTM().inverse());
+    point = point.matrixTransform(svg.children[1].getScreenCTM().inverse());
 
     return [point.x, point.y];
 }
@@ -109,6 +135,54 @@ function pointToMarkup(point) {
 
 function saveCloneObj(obj) {
     return JSON.parse(JSON.stringify(obj));
+}
+
+function setArcCmdConfig(session, defaults) {
+    const conf = session.current
+        ? (getLastArcCmd(session.current.points)
+            || Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig))
+        : defaults.arcCmdConfig;
+
+    Object.assign(session.arcCmdConfig, conf);
+    Object.entries(conf)
+        .filter(([key]) => !['cmd', 'x', 'y'].includes(key)) // NOTE: the data might be coming from a point
+        .forEach(([key, val]) => {
+            const field = arcCmdConfig.elements[key];
+            field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
+        });
+}
+
+/**
+ * Adjusts the Fill & Stroke fieldset to a given style config.
+ * @param { Object } conf The config to be applied.
+ */
+function setFillAndStrokeFields(conf) {
+    Object.entries(conf).forEach(([key, val]) => {
+        const field = fillAndStrokeFields[key];
+
+        if (field.tagName === 'INPUT') {
+            field.value = val;
+        } else {
+            [...field.children].forEach((child) => {
+                child.selected = (child.value === val);
+            });
+        }
+    });
+}
+
+// TODO: stay dry, see fillAndStroke, arcCmdConfig and setTransformsFieldset
+function setOutputConfiguration(drawing) {
+    Object.entries(drawing.outputDims).forEach(([key, val]) => {
+        const field = outputConfigFields[key];
+
+        if (field.tagName === 'INPUT') {
+            field.value = val;
+        } else {
+            [...field.children].forEach((child) => {
+                child.selected = (child.value === val);
+            });
+        }
+    });
 }
 
 function setTransformsFieldset(conf) {

@@ -18,16 +18,19 @@ const {
     ry
 } = controlPointTypes;
 const stopDragging = () => {
-    svg.onpointermove = null;
-    svg.onpointerleave = null;
-    svg.onpointerup = null;
+    Object.assign(svg, {
+        onpointermove: null,
+        onpointerleave: null,
+        onpointerup: null
+    });
 };
-const startDragging = (layer, pointId, controlPointType, cp) => (e) => {
-    // prevent triggering svg.onpointerdown
-    e.stopPropagation();
-    svg.onpointermove = dragging(layer, pointId, controlPointType, cp);
-    svg.onpointerleave = stopDragging;
-    svg.onpointerup = stopDragging;
+const startDragging = (layer, pointId, controlPointType) => (e) => {
+    e.stopPropagation(); // NOTE: prevent triggering svg.onpointerdown
+    Object.assign(svg, {
+        onpointermove: dragging(layer, pointId, controlPointType, e.target),
+        onpointerleave: stopDragging,
+        onpointerup: stopDragging
+    });
 };
 
 export {
@@ -37,7 +40,7 @@ export {
 };
 
 /**
- * Removes the control point(s) of the last point added to a path-layer.
+ * Removes the control point(s) of the last point of a path.
  * @param { string } cmd The command of the removed point.
  */
 function remLastControlPoint(cmd) {
@@ -46,9 +49,6 @@ function remLastControlPoint(cmd) {
     if (cmd === 'C') controlPoints[controlPoints.length - 1].remove();
 }
 
-/**
- * Removes all control points of the active layer.
- */
 function remControlPoints() {
     [...controlPoints].forEach(c => c.remove());
 }
@@ -78,12 +78,10 @@ function mkControlPoint(layer, layerId) {
             if (point.cmd === 'C') {
                 cps.push(ControlPoint(point.x2, point.y2, pointId, secondControlPoint, layerId));
             }
-            // eslint-disable-next-line no-prototype-builtins
-        } else if (point.hasOwnProperty('width')) {
+        } else if (point.width !== undefined) {
             cps.push(ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
                 ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId));
-            // eslint-disable-next-line no-prototype-builtins
-        } else if (point.hasOwnProperty('cx')) {
+        } else if (point.cx !== undefined) {
             cps.push(ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
                 ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
                 ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId));
@@ -103,12 +101,12 @@ function mkControlPoint(layer, layerId) {
  * @param { number } layerId The ordinal of the layer the controlled point belongs to.
  */
 function ControlPoint(x, y, pointId, controlPointType, layerId) {
-    const cp = configClone(circleTemplate)({ cx: x, cy: y });
-
-    cp.onpointerdown = startDragging(layerId, pointId, controlPointType, cp);
-    cp.onpointerup = stopDragging;
-
-    return cp;
+    return configClone(circleTemplate)({
+        cx: x,
+        cy: y,
+        onpointerdown: startDragging(layerId, pointId, controlPointType),
+        onpointerup: stopDragging
+    });
 }
 
 /**

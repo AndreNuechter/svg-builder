@@ -3,6 +3,18 @@ import { configElement, drawShape, pointToMarkup } from './helper-functions.js';
 import { arc, cube, quad } from './path-commands.js';
 import { defaults } from './constants.js';
 
+const shaperFuncs = {
+    rect: (x, y) => (x1, y1) => ({
+        x: Math.min(x, x1),
+        y: Math.min(y, y1),
+        width: Math.abs(x - x1),
+        height: Math.abs(y - y1)
+    }),
+    ellipse: (x, y) => (x1, y1) => ({
+        rx: Math.abs(x - x1),
+        ry: Math.abs(y - y1)
+    })
+};
 const layerTypes = {
     rect: LayerType((session, points, x, y) => {
         if (points[0]) return;
@@ -12,13 +24,7 @@ const layerTypes = {
         configElement(rect, points[0]);
         session.drawingShape = true;
         Object.assign(session.shapeStart, { x, y });
-
-        svg.onpointermove = drawShape(rect, (x1, y1) => ({
-            x: Math.min(x, x1),
-            y: Math.min(y, y1),
-            width: Math.abs(x - x1),
-            height: Math.abs(y - y1)
-        }));
+        svg.onpointermove = drawRect(rect, x, y);
     }, ({ points: [point] }) => ({
         x: point.x,
         y: point.y,
@@ -33,11 +39,7 @@ const layerTypes = {
         configElement(ellipse, points[0]);
         session.drawingShape = true;
         Object.assign(session.shapeStart, { x, y });
-
-        svg.onpointermove = drawShape(ellipse, (x1, y1) => ({
-            rx: Math.abs(x - x1),
-            ry: Math.abs(y - y1)
-        }));
+        svg.onpointermove = drawEllipse(ellipse, x, y);
     }, ({ points: [point] }) => ({
         cx: point.cx,
         cy: point.cy,
@@ -77,6 +79,19 @@ const layerTypes = {
     }, layer => ({ d: layer.points.map(pointToMarkup).join('') + (layer.closePath ? 'Z' : '') }))
 };
 
+/**
+ * @param { Function } mkPoint Executed when a point for this type of layer has been added. Configs the layers HTML, data and possibly session (the drawingShape bit).
+ * @param { Function } geometryProps Exectuted when a layer of this type is drawn. Returns an object of geometry-props relevant for that type of layer paired w the respective layers config.
+ * @returns { Object }
+ */
 function LayerType(mkPoint, geometryProps) { return { mkPoint, geometryProps }; }
+
+function drawRect(rect, x, y) {
+    return drawShape(rect, shaperFuncs.rect(x, y));
+}
+
+function drawEllipse(ellipse, x, y) {
+    return drawShape(ellipse, shaperFuncs.ellipse(x, y));
+}
 
 export default layerTypes;

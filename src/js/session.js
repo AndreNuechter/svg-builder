@@ -1,13 +1,16 @@
 /* globals document */
 
-import { setArcCmdConfig } from './path-commands.js';
 import { cmdTags, defaults } from './constants.js';
 import drawing from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import { setFillAndStrokeFields } from './fill-and-stroke.js';
 import { pathClosingToggle, transformTargetSwitch } from './dom-shared-elements.js';
 import layerTypes from './layer-types.js';
-import { applyTransforms, setTransformsFieldset } from './helper-functions.js';
+import {
+    applyTransforms,
+    setArcCmdConfig,
+    setFillAndStrokeFields,
+    setTransformsFieldset
+} from './helper-functions.js';
 
 const modes = Object.keys(layerTypes);
 const basicField = Field(val => typeof val === 'boolean', () => {});
@@ -64,6 +67,6 @@ Object.assign(proxiedKeys.layer,
         }
     ));
 
-function Field(validate, onPass) { return { validate, onPass }; }
-
 export default session;
+
+function Field(validate, onPass) { return { validate, onPass }; }
