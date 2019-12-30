@@ -28,16 +28,6 @@ export {
 };
 
 /**
- * Changes the style-related attributes of a layer.
- * @param { number } layerId The ordinal of the affected layer.
- * @param { Object } [conf=drawing.layers[layerId].style] The style-attributes of the affected layer.
- */
-function styleLayer(layerId, conf = drawing.layers[layerId].style) {
-    configElement(layers[layerId], conf);
-    save();
-}
-
-/**
  * Syncs geometry attributes of a layers representation w the data.
  * @param { number } layerId The ordinal number of the affected layer.
  * @param { SVGPathElement | SVGRectElement | SVGEllipseElement } [layerId=session.layer] The affected SVG-element.
@@ -50,6 +40,22 @@ function drawLayer(
 ) {
     configElement(layer, layerTypes[layerData.mode].geometryProps(layerData));
     save();
+}
+
+/**
+ * Constructor for a default layer.
+ * @param { string } mode [ path | rect | ellipse ]
+ * @param { Object } style
+ * @param { Object } transforms
+ * @returns { Object }
+ */
+function Layer(mode, style, transforms) {
+    return {
+        mode,
+        points: [],
+        style,
+        transforms
+    };
 }
 
 /**
@@ -69,6 +75,57 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         session.current.label = target.textContent.replace(/\n/g, /\s/).trim();
         save();
     };
+    const addLayerSelector = () => {
+        const layerId = layerSelect.childElementCount;
+        const layerSelector = layerSelectorTemplate.cloneNode(true);
+        const [label, selector] = layerSelector.children;
+        layerSelector.dataset.layerId = layerId;
+        configElement(label, {
+            textContent: drawing.layers[layerId]
+                ? drawing.layers[layerId].label || `Layer ${layerId + 1}`
+                : `Layer ${layerId + 1}`
+        });
+        configElement(selector, {
+            value: layerId,
+            checked: session.layer === layerSelectors.length
+        });
+        layerSelector.ondragstart = dragLayerSelector;
+        label.oninput = changeLayerLabel;
+        layerSelect.append(layerSelector);
+    };
+    const removeLayerSelector = (removedNode) => {
+        // delete selector
+        const id = +removedNode
+            .dataset
+            .layerId;
+        layerSelect
+            .lastChild
+            .remove();
+
+        // if there're no layers left, we do some clean-up and are done
+        if (!layers.length) {
+            delete session.layer;
+            remControlPoints();
+            setTransformsFieldset(defaults.transforms);
+            applyTransforms(drawing, session);
+            setFillAndStrokeFields(defaults.style);
+            return;
+        }
+
+        if (session.layer === layers.length) {
+            session.layer -= 1;
+        } else {
+            const cb = mkControlPoint(session.current, session.layer);
+            session.mode = session.current.mode;
+            remControlPoints();
+            session.current.points.forEach(cb);
+            setFillAndStrokeFields(session.current.style);
+            reorderLayerSelectors(id, layerSelect.childElementCount - 1);
+        }
+
+        // check the active layer's selector
+        layerSelectors[session.layer].checked = true;
+    };
 
     return (mutationsList) => {
         // hide/show a message when no layers exist
@@ -81,61 +138,8 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         }
 
         mutationsList.forEach((mutation) => {
-            // deal w addition of layer (add a corresponding selector)
-            if (mutation.addedNodes.length) {
-                const layerId = layerSelect.childElementCount;
-                const layerSelector = layerSelectorTemplate.cloneNode(true);
-                const [label, selector] = layerSelector.children;
-                layerSelector.dataset.layerId = layerId;
-                configElement(label, {
-                    textContent: drawing.layers[layerId]
-                        ? drawing.layers[layerId].label || `Layer ${layerId + 1}`
-                        : `Layer ${layerId + 1}`
-                });
-                configElement(selector, {
-                    value: layerId,
-                    checked: session.layer === layerSelectors.length
-                });
-                layerSelector.ondragstart = dragLayerSelector;
-                label.oninput = changeLayerLabel;
-                layerSelect.append(layerSelector);
-            }
-
-            // deal w removal of layer(s)
-            if (mutation.removedNodes.length) {
-                // delete selector
-                const id = +mutation
-                    .removedNodes[0]
-                    .dataset
-                    .layerId;
-                layerSelect
-                    .lastChild
-                    .remove();
-
-                // if there're no layers left, we do some clean-up and are done
-                if (!layers.length) {
-                    delete session.layer;
-                    remControlPoints();
-                    setTransformsFieldset(defaults.transforms);
-                    applyTransforms(drawing, session);
-                    setFillAndStrokeFields(defaults.style);
-                    return;
-                }
-
-                if (session.layer === layers.length) {
-                    session.layer -= 1;
-                } else {
-                    const cb = mkControlPoint(session.current, session.layer);
-                    session.mode = session.current.mode;
-                    remControlPoints();
-                    session.current.points.forEach(cb);
-                    setFillAndStrokeFields(session.current.style);
-                    reorderLayerSelectors(id, layerSelect.childElementCount - 1);
-                }
-
-                // check the active layer's selector
-                layerSelectors[session.layer].checked = true;
-            }
+            mutation.addedNodes.forEach(addLayerSelector);
+            mutation.removedNodes.forEach(removeLayerSelector);
         });
     };
 }
@@ -156,17 +160,11 @@ function reorderLayerSelectors(startIndex, endIndex) {
 }
 
 /**
- * Constructor for a default layer.
- * @param { string } mode [ path | rect | ellipse ]
- * @param { Object } style
- * @param { Object } transforms
- * @returns { Object }
+ * Changes the style-related attributes of a layer.
+ * @param { number } layerId The ordinal of the affected layer.
+ * @param { Object } [conf=drawing.layers[layerId].style] The style-attributes of the affected layer.
  */
-function Layer(mode, style, transforms) {
-    return {
-        mode,
-        points: [],
-        style,
-        transforms
-    };
+function styleLayer(layerId, conf = drawing.layers[layerId].style) {
+    configElement(layers[layerId], conf);
+    save();
 }

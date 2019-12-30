@@ -45,7 +45,17 @@ form#output-configuration
                     option slice
         button#get-markup(title="...copied to clipboard") Get Markup
         button#get-data-uri(title="...copied to clipboard") Get Data URI
-        button
-            a#get-png(download="My SVG") Download as PNG
+        fieldset#download
+            legend Download
+            label
+                span SVG
+                input(type="radio" name="file-format" value="svg" checked)
+            label
+                span PNG
+                input(type="radio" name="file-format" value="png")
+            label
+                span JPG
+                input(type="radio" name="file-format" value="jpeg")
+            button#download-btn Download
 
 #preview

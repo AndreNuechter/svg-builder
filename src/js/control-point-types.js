@@ -1,5 +1,9 @@
 import { controlPoints } from './dom-shared-elements.js';
 
+const basicChangeData = ({ x, y }) => ({ x, y });
+const basicFx = (x, y) => ({ cx: x, cy: y });
+const xComponent = x => ({ cx: x });
+const yComponent = (x, y) => ({ cy: y });
 // NOTE: ea of the given cmds has the given number of cps,
 // meaning the id of any given cp can be derived by summing the ones before it
 // TODO: should this be stored on pathCmds?
@@ -14,6 +18,30 @@ const amounts = {
     A: 1,
     S: 2,
     T: 1
+};
+const getIdOfControlPoint = (layer, id) => layer.points
+    .slice(0, id)
+    .reduce((cps, point) => cps + amounts[point.cmd], 0);
+const getAffectedVAndHCmds = (layer, pointId) => {
+    const addOns = [];
+
+    if (layer.points[pointId + 1]) {
+        const { cmd } = layer.points[pointId + 1];
+
+        if (cmd === 'V') {
+            addOns.push(AffectedControlPoint(
+                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
+                xComponent
+            ));
+        } else if (cmd === 'H') {
+            addOns.push(AffectedControlPoint(
+                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
+                yComponent
+            ));
+        }
+    }
+
+    return addOns;
 };
 const controlPointTypes = {
     regularPoint: ControlPointType(
@@ -94,49 +122,11 @@ export default controlPointTypes;
 /**
  * @param { Function } changeData A function used to change the respective point-data.
  * @param { Function } getAffectedPoints A function returning an array of objects of affected control-points and effects to be applied to them.
- * @returns { Object }
  */
 function ControlPointType(changeData, getAffectedPoints) { return { changeData, getAffectedPoints }; }
 
 /**
  * @param { SVGCircleElement } cp The control-point affected by dragging.
  * @param { Function } fx The effects applied to the cp.
- * @returns { Object }
  */
 function AffectedControlPoint(cp, fx) { return { ref: cp, fx }; }
-
-function getAffectedVAndHCmds(layer, pointId) {
-    const addOns = [];
-
-    if (layer.points[pointId + 1]) {
-        const { cmd } = layer.points[pointId + 1];
-
-        if (cmd === 'V') {
-            addOns.push(AffectedControlPoint(
-                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                xComponent
-            ));
-        } else if (cmd === 'H') {
-            addOns.push(AffectedControlPoint(
-                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                yComponent
-            ));
-        }
-    }
-
-    return addOns;
-}
-
-function basicChangeData({ x, y }) { return { x, y }; }
-
-function basicFx(x, y) { return { cx: x, cy: y }; }
-
-function xComponent(x) { return { cx: x }; }
-
-function yComponent(x, y) { return { cy: y }; }
-
-function getIdOfControlPoint(layer, id) {
-    return layer.points
-        .slice(0, id)
-        .reduce((cps, point) => cps + amounts[point.cmd], 0);
-}

@@ -26,9 +26,17 @@ const svgTemplates = {
     rect: document.createElementNS(ns, 'rect'),
     ellipse: document.createElementNS(ns, 'ellipse')
 };
+const downloadLink = configElement(document.createElement('a'), {
+    download: 'My SVG'
+});
+const dummyImg = document.createElement('img');
+const canvas = document.createElement('canvas');
 
 export {
-    layerSelectorTemplate,
+    canvas,
     circleTemplate,
+    downloadLink,
+    dummyImg,
+    layerSelectorTemplate,
     svgTemplates
 };

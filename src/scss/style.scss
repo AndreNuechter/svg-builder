@@ -1,11 +1,19 @@
 html {
     height: 100%;
+    --main-text-color: rgb(182, 182, 182);
+    --main-heading-color: whitesmoke;
+    --main-bg-color: rgb(40, 40, 40);
+    --main-highlight-color: orange;
+    --main-alert-color: red;
+    --sub-text-color: black;
+    --sub-bg-color: lightgrey;
+    --sub-highlight-color: rgb(80, 80, 80);
 }
 
 body {
     font-family: Helvetica, Arial, sans-serif;
-    background: rgb(40, 40, 40);
-    color: rgb(182, 182, 182);
+    background: var(--main-bg-color);
+    color: var(--main-text-color);
     margin: 0;
     padding: 2px 2px 0;
     height: 100%;
@@ -35,7 +43,7 @@ select {
 }
 
 input {
-    &[type=number] {
+    &[type="number"] {
         width: 5em;
         border: 0;
         padding-right: 0;
@@ -43,7 +51,7 @@ input {
         margin: 2px 0;
     }
 
-    &[type=range] {
+    &[type="range"] {
         -webkit-appearance: none;
         height: 5px;
         width: 100%;
@@ -51,16 +59,16 @@ input {
         margin: 8px 0;
     }
 
-    &[type=radio] {
+    &[type="radio"] {
         margin: 0 4px 0 8px;
     }
 
-    &[type=checkbox] {
+    &[type="checkbox"] {
         margin: 0 4px 0 8px;
     }
 
     &:checked {
-        box-shadow: 0 0 0 2px orange;
+        box-shadow: 0 0 0 2px var(--main-highlight-color);
     }
 }
 
@@ -70,22 +78,42 @@ label {
     flex-wrap: wrap;
 }
 
+a {
+    text-decoration: none;
+
+    &:visited {
+        color: inherit;
+    }
+}
+
 button {
     cursor: pointer;
     padding: 0;
     margin: 1px;
     border-width: 1px;
     width: 100%;
+
+    &:first-of-type {
+        margin-top: 0.5rem;
+    }
+
+    a {
+        color: var(--sub-text-color);
+    }
 }
 
 fieldset {
-    border-color: rgb(182, 182, 182);
-    border-style: solid;
-    border-width: 1px;
-    box-shadow: 2px 3px 2px black, inset 3px 4px 4px rgb(80, 80, 80);
+    border: 1px solid var(--main-text-color);
+    box-shadow: 2px 3px 3px var(--sub-text-color), inset 3px 4px 4px var(--sub-highlight-color);
+    background: linear-gradient(135deg, var(--main-bg-color), 95%, var(--sub-highlight-color));
 
     fieldset {
+        background: var(--main-bg-color);
         box-shadow: none;
+
+        +fieldset {
+            margin-top: 0.5rem;
+        }
     }
 }
 
@@ -108,21 +136,26 @@ fieldset.togglable {
     }
 }
 
+legend {
+    color: var(--main-heading-color);
+}
+
 .for-path,
 .for-rect {
     display: none;
 }
 
 .control-point {
-    fill: orange;
-    stroke: dimgrey;
+    fill: var(--main-highlight-color);
+    stroke: var(--sub-highlight-color);
+    stroke-width: 2;
 
     &:hover {
         stroke-width: 10;
     }
 
     &:last-of-type {
-        fill: red;
+        fill: var(--main-alert-color);
     }
 }
 
@@ -150,24 +183,20 @@ fieldset.togglable {
 .tab {
     padding: 4px 8px;
     margin-right: 8px;
-
-    &.active {
-        background: slategrey;
-        color: whitesmoke;
-    }
 }
 
 #tabs {
     position: absolute;
     right: 2rem;
     z-index: 2;
+    color: var(--main-heading-color);
 
     a {
-        color: whitesmoke;
-        text-decoration: none;
+        color: inherit;
 
-        &:visited {
-            color: whitesmoke;
+        &.active {
+            background: var(--sub-bg-color);
+            color: var(--main-bg-color)
         }
     }
 }
@@ -181,7 +210,7 @@ fieldset.togglable {
     grid-area: center;
 
     svg {
-        background: lightgrey;
+        background: var(--sub-bg-color);
         margin: 8px;
     }
 }
@@ -200,8 +229,6 @@ fieldset.togglable {
 }
 
 #layer-select {
-    padding-bottom: 1rem;
-
     label {
         flex-wrap: initial;
     }
@@ -237,11 +264,11 @@ fieldset.togglable {
     height: 100%;
     min-width: 720px;
     min-height: 405px;
-    border: 1px solid white;
-    outline: 1px solid grey;
+    border: 1px solid var(--main-text-color);
+    outline: 1px solid var(--sub-highlight-color);
     margin-top: 8px;
     margin-left: 3px;
-    background: lightgrey;
+    background: var(--sub-bg-color);
 }
 
 #coords {
@@ -249,10 +276,10 @@ fieldset.togglable {
     left: -100px;
     top: -100px;
     padding: 3px 6px;
-    border: 1px solid black;
+    border: 1px solid var(--sub-text-color);
     width: max-content;
     background: rgba(255, 255, 255, 0.7);
-    color: black;
+    color: var(--sub-text-color);
     text-align: center;
     pointer-events: none;
 }

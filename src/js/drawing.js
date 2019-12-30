@@ -1,23 +1,21 @@
-/* globals window, document */
+/* globals window */
 
-import { downloadAsPngLink, drawingContent, preview } from './dom-shared-elements.js';
+import { drawingContent, preview } from './dom-shared-elements.js';
 import { configElement, setOutputConfiguration, stringifyTransforms } from './helper-functions.js';
 
 const drawing = {
     get viewBox() {
         return [
-            this.outputDims['vb-min-x'],
-            this.outputDims['vb-min-y'],
-            this.outputDims['vb-width'],
-            this.outputDims['vb-height']
+            this.outputConfig['vb-min-x'],
+            this.outputConfig['vb-min-y'],
+            this.outputConfig['vb-width'],
+            this.outputConfig['vb-height']
         ];
     }
 };
 const layerIdRe = / data-layer-id="\d+"/g;
 const multiSpaces = /\s{2,}/g;
-const img = document.createElement('img');
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d');
+const showPreview = () => { preview.innerHTML = generateMarkUp(); };
 
 export default drawing;
 export {
@@ -25,7 +23,6 @@ export {
     generateDataURI,
     generateMarkUp,
     save,
-    setPngDownloadLink,
     switchToOutputTab,
     updateViewBox
 };
@@ -43,34 +40,24 @@ function save() {
  */
 function generateMarkUp() {
     return `<svg xmlns="http://www.w3.org/2000/svg" 
-    width="${drawing.outputDims.width}" 
-    height="${drawing.outputDims.height}" 
+    width="${drawing.outputConfig.width}" 
+    height="${drawing.outputConfig.height}" 
     viewBox="${drawing.viewBox}" 
-    preserveAspectRatio="${[drawing.outputDims.ratio, drawing.outputDims['slice-or-meet']].join(' ')}">
+    preserveAspectRatio="${[drawing.outputConfig.ratio, drawing.outputConfig['slice-or-meet']].join(' ')}">
     <g transform="${stringifyTransforms(drawing.transforms)}">${drawingContent.innerHTML}</g></svg>`
         .replace(layerIdRe, '')
         .replace(multiSpaces, ' ');
 }
 
 function generateDataURI() {
-    return encodeURI(`data:image/svg+xml,${generateMarkUp().replace(/"/g, "'")}`).replace(/#/g, '%23');
-}
-
-function showPreview() { preview.innerHTML = generateMarkUp(); }
-
-function setPngDownloadLink() {
-    img.src = generateDataURI();
-    img.onload = () => {
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.drawImage(img, 0, 0);
-        downloadAsPngLink.href = canvas.toDataURL();
-    };
+    return encodeURI(`data:image/svg+xml,${generateMarkUp()
+        .replace(/"/g, "'")}`)
+        .replace(/#/g, '%23');
 }
 
 function switchToOutputTab() {
-    if (drawing.viewBox.filter(v => v === 0).length === 4) centerViewBox();
-    setPngDownloadLink();
     showPreview();
+    if (drawing.viewBox.filter(v => v === 0).length === 4) centerViewBox();
 }
 
 function centerViewBox() {
@@ -81,10 +68,12 @@ function centerViewBox() {
         height
     } = drawingContent.getBBox();
 
-    drawing.outputDims['vb-min-x'] = Math.trunc(x);
-    drawing.outputDims['vb-min-y'] = Math.trunc(y);
-    drawing.outputDims['vb-width'] = Math.trunc(width);
-    drawing.outputDims['vb-height'] = Math.trunc(height);
+    Object.assign(drawing.outputConfig, {
+        'vb-min-x': Math.trunc(x),
+        'vb-min-y': Math.trunc(y),
+        'vb-width': Math.trunc(width),
+        'vb-height': Math.trunc(height)
+    });
 
     updateViewBox();
     setOutputConfiguration(drawing);
@@ -93,9 +82,9 @@ function centerViewBox() {
 
 function updateViewBox() {
     configElement(preview.firstElementChild, {
-        width: drawing.outputDims.width,
-        height: drawing.outputDims.height,
+        width: drawing.outputConfig.width,
+        height: drawing.outputConfig.height,
         viewBox: drawing.viewBox,
-        preserveAspectRatio: [drawing.outputDims.ratio, drawing.outputDims['slice-or-meet']].join(' ')
+        preserveAspectRatio: [drawing.outputConfig.ratio, drawing.outputConfig['slice-or-meet']].join(' ')
     });
 }

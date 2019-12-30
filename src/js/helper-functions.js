@@ -14,6 +14,19 @@ import { complexTransforms } from './constants.js';
 const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
 const { elements: fillAndStrokeFields } = fillAndStroke;
 const { elements: outputConfigFields } = outputConfig;
+const configForm = (formElements, conf) => {
+    Object.entries(conf).forEach(([key, val]) => {
+        const field = formElements[key];
+
+        if (field.tagName === 'SELECT') {
+            [...field.children].forEach((child) => {
+                child.selected = (child.value === val);
+            });
+        } else {
+            field.value = val;
+        }
+    });
+};
 
 export {
     applyTransforms,
@@ -54,7 +67,7 @@ function applyTransforms(drawing, session) {
 
 /**
  * Clones the provided element shallowly and returns a partially applied version of configElement().
- * @param { HTMLElement } template The element to be cloned.
+ * @param { Node } template The element to be cloned.
  * @returns { Function }
  */
 function configClone(template) {
@@ -63,9 +76,9 @@ function configClone(template) {
 
 /**
  * Applies attributes and properties to an HTMLElement.
- * @param { HTMLElement } element The element to be configured.
+ * @param { Element } element The element to be configured.
  * @param { Object } keyValPairs The attributes and properties to be applied to the element.
- * @returns { HTMLElement }
+ * @returns { Element }
  */
 function configElement(element, keyValPairs) {
     Object.keys(keyValPairs).forEach((key) => {
@@ -110,8 +123,7 @@ function getNonDefaultStyles(mode) {
 
 /**
  * Gives the transform-corrected x- and y-coordinates within the canvas in an array.
- * @param { Event } event The event triggering this (most likely pointerover).
- * @param { SVGSVGElement } svg The element over which the pointer is moving.
+ * @param { MouseEvent } event The event triggering this (most likely pointerover).
  * @returns { number[] }
  */
 function getSVGCoords({ x, y }) {
@@ -140,7 +152,7 @@ function saveCloneObj(obj) {
 function setArcCmdConfig(session, defaults) {
     const conf = session.current
         ? (getLastArcCmd(session.current.points)
-            || Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig))
+            || { ...defaults.arcCmdConfig, ...session.arcCmdConfig })
         : defaults.arcCmdConfig;
 
     Object.assign(session.arcCmdConfig, conf);
@@ -154,35 +166,18 @@ function setArcCmdConfig(session, defaults) {
 
 /**
  * Adjusts the Fill & Stroke fieldset to a given style config.
- * @param { Object } conf The config to be applied.
+ * @param { Object } style The config to be applied.
  */
-function setFillAndStrokeFields(conf) {
-    Object.entries(conf).forEach(([key, val]) => {
-        const field = fillAndStrokeFields[key];
-
-        if (field.tagName === 'INPUT') {
-            field.value = val;
-        } else {
-            [...field.children].forEach((child) => {
-                child.selected = (child.value === val);
-            });
-        }
-    });
+function setFillAndStrokeFields(style) {
+    configForm(fillAndStrokeFields, style);
 }
 
-// TODO: stay dry, see fillAndStroke, arcCmdConfig and setTransformsFieldset
-function setOutputConfiguration(drawing) {
-    Object.entries(drawing.outputDims).forEach(([key, val]) => {
-        const field = outputConfigFields[key];
-
-        if (field.tagName === 'INPUT') {
-            field.value = val;
-        } else {
-            [...field.children].forEach((child) => {
-                child.selected = (child.value === val);
-            });
-        }
-    });
+/**
+ * Adjusts the Output configuration fieldset to a given config.
+ * @param { Object } conf The config for the output. Expected to be gotten from `drawing`.
+ */
+function setOutputConfiguration({ outputConfig: conf }) {
+    configForm(outputConfigFields, conf);
 }
 
 function setTransformsFieldset(conf) {

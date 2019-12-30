@@ -2,10 +2,11 @@
 
 import session from './session.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import { centerViewBox, setPngDownloadLink, switchToOutputTab } from './drawing.js';
+import { centerViewBox, switchToOutputTab } from './drawing.js';
 import { observeLayers } from './layer-handling.js';
 import {
     arcCmdConfig,
+    downloadBtn,
     drawingContent,
     layerSelect,
     outputConfig,
@@ -36,7 +37,8 @@ import {
     setMode,
     setTransform,
     setTransformTarget,
-    togglePathClosing
+    togglePathClosing,
+    triggerDownload
 } from './user-actions.js';
 
 // watches for additions and removals of layers and does some synchronisation
@@ -54,7 +56,7 @@ fillAndStroke.oninput = setFillOrStroke;
 transformTargetSwitch.onchange = setTransformTarget;
 transformFieldSet.oninput = setTransform;
 outputConfig.oninput = configOutput;
-outputConfig.onchange = setPngDownloadLink;
+downloadBtn.onclick = triggerDownload;
 svg.addEventListener('pointerdown', addPoint);
 document.getElementById('commands').onchange = setCmd;
 document.getElementById('modes').onchange = setMode;

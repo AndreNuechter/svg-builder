@@ -62,18 +62,11 @@ Other SVG transforms can also be applied to the whole drawing or individual laye
 
 ## The Output
 
-The dimension of the canvas try to maximize available screen-real-estate.
-To not have the result include unnecessary whitespace, the viewBox of the output is automatically calculated and coincides with the result of calling `getBBox()` on the entire drawing, so that all of its content remains visible.
+The final output can be previewed in the tab labeled Output.
 
-This can be previewed in the correspondingly labeled tab, where the width and the height of the output can also be defined.
-
-Also, since the above described way of calculating the bounding-box of the output does not work very well when transforms are added to the mix --- and because whitespace may actually be desired --- "padding" can be added to the output here as well.
-(In quoatation marks since this acts somewhat different from CSS-padding. The way of applying the inputed values is as follows:
-- "Top" is subtracted from `y` of the viewBox and added to its `height`
-- "Right" is added to the `width` of the viewBox
-- "Bottom" is added to the `height` of the viewBox
-- "Left" is subtracted from the `x` of the viewBox and added to its `width`)
-
-The preserve-aspect-ratio property can be defined here as well.
+The dimensions of the canvas are set to maximize the available screen-real-estate, but the width and height of the output can be set independently here.
+The viewBox of the output is initialized to the result of calling `getBBox()` on the entire drawing at the time, so that all of its content is visible (not accounting for transforms or control points, which are not taken into account by `getBBox()`).
+The viewBox can be adjusted or re-centered and the preserve-aspect-ratio property can be defined here as well.
 
 Clicking on the appropriately labeled button will copy the current mark-up to the clipboard.
+It can also be gotten as a data uri or downloaded directly.

@@ -24,10 +24,10 @@ const stopDragging = () => {
         onpointerup: null
     });
 };
-const startDragging = (layer, pointId, controlPointType) => (e) => {
-    e.stopPropagation(); // NOTE: prevent triggering svg.onpointerdown
+const startDragging = (layer, pointId, controlPointType) => (event) => {
+    event.stopPropagation(); // NOTE: prevent triggering svg.onpointerdown
     Object.assign(svg, {
-        onpointermove: dragging(layer, pointId, controlPointType, e.target),
+        onpointermove: dragging(layer, pointId, controlPointType, event.target),
         onpointerleave: stopDragging,
         onpointerup: stopDragging
     });

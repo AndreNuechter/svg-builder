@@ -1,17 +1,21 @@
 /* globals document */
 
+/** @type { HTMLFormElement } */
 const arcCmdConfig = document.getElementById('arc-cmd-config');
 const controlPoints = document.getElementsByClassName('control-point');
 const controlPointContainer = document.getElementById('control-point-container');
-const downloadAsPngLink = document.getElementById('get-png');
+const downloadBtn = document.getElementById('download-btn');
 const drawingContent = document.getElementById('drawing-content');
+/** @type { HTMLFormElement } */
 const fillAndStroke = document.getElementById('fill-and-stroke');
 const layers = drawingContent.children;
 const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer-selector');
+/** @type { HTMLFormElement } */
 const outputConfig = document.getElementById('output-configuration');
 const preview = document.getElementById('preview');
 const pathClosingToggle = document.getElementById('close-path-toggle');
+/** @type { SVGSVGElement } */
 const svg = document.getElementById('canvas');
 const transformFieldSet = document.getElementById('transformations');
 const transformFields = transformFieldSet.elements;
@@ -23,7 +27,7 @@ export {
     arcCmdConfig,
     controlPoints,
     controlPointContainer,
-    downloadAsPngLink,
+    downloadBtn,
     drawingContent,
     fillAndStroke,
     layers,

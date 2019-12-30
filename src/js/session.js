@@ -69,4 +69,9 @@ Object.assign(proxiedKeys.layer,
 
 export default session;
 
+/**
+ * A proxied field on our session object.
+ * @param { Function } validate Validates the value being assigned.
+ * @param { Function } onPass Executes in addition to assigning a valid value.
+ */
 function Field(validate, onPass) { return { validate, onPass }; }

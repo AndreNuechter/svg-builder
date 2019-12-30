@@ -24,7 +24,7 @@ const layerTypes = {
         configElement(rect, points[0]);
         session.drawingShape = true;
         Object.assign(session.shapeStart, { x, y });
-        svg.onpointermove = drawRect(rect, x, y);
+        svg.onpointermove = drawShape(rect, shaperFuncs.rect(x, y));
     }, ({ points: [point] }) => ({
         x: point.x,
         y: point.y,
@@ -39,7 +39,7 @@ const layerTypes = {
         configElement(ellipse, points[0]);
         session.drawingShape = true;
         Object.assign(session.shapeStart, { x, y });
-        svg.onpointermove = drawEllipse(ellipse, x, y);
+        svg.onpointermove = drawShape(ellipse, shaperFuncs.ellipse(x, y));
     }, ({ points: [point] }) => ({
         cx: point.cx,
         cy: point.cy,
@@ -79,19 +79,11 @@ const layerTypes = {
     }, layer => ({ d: layer.points.map(pointToMarkup).join('') + (layer.closePath ? 'Z' : '') }))
 };
 
+export default layerTypes;
+
 /**
  * @param { Function } mkPoint Executed when a point for this type of layer has been added. Configs the layers HTML, data and possibly session (the drawingShape bit).
  * @param { Function } geometryProps Exectuted when a layer of this type is drawn. Returns an object of geometry-props relevant for that type of layer paired w the respective layers config.
  * @returns { Object }
  */
 function LayerType(mkPoint, geometryProps) { return { mkPoint, geometryProps }; }
-
-function drawRect(rect, x, y) {
-    return drawShape(rect, shaperFuncs.rect(x, y));
-}
-
-function drawEllipse(ellipse, x, y) {
-    return drawShape(ellipse, shaperFuncs.ellipse(x, y));
-}
-
-export default layerTypes;

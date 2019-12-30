@@ -9,7 +9,7 @@ const complexTransforms = {
 const defaults = {
     mode: 'path',
     closePath: false,
-    outputDims: {
+    outputConfig: {
         width: 320,
         height: 180,
         'vb-min-x': 0,
@@ -17,7 +17,8 @@ const defaults = {
         'vb-width': 0,
         'vb-height': 0,
         ratio: 'xMidYMid',
-        'slice-or-meet': 'meet'
+        'slice-or-meet': 'meet',
+        'file-format': 'svg'
     },
     transforms: {
         translate: [0, 0],
