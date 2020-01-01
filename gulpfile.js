@@ -22,7 +22,7 @@ function htmlProd() {
     return src('src/pug/index.pug')
         .pipe(pug())
         .pipe(htmlreplace({
-            js: { src: 'js/bundle.js', tpl: '<script src="%s" defer></script>' }
+            js: { src: './js/bundle.js', tpl: '<script src="%s" defer></script>' }
         }))
         .pipe(dest('docs/'));
 }
