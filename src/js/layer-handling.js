@@ -66,9 +66,9 @@ function Layer(mode, style, transforms) {
  * @returns { Function } The prepared callback to our mutation observer, reacting to additions and removals of layers.
  */
 function observeLayers(session, remControlPoints, mkControlPoint) {
-    const dragLayerSelector = (e) => {
-        e.dataTransfer.setData('text', e.target.dataset.layerId);
-        e.dataTransfer.effectAllowed = 'move';
+    const dragLayerSelector = (event) => {
+        event.dataTransfer.setData('text', event.target.dataset.layerId);
+        event.dataTransfer.effectAllowed = 'move';
     };
     const changeLayerLabel = ({ target }) => {
         // NOTE: we assume edition is preceded by selection and the edited label belongs to the active layer

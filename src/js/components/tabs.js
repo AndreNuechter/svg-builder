@@ -5,11 +5,16 @@
     const { body } = document;
     const tabsContainer = document.getElementById('tabs');
     const tabs = [...tabsContainer.children];
-    const tabNames = ['drawing', 'output'];
 
     // ensure a tab is selected on start
-    window.addEventListener('DOMContentLoaded',
-        () => selectTab(tabNames.includes(activeTab) ? activeTab : tabNames[0]));
+    window.addEventListener('DOMContentLoaded', () => {
+        const tabNames = ['drawing', 'output'];
+        const tabName = tabNames.includes(activeTab) ? activeTab : tabNames[0];
+
+        window.location.hash = tabName;
+        body.dataset.activeTab = tabName;
+        document.querySelector(`a[data-tab-name="${tabName}"]`).click();
+    });
 
     tabsContainer.onclick = ({ target }) => {
         if (!target.classList.contains('tab')) return;
@@ -18,10 +23,4 @@
         tabs.forEach(t => t.classList.remove('active'));
         target.classList.add('active');
     };
-
-    function selectTab(tabName) {
-        window.location.hash = tabName;
-        body.dataset.activeTab = tabName;
-        document.querySelector(`a[data-tab-name="${tabName}"]`).click();
-    }
 })();

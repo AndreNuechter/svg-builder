@@ -123,8 +123,8 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
     const { changeData } = controlPointType;
     const affectedControlPoints = controlPointType.getAffectedPoints(controlPoint, layer, pointId);
 
-    return (e) => {
-        const [x, y] = getSVGCoords(e);
+    return (event) => {
+        const [x, y] = getSVGCoords(event);
         // change point-data, update layer and move affected cps
         Object.assign(point, changeData({ x, y }, point));
         drawLayer(layerId);

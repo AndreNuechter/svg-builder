@@ -99,8 +99,8 @@ function configElement(element, keyValPairs) {
  * @returns { Function } An eventHandler for drawing a shape (ellipse or rect).
  */
 function drawShape(shape, getAttrs) {
-    return (e) => {
-        const [x1, y1] = getSVGCoords(e);
+    return (event) => {
+        const [x1, y1] = getSVGCoords(event);
         configElement(shape, getAttrs(x1, y1));
     };
 }

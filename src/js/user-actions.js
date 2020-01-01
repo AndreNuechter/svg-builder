@@ -77,8 +77,8 @@ export {
     setFillOrStroke,
     setLayer,
     setMode,
-    setTransformTarget,
     setTransform,
+    setTransformTarget,
     togglePathClosing,
     triggerDownload
 };
@@ -341,6 +341,21 @@ function resetTransforms() {
     setTransformsFieldset(transforms);
 }
 
+function setCenterOfRotation(element, transformTarget) {
+    const {
+        x,
+        y,
+        width,
+        height
+    } = element.getBBox();
+    const coords = [Math.trunc(x + width * 0.5), Math.trunc(y + height * 0.5)];
+
+    [complexTransforms.rotate[1].value, complexTransforms.rotate[2].value] = coords;
+    [transformTarget.rotate[1], transformTarget.rotate[2]] = coords;
+}
+
+function setCmd({ target }) { session.cmd = cmdTags[cmdTags.indexOf(target.value)] || cmdTags[0]; }
+
 function setFillOrStroke({ target }) {
     if (!drawing.layers[session.layer]) return;
 
@@ -348,35 +363,11 @@ function setFillOrStroke({ target }) {
     styleLayer(session.layer);
 }
 
-function setTransformTarget({ target }) {
-    if (target.checked) {
-        setTransformsFieldset(session.current
-            ? session.current.transforms
-            : defaults.transforms);
-    } else {
-        setTransformsFieldset(drawing.transforms);
-    }
-
-    session.transformLayerNotDrawing = target.checked;
+function setLayer({ target }) {
+    const layerId = +target.value;
+    session.mode = drawing.layers[layerId].mode;
+    session.layer = layerId;
 }
-
-function setTransform({ target }) {
-    const transformTarget = session.transformLayerNotDrawing
-        ? session.current
-        : drawing;
-
-    // NOTE: 'rotate' and scale have more than one param
-    if (target.classList.contains('transform-config')) {
-        transformTarget.transforms[target.dataset.transform][+target.dataset.id] = target.value;
-    } else {
-        transformTarget.transforms[target.name] = target.value;
-    }
-
-    save();
-    applyTransforms(drawing, session);
-}
-
-function setCmd({ target }) { session.cmd = cmdTags[cmdTags.indexOf(target.value)] || cmdTags[0]; }
 
 function setMode({ target }) {
     if (session.drawingShape) {
@@ -407,23 +398,32 @@ function setMode({ target }) {
     }
 }
 
-function setLayer({ target }) {
-    const layerId = +target.value;
-    session.mode = drawing.layers[layerId].mode;
-    session.layer = layerId;
+function setTransform({ target }) {
+    const transformTarget = session.transformLayerNotDrawing
+        ? session.current
+        : drawing;
+
+    // NOTE: 'rotate' and scale have more than one param
+    if (target.classList.contains('transform-config')) {
+        transformTarget.transforms[target.dataset.transform][+target.dataset.id] = target.value;
+    } else {
+        transformTarget.transforms[target.name] = target.value;
+    }
+
+    save();
+    applyTransforms(drawing, session);
 }
 
-function setCenterOfRotation(element, transformTarget) {
-    const {
-        x,
-        y,
-        width,
-        height
-    } = element.getBBox();
-    const coords = [Math.trunc(x + width * 0.5), Math.trunc(y + height * 0.5)];
+function setTransformTarget({ target }) {
+    if (target.checked) {
+        setTransformsFieldset(session.current
+            ? session.current.transforms
+            : defaults.transforms);
+    } else {
+        setTransformsFieldset(drawing.transforms);
+    }
 
-    [complexTransforms.rotate[1].value, complexTransforms.rotate[2].value] = coords;
-    [transformTarget.rotate[1], transformTarget.rotate[2]] = coords;
+    session.transformLayerNotDrawing = target.checked;
 }
 
 function togglePathClosing() {
