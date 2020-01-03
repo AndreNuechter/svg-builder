@@ -52,6 +52,7 @@ import { arc } from './path-commands.js';
 
 const ctx = canvas.getContext('2d');
 const download = (url) => {
+    downloadLink.download = `My SVG.${drawing.outputConfig['file-format']}`;
     downloadLink.href = url;
     downloadLink.click();
 };

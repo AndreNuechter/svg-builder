@@ -2,5 +2,5 @@ node_modules
 .eslintignore
 .vscode
 archive
-dist
+dev
 2Do

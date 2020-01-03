@@ -26,9 +26,7 @@ const svgTemplates = {
     rect: document.createElementNS(ns, 'rect'),
     ellipse: document.createElementNS(ns, 'ellipse')
 };
-const downloadLink = configElement(document.createElement('a'), {
-    download: 'My SVG'
-});
+const downloadLink = document.createElement('a');
 const dummyImg = document.createElement('img');
 const canvas = document.createElement('canvas');
 
