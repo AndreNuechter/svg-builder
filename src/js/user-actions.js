@@ -52,8 +52,10 @@ import { arc } from './path-commands.js';
 
 const ctx = canvas.getContext('2d');
 const download = (url) => {
-    downloadLink.download = `My SVG.${drawing.outputConfig['file-format']}`;
-    downloadLink.href = url;
+    Object.assign(downloadLink, {
+        download: `My_SVG.${drawing.outputConfig['file-format']}`,
+        href: url
+    });
     downloadLink.click();
 };
 const writeToClipboard = text => window.navigator.clipboard.writeText(text);
@@ -436,16 +438,19 @@ function togglePathClosing() {
 
 function triggerDownload() {
     const svgDataURI = generateDataURI();
-    const fileFormat = drawing.outputConfig['file-format'];
 
-    if (fileFormat === 'svg') {
+    if (drawing.outputConfig['file-format'] === 'svg') {
         download(svgDataURI);
     } else {
         dummyImg.src = svgDataURI;
         dummyImg.onload = () => {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            Object.assign(ctx.canvas, {
+                width: drawing.outputConfig.width,
+                height: drawing.outputConfig.height
+            });
             ctx.drawImage(dummyImg, 0, 0);
-            download(canvas.toDataURL(`image/${fileFormat}`));
+            download(canvas.toDataURL());
         };
     }
 }

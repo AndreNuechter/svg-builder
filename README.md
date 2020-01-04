@@ -6,7 +6,7 @@ A simple app to help with the creation of complex svg markup.
 
 Check out the [page](https://andrenuechter.github.io/svg-builder).
 
-To try it out locally, you can either clone this repo and initialize it via NPM, in which case you need to have Gulp installed. 
+To try it out locally, you can clone this repo and initialize it via NPM, in which case you need to have Gulp installed.
 After cloning and initializing, just execute `gulp` and navigate to localhost:3000.
 
 You can also run it without a server by copying the content of the `docs` folder and opening the `index.html` file therein with Firefox or Chrome (a different browser might work, but no guarantees).
