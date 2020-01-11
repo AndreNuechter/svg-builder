@@ -19,8 +19,8 @@ const configForm = (formElements, conf) => {
         const field = formElements[key];
 
         if (field.tagName === 'SELECT') {
-            [...field.children].forEach((child) => {
-                child.selected = (child.value === val);
+            [...field.options].forEach((opt) => {
+                opt.selected = (opt.value === val);
             });
         } else {
             field.value = val;

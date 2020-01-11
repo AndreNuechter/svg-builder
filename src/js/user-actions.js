@@ -265,31 +265,31 @@ function pressKey(event) {
     if (window.location.hash !== '#drawing') return;
 
     const { key } = event;
+    const move = moves[key];
 
-    if (moves[key]) {
-        event.preventDefault();
-
-        if (!event.ctrlKey && !session.current) return;
-
-        const { transforms: { translate: transformTarget } } = event.ctrlKey
-            ? drawing
-            : session.current;
-        const { cb, prop } = moves[key];
-
-        transformTarget[prop] = cb(transformTarget[prop]);
-        applyTransforms(drawing, session);
-    }
+    // exit label editing by pressing enter
+    if (key === 'Enter' && event.target.contentEditable) event.target.blur();
 
     // prevent interference w eg custom labeling
     if (document.activeElement !== document.body) return;
 
-    if (key === 'Backspace') {
-        event.preventDefault();
+    if (move) {
+        if (!session.current && !event.ctrlKey) return;
+
+        const { transforms: { translate: transformTarget } } = event.ctrlKey
+            ? drawing
+            : session.current;
+        const { cb, prop } = move;
+
+        transformTarget[prop] = cb(transformTarget[prop]);
+        applyTransforms(drawing, session);
+    } else if (key === 'Backspace') {
         deleteLastPoint();
-    } else if (!event.ctrlKey && cmdTags.includes(key.toUpperCase())) {
-        event.preventDefault();
+    } else if (cmdTags.includes(key.toUpperCase())) {
         session.cmd = key.toUpperCase();
     }
+
+    event.preventDefault();
 }
 
 function reorderLayers(event) {

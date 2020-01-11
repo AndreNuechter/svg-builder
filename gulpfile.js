@@ -13,10 +13,9 @@ const webpack = require('webpack-stream');
 const webpackConfig = require('./webpack.config.js');
 
 const htmlRoot = 'src/pug/index.pug';
-const scssFiles = 'src/scss/*.scss';
+const style = 'src/scss/style.scss';
 const devDir = 'dev';
 const deployDir = 'docs';
-let target = devDir;
 
 function html() {
     return src(htmlRoot)
@@ -34,10 +33,17 @@ function htmlProd() {
 }
 
 function css() {
-    return src(scssFiles)
+    return src(style)
         .pipe(sass())
         .pipe(minifyCSS())
-        .pipe(dest(`${target}/css`));
+        .pipe(dest(`${devDir}/css`));
+}
+
+function cssProd() {
+    return src(style)
+        .pipe(sass())
+        .pipe(minifyCSS())
+        .pipe(dest(`${deployDir}/css`));
 }
 
 function js() {
@@ -47,7 +53,7 @@ function js() {
 }
 
 function watchCSSAndHTML() {
-    watch(scssFiles, css);
+    watch(style, css);
     watch('src/pug/*.pug', html);
 }
 
@@ -59,4 +65,4 @@ function serve() {
 }
 
 exports.default = parallel(html, css, serve, watchCSSAndHTML);
-exports.bundle = parallel(htmlProd, (() => { target = deployDir; return css; })(), js);
+exports.bundle = parallel(htmlProd, cssProd, js);

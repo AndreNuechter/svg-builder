@@ -1,0 +1,13 @@
+.control-point {
+    fill: var(--main-highlight-color);
+    stroke: var(--sub-highlight-color);
+    stroke-width: 2;
+
+    &:hover {
+        stroke-width: 10;
+    }
+
+    &:last-of-type {
+        fill: var(--main-alert-color);
+    }
+}

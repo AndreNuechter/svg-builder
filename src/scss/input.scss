@@ -1,0 +1,29 @@
+input {
+    &[type="number"] {
+        width: 5em;
+        border: 0;
+        padding-right: 0;
+        text-align: center;
+        margin: 2px 0;
+    }
+
+    &[type="range"] {
+        -webkit-appearance: none;
+        height: 5px;
+        width: 100%;
+        border-radius: 5px;
+        margin: 8px 0;
+    }
+
+    &[type="radio"] {
+        margin: 0 4px 0 8px;
+    }
+
+    &[type="checkbox"] {
+        margin: 0 4px 0 8px;
+    }
+
+    &:checked {
+        box-shadow: 0 0 0 2px var(--main-highlight-color);
+    }
+}

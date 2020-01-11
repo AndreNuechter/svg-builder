@@ -1,0 +1,80 @@
+select {
+    padding: 0 5px;
+}
+
+label {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+a {
+    text-decoration: none;
+
+    &:visited {
+        color: inherit;
+    }
+}
+
+.for-path,
+.for-rect {
+    display: none;
+}
+
+#output-configuration {
+    grid-area: leftSidebar;
+}
+
+#preview {
+    margin-top: 3rem;
+    grid-area: center;
+
+    svg {
+        background: var(--sub-bg-color);
+        margin: 8px;
+    }
+}
+
+#left-sidebar {
+    grid-area: leftSidebar;
+    display: flex;
+    flex-direction: column;
+    margin-right: 4px;
+}
+
+#layer-management {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#layer-select {
+    label {
+        flex-wrap: initial;
+    }
+}
+
+#layer-select,
+#layer-controls {
+    display: inline-flex;
+    flex-direction: column;
+}
+
+#center-content {
+    grid-area: center;
+    display: flex;
+    flex-direction: column;
+}
+
+#center-top {
+    display: flex;
+
+    label {
+        display: inline;
+        margin-right: 8px;
+    }
+}
+
+#commands {
+    margin-left: 8px;
+}

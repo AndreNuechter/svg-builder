@@ -1,0 +1,27 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    background: var(--main-bg-color);
+    color: var(--main-text-color);
+    margin: 0;
+    padding: 2px 2px 0;
+    height: 100%;
+    box-sizing: border-box;
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: inherit;
+    }
+
+    &[data-mode="path"] {
+        .for-path {
+            display: flex;
+        }
+    }
+
+    &[data-mode="rect"] {
+        .for-rect {
+            display: flex;
+        }
+    }
+}

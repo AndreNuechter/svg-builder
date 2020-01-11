@@ -15,7 +15,6 @@ const drawing = {
 };
 const layerIdRe = / data-layer-id="\d+"/g;
 const multiSpaces = /\s{2,}/g;
-const showPreview = () => { preview.innerHTML = generateMarkUp(); };
 
 export default drawing;
 export {
@@ -75,7 +74,7 @@ function save() {
 }
 
 function switchToOutputTab() {
-    showPreview();
+    preview.innerHTML = generateMarkUp();
     if (drawing.viewBox.filter(v => v === 0).length === 4) centerViewBox();
 }
 

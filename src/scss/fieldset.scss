@@ -1,0 +1,37 @@
+fieldset {
+    border: 1px solid var(--main-text-color);
+    box-shadow: 2px 3px 3px var(--sub-text-color), inset 3px 4px 4px var(--sub-highlight-color);
+    background: linear-gradient(135deg, var(--main-bg-color), 95%, var(--sub-highlight-color));
+
+    fieldset {
+        background: var(--main-bg-color);
+        box-shadow: none;
+
+        +fieldset {
+            margin-top: 0.5rem;
+        }
+    }
+}
+
+fieldset.togglable {
+    margin-top: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    legend {
+        cursor: pointer;
+    }
+
+    &.open {
+        max-height: 100rem;
+    }
+
+    &.closed {
+        max-height: 1.5rem;
+        padding-bottom: 0;
+    }
+}
+
+legend {
+    color: var(--main-heading-color);
+}
