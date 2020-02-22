@@ -198,6 +198,7 @@ function setTransformsFieldset(conf) {
  * @returns { string } The stringified transforms.
  */
 function stringifyTransforms(transformData) {
+    // NOTE: some transforms take more than 1 param, of which some may be ''
     return Object
         .entries(transformData)
         .reduce((str, [key, val]) => `${str}${key}(${typeof val === 'object'

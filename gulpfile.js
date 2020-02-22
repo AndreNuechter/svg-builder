@@ -53,7 +53,7 @@ function js() {
 }
 
 function watchCSSAndHTML() {
-    watch(style, css);
+    watch('src/scss/*.scss', css);
     watch('src/pug/*.pug', html);
 }
 
