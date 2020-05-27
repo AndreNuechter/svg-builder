@@ -24,7 +24,8 @@
         "eslint-plugin-import": "^2.19.1"
     },
     "scripts": {
-        "gulp": "gulp",
-        "prod": "gulp bundle"
+        "dev": "gulp",
+        "build": "gulp bundle",
+        "deploy": "gulp bundle && git add . && git commit -m \"Build\" && git push --all"
     }
 }
