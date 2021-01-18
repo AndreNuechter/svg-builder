@@ -1,5 +1,3 @@
-/* globals document */
-
 import drawing, { save } from './drawing.js';
 import {
     applyTransforms,

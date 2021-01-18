@@ -17,6 +17,9 @@ const style = 'src/scss/style.scss';
 const devDir = 'dev';
 const deployDir = 'docs';
 
+exports.default = parallel(html, css, serve, watchCSSAndHTML);
+exports.bundle = parallel(htmlProd, cssProd, js);
+
 function html() {
     return src(htmlRoot)
         .pipe(pug())
@@ -61,8 +64,6 @@ function serve() {
     const app = express();
     app.use(express.static('src'));
     app.use(express.static(devDir));
-    app.listen(3000, () => console.log('Build that SVG!'));
+    // eslint-disable-next-line no-console
+    app.listen(3001, () => console.log('Build that SVG!'));
 }
-
-exports.default = parallel(html, css, serve, watchCSSAndHTML);
-exports.bundle = parallel(htmlProd, cssProd, js);

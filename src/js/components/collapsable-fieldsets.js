@@ -1,5 +1,3 @@
-/* globals window, document */
-
 window.addEventListener('load', () => {
     const collapse = ({ target: { parentElement: fieldset } }) => {
         const wasOpen = fieldset.classList.contains('open');

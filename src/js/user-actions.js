@@ -1,5 +1,3 @@
-/* globals window, document */
-
 import session from './session.js';
 import drawing, {
     generateDataURI,

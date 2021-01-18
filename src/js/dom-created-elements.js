@@ -1,5 +1,3 @@
-/* globals document */
-
 import { configElement } from './helper-functions.js';
 
 const ns = 'http://www.w3.org/2000/svg';

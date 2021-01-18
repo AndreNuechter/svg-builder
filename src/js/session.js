@@ -1,5 +1,3 @@
-/* globals document */
-
 import { cmdTags, defaults } from './constants.js';
 import drawing from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';

@@ -1,5 +1,3 @@
-/* globals document */
-
 import { getSVGCoords } from '../helper-functions.js';
 import { svg } from '../dom-shared-elements.js';
 

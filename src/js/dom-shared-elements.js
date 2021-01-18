@@ -1,5 +1,3 @@
-/* globals document */
-
 /** @type { HTMLFormElement } */
 const arcCmdConfig = document.getElementById('arc-cmd-config');
 const controlPoints = document.getElementsByClassName('control-point');

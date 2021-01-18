@@ -1,5 +1,3 @@
-/* globals window, document, MutationObserver */
-
 import session from './session.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
 import { centerViewBox, switchToOutputTab } from './drawing.js';
@@ -45,7 +43,7 @@ import {
 new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
     .observe(drawingContent, { childList: true });
 
-window.addEventListener('DOMContentLoaded', initializeDrawing);
+window.addEventListener('DOMContentLoaded', initializeDrawing, { once: true });
 window.onsubmit = e => e.preventDefault();
 window.onkeydown = pressKey;
 layerSelect.onchange = setLayer;

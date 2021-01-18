@@ -1,5 +1,3 @@
-/* globals window, document */
-
 (() => {
     const activeTab = window.location.hash.slice(1);
     const { body } = document;

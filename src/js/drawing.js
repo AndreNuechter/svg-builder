@@ -1,5 +1,3 @@
-/* globals window */
-
 import { drawingContent, preview } from './dom-shared-elements.js';
 import { configElement, setOutputConfiguration, stringifyTransforms } from './helper-functions.js';
 
