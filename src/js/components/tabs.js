@@ -8,10 +8,10 @@
         const tabName = tabNames.includes(hash) ? hash : tabNames[0];
 
         body.dataset.activeTab = tabName;
+        document.querySelector(`a[data-tab-name="${tabName}"]`).click();
 
         if (tabName !== hash) {
             window.location.hash = tabName;
-            document.querySelector(`a[data-tab-name="${tabName}"]`).click();
         }
     };
 

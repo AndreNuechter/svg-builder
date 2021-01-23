@@ -1,8 +1,24 @@
+#tabs {
+    margin-bottom: 8px;
+    color: var(--main-heading-color);
+}
+
+.tab {
+    padding: 4px 8px;
+    margin-right: 8px;
+    color: inherit;
+
+    &.active {
+        background: var(--sub-bg-color);
+        color: var(--main-bg-color)
+    }
+}
+
 .tab-content {
     position: absolute;
     opacity: 0;
     overflow: hidden;
-    height: 99%;
+    height: 96%;
     width: 99%;
     display: grid;
     grid-template-columns: 12rem auto;
@@ -16,26 +32,5 @@
         overflow: visible;
         z-index: 1;
         opacity: 1;
-    }
-}
-
-.tab {
-    padding: 4px 8px;
-    margin-right: 8px;
-}
-
-#tabs {
-    position: absolute;
-    right: 2rem;
-    z-index: 2;
-    color: var(--main-heading-color);
-
-    a {
-        color: inherit;
-
-        &.active {
-            background: var(--sub-bg-color);
-            color: var(--main-bg-color)
-        }
     }
 }
