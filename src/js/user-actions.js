@@ -37,6 +37,7 @@ import {
     svgTemplates
 } from './dom-created-elements.js';
 import {
+    controlPointContainer,
     drawingContent,
     layers,
     layerSelectors,
@@ -138,6 +139,11 @@ function addPoint(event) {
     } else {
         layerTypes[session.mode]
             .mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
+
+        // start dragging newly created path-point
+        if (session.mode === 'path') {
+            controlPointContainer.lastElementChild.dispatchEvent(new Event('pointerdown'));
+        }
     }
 
     styleLayer(session.layer);

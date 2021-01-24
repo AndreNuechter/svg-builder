@@ -62,15 +62,8 @@ function mkControlPoint(layer, layerId) {
     return (point, pointId) => {
         const cps = [];
 
-        if (point.cmd) {
-            if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
-                cps.push(ControlPoint(point.x, point.y, pointId, regularPoint, layerId));
-            } else if (point.cmd === 'H') {
-                cps.push(ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId));
-            } else if (point.cmd === 'V') {
-                cps.push(ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId));
-            }
-
+        // NOTE: path, rect or ellipse
+        if ('cmd' in point) {
             if (['Q', 'C', 'S'].includes(point.cmd)) {
                 cps.push(ControlPoint(point.x1, point.y1, pointId, firstControlPoint, layerId));
             }
@@ -78,10 +71,18 @@ function mkControlPoint(layer, layerId) {
             if (point.cmd === 'C') {
                 cps.push(ControlPoint(point.x2, point.y2, pointId, secondControlPoint, layerId));
             }
-        } else if (point.width !== undefined) {
+
+            if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
+                cps.push(ControlPoint(point.x, point.y, pointId, regularPoint, layerId));
+            } else if (point.cmd === 'H') {
+                cps.push(ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId));
+            } else if (point.cmd === 'V') {
+                cps.push(ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId));
+            }
+        } else if ('width' in point) {
             cps.push(ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
                 ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId));
-        } else if (point.cx !== undefined) {
+        } else if ('cx' in point) {
             cps.push(ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
                 ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
                 ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId));
