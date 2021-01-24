@@ -18,8 +18,20 @@ fieldset.togglable {
     overflow: hidden;
     transition: all .3s ease;
 
-    legend {
+    >legend {
+        position: relative;
         cursor: pointer;
+        width: 100%;
+
+        &::after {
+            position: absolute;
+            right: 0;
+            content: '▼';
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
     }
 
     &.closed {
@@ -27,10 +39,14 @@ fieldset.togglable {
 
         *:not(legend) {
             animation-name: fade;
-            animation-duration: .3s;
+            animation-duration: 0.3s;
             animation-iteration-count: 1;
             animation-fill-mode: forwards;
         }
+    }
+
+    &.open>legend::after {
+        transform: rotate(180deg);
     }
 }
 
