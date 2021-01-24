@@ -26,6 +26,6 @@
     "scripts": {
         "dev": "gulp",
         "build": "gulp bundle",
-        "deploy": "gulp bundle && git add . && git commit --amend --no-edit && git push --all"
+        "deploy": "gulp bundle && git add docs/. && git commit --amend --no-edit && git push --all"
     }
 }
