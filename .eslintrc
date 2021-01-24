@@ -4,7 +4,7 @@
     },
     "extends": "airbnb-base",
     "rules": {
-        "indent": ["error", 4],
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "comma-dangle": ["error", "never"],
         "max-len": ["error", {
             "code": 120,

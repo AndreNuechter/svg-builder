@@ -6,8 +6,8 @@ const xComponent = x => ({ cx: x });
 const yComponent = (x, y) => ({ cy: y });
 // NOTE: ea of the given cmds has the given number of cps,
 // meaning the id of any given cp can be derived by summing the ones before it
-// TODO: should this be stored on pathCmds?
-// TODO: to add a new cmd, this, text on cmd-select, the part going into mkControlPoint and remControlPoint (could be based on this?!) need to be provided
+// TODO: should this be stored on pathCmds? is it a constant?
+// NOTE: to add a new cmd, this, text on cmd-select, the part going into mkControlPoint and remControlPoint (could be based on this?!) need to be provided
 const amounts = {
     M: 1,
     L: 1,

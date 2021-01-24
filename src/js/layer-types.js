@@ -16,67 +16,80 @@ const shaperFuncs = {
     })
 };
 const layerTypes = {
-    rect: LayerType((session, points, x, y) => {
-        if (points[0]) return;
+    rect: LayerType(
+        (session, points, x, y) => {
+            if (points[0]) return;
 
-        const rect = layers[session.layer];
-        points.push({ x, y });
-        configElement(rect, points[0]);
-        session.drawingShape = true;
-        Object.assign(session.shapeStart, { x, y });
-        svg.onpointermove = drawShape(rect, shaperFuncs.rect(x, y));
-    }, ({ points: [point] }) => ({
-        x: point.x,
-        y: point.y,
-        width: point.width || 0,
-        height: point.height || 0
-    })),
-    ellipse: LayerType((session, points, x, y) => {
-        if (points[0]) return;
+            const rect = layers[session.layer];
+            points.push({ x, y });
+            configElement(rect, points[0]);
+            session.drawingShape = true;
+            Object.assign(session.shapeStart, { x, y });
+            svg.onpointermove = drawShape(rect, shaperFuncs.rect(x, y));
+        },
+        ({ points: [point] }) => ({
+            x: point.x,
+            y: point.y,
+            width: point.width || 0,
+            height: point.height || 0
+        })
+    ),
+    ellipse: LayerType(
+        (session, points, x, y) => {
+            if (points[0]) return;
 
-        const ellipse = layers[session.layer];
-        points.push({ cx: x, cy: y });
-        configElement(ellipse, points[0]);
-        session.drawingShape = true;
-        Object.assign(session.shapeStart, { x, y });
-        svg.onpointermove = drawShape(ellipse, shaperFuncs.ellipse(x, y));
-    }, ({ points: [point] }) => ({
-        cx: point.cx,
-        cy: point.cy,
-        rx: point.rx || 0,
-        ry: point.ry || 0
-    })),
-    path: LayerType((session, points, x, y, mkControlPoint, remLastControlPoint) => {
-        const lastPoint = points[points.length - 1];
+            const ellipse = layers[session.layer];
+            points.push({ cx: x, cy: y });
+            configElement(ellipse, points[0]);
+            session.drawingShape = true;
+            Object.assign(session.shapeStart, { x, y });
+            svg.onpointermove = drawShape(ellipse, shaperFuncs.ellipse(x, y));
+        },
+        ({ points: [point] }) => ({
+            cx: point.cx,
+            cy: point.cy,
+            rx: point.rx || 0,
+            ry: point.ry || 0
+        })
+    ),
+    path: LayerType(
+        (session, points, x, y, mkControlPoint, remLastControlPoint) => {
+            const lastPoint = points[points.length - 1];
 
-        // prevent using the same point multiple times in a row
-        if (lastPoint && x === lastPoint.x && y === lastPoint.y) return;
+            // prevent using the same point multiple times in a row
+            if (lastPoint && x === lastPoint.x && y === lastPoint.y) return;
 
-        // ensure first point of a path is a moveTo command
-        if (!points.length) session.cmd = 'M';
+            // ensure first point of a path is a moveTo command
+            if (!points.length) session.cmd = 'M';
 
-        // ensure there're no multiple consecutive M, V or H commands
-        if (lastPoint && lastPoint.cmd === session.cmd && ['M', 'V', 'H'].includes(session.cmd)) {
-            remLastControlPoint(points.pop().cmd);
-        }
+            // ensure there're no multiple consecutive M, V or H commands
+            if (lastPoint && lastPoint.cmd === session.cmd && ['M', 'V', 'H'].includes(session.cmd)) {
+                remLastControlPoint(points.pop().cmd);
+            }
 
-        points.push({ cmd: session.cmd, x, y });
+            points.push({ cmd: session.cmd, x, y });
 
-        // for Q, C and A cmds we need to add cp(s)
-        if (session.cmd === 'Q' || session.cmd === 'S') {
-            const cp = quad(x, y, points[points.length - 2]);
-            Object.assign(points[points.length - 1], cp);
-        } else if (session.cmd === 'C') {
-            const cps = cube(x, y, points[points.length - 2]);
-            Object.assign(points[points.length - 1], cps);
-        } else if (session.cmd === 'A') {
-            const cp = arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
-            Object.assign(points[points.length - 1], cp);
-        }
+            const additionalCPs = ((cmd) => {
+                switch (cmd) {
+                    case 'Q':
+                    case 'S':
+                        return quad(x, y, points[points.length - 2]);
+                    case 'C':
+                        return cube(x, y, points[points.length - 2]);
+                    case 'A':
+                        return arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
+                    default:
+                        return {};
+                }
+            })(session.cmd);
+            Object.assign(points[points.length - 1], additionalCPs);
 
-        // create cp(s) for the new point
-        mkControlPoint(session.current, session.layer)(points[points.length - 1], points.length - 1);
-    }, layer => ({ d: layer.points.map(pointToMarkup).join('') + (layer.closePath ? 'Z' : '') }))
+            mkControlPoint(session.current, session.layer)(points[points.length - 1], points.length - 1);
+        },
+        ({ points, closePath }) => ({
+            d: `${points.map(pointToMarkup).join('')} ${closePath ? 'Z' : ''}`
+        })
+    )
 };
 
 export default layerTypes;
