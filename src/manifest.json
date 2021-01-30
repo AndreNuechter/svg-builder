@@ -1,0 +1,19 @@
+{
+    "name": "SVG Builder",
+    "short_name": "svgBuilder",
+    "start_url": "./",
+    "display": "standalone",
+    "orientation": "landscape",
+    "theme_color": "#ffffff",
+    "background_color": "#000000",
+    "icons": [{
+        "src": "./images/icons-192.png",
+        "type": "image/png",
+        "sizes": "192x192",
+        "purpose": "any maskable"
+    }, {
+        "src": "./images/icons-512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+    }]
+}
