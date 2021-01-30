@@ -35,7 +35,7 @@ fieldset.togglable {
     }
 
     &.closed {
-        height: 28px;
+        max-height: 28px;
 
         *:not(legend) {
             animation-name: fade;
@@ -45,8 +45,12 @@ fieldset.togglable {
         }
     }
 
-    &.open>legend::after {
-        transform: rotate(180deg);
+    &.open {
+        max-height: 400px;
+
+        >legend::after {
+            transform: rotate(180deg);
+        }
     }
 }
 

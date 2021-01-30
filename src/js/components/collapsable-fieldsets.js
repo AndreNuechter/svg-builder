@@ -1,13 +1,10 @@
 window.addEventListener('load', () => {
     const collapse = ({ target: { parentElement: fieldset } }) => {
-        const wasOpen = fieldset.classList.contains('open');
-        fieldset.classList.toggle('open');
         fieldset.classList.toggle('closed');
-        fieldset.style.height = wasOpen ? '' : fieldset.dataset.height;
+        fieldset.classList.toggle('open');
     };
 
     [...document.getElementsByClassName('togglable')].forEach((f) => {
-        f.dataset.height = `${f.offsetHeight}px`;
         // clicking on the legend triggers the collapse
         f.firstElementChild.onclick = collapse;
 
