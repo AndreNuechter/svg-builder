@@ -39,6 +39,7 @@ export {
     pointToMarkup,
     saveCloneObj,
     setArcCmdConfig,
+    setCmdConfig,
     setFillAndStrokeFields,
     setOutputConfiguration,
     setTransformsFieldset,
@@ -162,6 +163,16 @@ function setArcCmdConfig(session, defaults) {
             const field = arcCmdConfig.elements[key];
             field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
         });
+}
+
+function setCmdConfig(session) {
+    if (session.current.mode !== 'path') return;
+
+    const selected = session.current.points.length
+        ? session.current.points[session.current.points.length - 1].cmd
+        : 'M';
+
+    session.cmd = selected;
 }
 
 /**

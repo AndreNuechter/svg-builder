@@ -1,5 +1,6 @@
 /** @type { HTMLFormElement } */
 const arcCmdConfig = document.getElementById('arc-cmd-config');
+const cmdSelect = document.getElementById('commands');
 const controlPoints = document.getElementsByClassName('control-point');
 const controlPointContainer = document.getElementById('control-point-container');
 const downloadBtn = document.getElementById('download-btn');
@@ -23,6 +24,7 @@ const [transformTargetSwitch] = document.getElementsByName('transform-layer-only
 
 export {
     arcCmdConfig,
+    cmdSelect,
     controlPoints,
     controlPointContainer,
     downloadBtn,

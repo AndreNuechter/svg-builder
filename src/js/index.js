@@ -4,6 +4,7 @@ import { centerViewBox, switchToOutputTab } from './drawing.js';
 import { observeLayers } from './layer-handling.js';
 import {
     arcCmdConfig,
+    cmdSelect,
     downloadBtn,
     drawingContent,
     layerSelect,
@@ -56,7 +57,7 @@ transformFieldSet.oninput = setTransform;
 outputConfig.oninput = configOutput;
 downloadBtn.onclick = triggerDownload;
 svg.addEventListener('pointerdown', addPoint);
-document.getElementById('commands').onchange = setCmd;
+cmdSelect.onchange = setCmd;
 document.getElementById('modes').onchange = setMode;
 document.getElementById('reset-transforms').onclick = resetTransforms;
 document.getElementById('get-markup').onclick = markupToClipboard;

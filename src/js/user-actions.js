@@ -237,8 +237,6 @@ function initializeDrawing() {
         session.layer = 0;
         pathClosingToggle.checked = session.current.closePath;
     }
-    // set selected cmd
-    document.querySelector('option[value="M"]').selected = true;
 
     // create layer representations and config ea
     drawingContent.append(...drawing.layers.map((layer, i) => {
