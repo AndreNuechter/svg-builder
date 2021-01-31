@@ -78,17 +78,16 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         const layerSelector = layerSelectorTemplate.cloneNode(true);
         const [label, selector] = layerSelector.children;
         layerSelector.dataset.layerId = layerId;
+        layerSelector.ondragstart = dragLayerSelector;
+        label.oninput = changeLayerLabel;
         configElement(label, {
-            textContent: drawing.layers[layerId]
-                ? drawing.layers[layerId].label || `Layer ${layerId + 1}`
-                : `Layer ${layerId + 1}`
+            textContent: (drawing.layers[layerId] && drawing.layers[layerId].label)
+                || `Layer ${layerId + 1}`
         });
         configElement(selector, {
             value: layerId,
             checked: session.layer === layerSelectors.length
         });
-        layerSelector.ondragstart = dragLayerSelector;
-        label.oninput = changeLayerLabel;
         layerSelect.append(layerSelector);
     };
     const removeLayerSelector = (removedNode) => {

@@ -267,6 +267,9 @@ function pressKey(event) {
     if (window.location.hash !== '#drawing') return;
 
     const { key } = event;
+
+    if (key === 'F12') return;
+
     const move = moves[key];
 
     // exit label editing by pressing enter
@@ -393,7 +396,9 @@ function setMode({ target }) {
         const shape = configClone(svgTemplates[session.mode])({
             'data-layer-id': session.layer
         });
-        drawingContent.replaceChild(shape, layers[session.layer]);
+        const oldLayer = layers[session.layer];
+        oldLayer.replaceWith(shape);
+        oldLayer.remove();
         // remove non-default style-props of old layer
         Object.keys(session.current.style).forEach((key) => {
             if (defaults.style[key] === undefined) delete session.current.style[key];
