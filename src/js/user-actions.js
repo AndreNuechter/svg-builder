@@ -270,13 +270,13 @@ function pressKey(event) {
 
     if (key === 'F12') return;
 
-    const move = moves[key];
-
     // exit label editing by pressing enter
     if (key === 'Enter' && event.target.contentEditable) event.target.blur();
 
     // prevent interference w eg custom labeling
     if (document.activeElement !== document.body) return;
+
+    const move = moves[key];
 
     if (move) {
         if (!session.current && !event.ctrlKey) return;
@@ -288,6 +288,7 @@ function pressKey(event) {
 
         transformTarget[prop] = cb(transformTarget[prop]);
         applyTransforms(drawing, session);
+        save();
     } else if (key === 'Backspace') {
         deleteLastPoint();
     } else if (cmdTags.includes(key.toUpperCase())) {
