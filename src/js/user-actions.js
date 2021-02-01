@@ -278,7 +278,16 @@ function pressKey(event) {
 
     const move = moves[key];
 
-    if (move) {
+    if (event.ctrlKey && key.toUpperCase() === 'C') {
+        // add a copy of the current layer after it and focus it
+        const layerData = saveCloneObj(session.current);
+        const layerRepresentation = layers[session.layer].cloneNode(true);
+        drawing.layers.splice(session.layer, 0, layerData);
+        layers[session.layer].after(layerRepresentation);
+        [...layers].forEach((l, i) => { l.dataset.layerId = i; });
+        session.layer += 1;
+        save();
+    } else if (move) {
         if (!session.current && !event.ctrlKey) return;
 
         const { transforms: { translate: transformTarget } } = event.ctrlKey
