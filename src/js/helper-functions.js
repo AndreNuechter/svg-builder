@@ -147,7 +147,15 @@ function pointToMarkup(point) {
 }
 
 function saveCloneObj(obj) {
-    return JSON.parse(JSON.stringify(obj));
+    if (typeof obj !== 'object' || obj === null) return obj;
+
+    const clone = Array.isArray(obj) ? [] : {};
+
+    Object.keys(obj).forEach((key) => {
+        clone[key] = saveCloneObj(obj[key]);
+    });
+
+    return clone;
 }
 
 function setArcCmdConfig(session, defaults) {
