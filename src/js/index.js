@@ -1,3 +1,6 @@
+import './components/collapsable-fieldsets.js';
+import './components/coords-display.js';
+import './components/tabs.js';
 import session from './session.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
 import { centerViewBox, switchToOutputTab } from './drawing.js';

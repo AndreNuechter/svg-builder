@@ -1,4 +1,4 @@
-(() => {
+export default (() => {
     const { body } = document;
     const tabsContainer = document.getElementById('tabs');
     const tabs = [...tabsContainer.children];

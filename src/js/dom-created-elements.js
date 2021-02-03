@@ -15,15 +15,15 @@ const layerSelectorTemplate = (() => {
 
     return label;
 })();
-const circleTemplate = (() => configElement(document.createElementNS(ns, 'circle'), {
-    r: 3,
-    class: 'control-point'
-}))();
 const svgTemplates = {
     path: document.createElementNS(ns, 'path'),
     rect: document.createElementNS(ns, 'rect'),
     ellipse: document.createElementNS(ns, 'ellipse')
 };
+const circleTemplate = configElement(document.createElementNS(ns, 'circle'), {
+    r: 3,
+    class: 'control-point'
+});
 const downloadLink = document.createElement('a');
 const dummyImg = document.createElement('img');
 const canvas = document.createElement('canvas');

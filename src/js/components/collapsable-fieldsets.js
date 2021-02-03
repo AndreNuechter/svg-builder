@@ -1,4 +1,4 @@
-window.addEventListener('load', () => {
+export default (() => window.addEventListener('load', () => {
     const collapse = ({ target: { parentElement: fieldset } }) => {
         fieldset.classList.toggle('closed');
         fieldset.classList.toggle('open');
@@ -10,4 +10,4 @@ window.addEventListener('load', () => {
 
         if (!f.classList.contains('open') && !f.classList.contains('closed')) f.classList.add('closed');
     });
-});
+}, { once: true }))();

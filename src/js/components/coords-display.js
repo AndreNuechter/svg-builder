@@ -10,5 +10,7 @@ const coordToolTips = (event) => {
     coords.style.top = `${event.pageY - 40}px`;
 };
 
-svg.addEventListener('pointermove', coordToolTips);
-svg.addEventListener('pointerleave', () => { coords.style = null; });
+export default (() => {
+    svg.addEventListener('pointermove', coordToolTips);
+    svg.addEventListener('pointerleave', () => { coords.style = null; });
+})();
