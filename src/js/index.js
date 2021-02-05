@@ -11,6 +11,7 @@ import {
     downloadBtn,
     drawingContent,
     layerSelect,
+    modesForm,
     outputConfig,
     pathClosingToggle,
     svg,
@@ -61,7 +62,7 @@ outputConfig.oninput = configOutput;
 downloadBtn.onclick = triggerDownload;
 svg.addEventListener('pointerdown', addPoint);
 cmdSelect.onchange = setCmd;
-document.getElementById('modes').onchange = setMode;
+modesForm.onchange = setMode;
 document.getElementById('reset-transforms').onclick = resetTransforms;
 document.getElementById('get-markup').onclick = markupToClipboard;
 document.getElementById('get-data-uri').onclick = dataURIToClipboard;

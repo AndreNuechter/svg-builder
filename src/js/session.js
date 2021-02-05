@@ -1,7 +1,12 @@
 import { cmdTags, defaults } from './constants.js';
 import drawing from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import { cmdSelect, pathClosingToggle, transformTargetSwitch } from './dom-shared-elements.js';
+import {
+    cmdSelect,
+    modesForm,
+    pathClosingToggle,
+    transformTargetSwitch
+} from './dom-shared-elements.js';
 import layerTypes from './layer-types.js';
 import {
     applyTransforms,
@@ -15,8 +20,7 @@ const modes = Object.keys(layerTypes);
 const basicField = Field(val => typeof val === 'boolean', () => {});
 const proxiedSessionKeys = {
     mode: Field(val => modes.includes(val), (val) => {
-        // check the appropriate mode input
-        document.querySelector(`input[type="radio"][value="${val}"]`).checked = true;
+        modesForm.modes.value = val;
         document.body.dataset.mode = val;
     }),
     cmd: Field(val => cmdTags.includes(val), (val) => {

@@ -12,6 +12,7 @@ const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer-selector');
 /** @type { HTMLFormElement } */
 const outputConfig = document.getElementById('output-configuration');
+const modesForm = document.getElementById('modes');
 const preview = document.getElementById('preview');
 const pathClosingToggle = document.getElementById('close-path-toggle');
 /** @type { SVGSVGElement } */
@@ -34,6 +35,7 @@ export {
     layerSelect,
     layerSelectors,
     outputConfig,
+    modesForm,
     pathClosingToggle,
     preview,
     rotateInputs,
