@@ -77,14 +77,14 @@ const layerTypes = {
                     case 'C':
                         return cube(x, y, points[points.length - 2]);
                     case 'A':
-                        return arc(Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig));
+                        return arc({ ...defaults.arcCmdConfig, ...session.arcCmdConfig });
                     default:
                         return {};
                 }
             })(session.cmd);
             Object.assign(points[points.length - 1], additionalCPs);
 
-            mkControlPoint(session.current, session.layer)(points[points.length - 1], points.length - 1);
+            mkControlPoint(session.activeLayer, session.layer)(points[points.length - 1], points.length - 1);
         },
         ({ points, closePath }) => ({
             d: `${points.map(pointToMarkup).join('')} ${closePath ? 'Z' : ''}`

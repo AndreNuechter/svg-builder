@@ -1,5 +1,4 @@
 import { cmdTags, defaults } from './constants.js';
-import drawing from './drawing.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
 import {
     cmdSelect,
@@ -7,7 +6,6 @@ import {
     pathClosingToggle,
     transformTargetSwitch
 } from './dom-shared-elements.js';
-import layerTypes from './layer-types.js';
 import {
     applyTransforms,
     setArcCmdConfig,
@@ -15,15 +13,17 @@ import {
     setFillAndStrokeFields,
     setTransformsFieldset
 } from './helper-functions.js';
+import drawing from './drawing.js';
+import layerTypes from './layer-types.js';
 
 const modes = Object.keys(layerTypes);
-const basicField = Field(val => typeof val === 'boolean', () => {});
+const basicField = Field((val) => typeof val === 'boolean', () => {});
 const proxiedSessionKeys = {
-    mode: Field(val => modes.includes(val), (val) => {
+    mode: Field((val) => modes.includes(val), (val) => {
         modesForm.modes.value = val;
         document.body.dataset.mode = val;
     }),
-    cmd: Field(val => cmdTags.includes(val), (val) => {
+    cmd: Field((val) => cmdTags.includes(val), (val) => {
         cmdSelect.value = val;
     }),
     layer: LayerField(),
@@ -32,8 +32,13 @@ const proxiedSessionKeys = {
     transformLayerNotDrawing: basicField
 };
 const session = new Proxy({
-    get current() {
+    get activeLayer() {
         return drawing.layers[session.layer];
+    },
+    get transformTarget() {
+        return session.transformLayerNotDrawing
+            ? session.activeLayer
+            : drawing;
     },
     keys: Object.keys(proxiedSessionKeys),
     cmd: 'M',
@@ -61,12 +66,12 @@ function Field(validate, onPass) { return { validate, onPass }; }
 
 function LayerField() {
     return Field(
-        val => (+val >= 0 && +val <= drawing.layers.length),
+        (val) => (+val >= 0 && +val <= drawing.layers.length),
         (val) => {
-            const cb = mkControlPoint(session.current, val);
+            const cb = mkControlPoint(session.activeLayer, val);
             remControlPoints();
             drawing.layers[val].points.forEach(cb);
-            pathClosingToggle.checked = session.current.closePath;
+            pathClosingToggle.checked = session.activeLayer.closePath;
             setFillAndStrokeFields(drawing.layers[val].style);
             setArcCmdConfig(session, defaults);
             setCmdConfig(session);

@@ -1,7 +1,6 @@
 import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
-import session from './session.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
 import { centerViewBox, switchToOutputTab } from './drawing.js';
 import { observeLayers } from './layer-handling.js';
@@ -26,11 +25,11 @@ import {
     clearDrawing,
     configArcCmd,
     configOutput,
-    dataURIToClipboard,
+    copyDataURIToClipboard,
     deleteLastPoint,
     initializeDrawing,
     deleteLayer,
-    markupToClipboard,
+    copyMarkupToClipboard,
     pressKey,
     reorderLayers,
     resetTransforms,
@@ -43,13 +42,14 @@ import {
     togglePathClosing,
     triggerDownload
 } from './user-actions.js';
+import session from './session.js';
 
 // watches for additions and removals of layers and does some synchronisation
 new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
     .observe(drawingContent, { childList: true });
 
 window.addEventListener('DOMContentLoaded', initializeDrawing, { once: true });
-window.onsubmit = e => e.preventDefault();
+window.onsubmit = (e) => e.preventDefault();
 window.onkeydown = pressKey;
 layerSelect.onchange = setLayer;
 layerSelect.ondrop = reorderLayers;
@@ -64,8 +64,8 @@ svg.addEventListener('pointerdown', addPoint);
 cmdSelect.onchange = setCmd;
 modesForm.onchange = setMode;
 document.getElementById('reset-transforms').onclick = resetTransforms;
-document.getElementById('get-markup').onclick = markupToClipboard;
-document.getElementById('get-data-uri').onclick = dataURIToClipboard;
+document.getElementById('get-markup').onclick = copyMarkupToClipboard;
+document.getElementById('get-data-uri').onclick = copyDataURIToClipboard;
 document.getElementById('center-rotation-btn').onclick = centerRotation;
 document.getElementById('center-vb').onclick = centerViewBox;
 document.getElementById('add-layer').onclick = addLayer;

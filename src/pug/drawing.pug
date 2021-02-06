@@ -108,33 +108,34 @@
     #center-top
         form#modes
             fieldset
-            legend Modes
-            label
-                span Path
-                input(type="radio" name="modes" value="path" checked)
-            label
-                span Rectangle
-                input(type="radio" name="modes" value="rect")
-            label
-                span Ellipse
-                input(type="radio" name="modes" value="ellipse")
+                legend Modes
+                label
+                    span Path
+                    input(type="radio" name="modes" value="path" checked)
+                label
+                    span Rectangle
+                    input(type="radio" name="modes" value="rect")
+                label
+                    span Ellipse
+                    input(type="radio" name="modes" value="ellipse")
 
-        fieldset.for-path
-            legend Path related
-            label Command
-                select#commands
-                    option(value="M" selected) Move to (M)
-                    option(value="L") Line to (L)
-                    option(value="H") Horizontal line to (H)
-                    option(value="V") Vertical line to (V)
-                    option(value="Q") Quadratic curve to (Q)
-                    option(value="S") Smooth curve to (S)
-                    option(value="C") Cubic curve to (C)
-                    option(value="T") Smooth quadratic curve to (T)
-                    option(value="A") Arc to (A)
-            label.for-path
-                span Close path
-                input#close-path-toggle(type="checkbox" checked)
+        form#path-specific-config
+            fieldset.for-path
+                legend Path related
+                label Command
+                    select#commands
+                        option(value="M" selected) Move to (M)
+                        option(value="L") Line to (L)
+                        option(value="H") Horizontal line to (H)
+                        option(value="V") Vertical line to (V)
+                        option(value="Q") Quadratic curve to (Q)
+                        option(value="S") Smooth curve to (S)
+                        option(value="C") Cubic curve to (C)
+                        option(value="T") Smooth quadratic curve to (T)
+                        option(value="A") Arc to (A)
+                label.for-path
+                    span Close path
+                    input#close-path-toggle(type="checkbox" checked)
 
     svg#canvas
         g#drawing-content

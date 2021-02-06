@@ -1,10 +1,3 @@
-import session from './session.js';
-import drawing, {
-    generateDataURI,
-    generateMarkUp,
-    updateViewBox,
-    save
-} from './drawing.js';
 import {
     drawLayer,
     Layer,
@@ -24,7 +17,7 @@ import {
     getNonDefaultStyles,
     getSVGCoords,
     pointToMarkup,
-    saveCloneObj,
+    cloneObj,
     setArcCmdConfig,
     setTransformsFieldset,
     setOutputConfiguration,
@@ -45,9 +38,16 @@ import {
     svg,
     transformTargetSwitch
 } from './dom-shared-elements.js';
-import layerTypes from './layer-types.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-point-handling.js';
 import { arc } from './path-commands.js';
+import drawing, {
+    generateDataURI,
+    generateMarkUp,
+    updateViewBox,
+    save
+} from './drawing.js';
+import session from './session.js';
+import layerTypes from './layer-types.js';
 
 const ctx = canvas.getContext('2d');
 const download = (url) => {
@@ -57,7 +57,7 @@ const download = (url) => {
     });
     downloadLink.click();
 };
-const writeToClipboard = text => window.navigator.clipboard.writeText(text);
+const writeToClipboard = (text) => window.navigator.clipboard.writeText(text);
 
 export {
     addLayer,
@@ -66,11 +66,11 @@ export {
     clearDrawing,
     configArcCmd,
     configOutput,
-    dataURIToClipboard,
+    copyDataURIToClipboard,
+    copyMarkupToClipboard,
     deleteLastPoint,
     deleteLayer,
     initializeDrawing,
-    markupToClipboard,
     pressKey,
     reorderLayers,
     resetTransforms,
@@ -93,9 +93,8 @@ function addLayer() {
     session.layer = drawing
         .layers
         .push(Layer(
-            session.mode,
-            Object.assign({}, defaults.style, untrackedStyle),
-            saveCloneObj(defaults.transforms)
+            session.mode, { ...defaults.style, ...untrackedStyle },
+            cloneObj(defaults.transforms)
         )) - 1;
     save();
 
@@ -110,7 +109,7 @@ function addPoint(event) {
     if (!layers.length) addLayer();
 
     const [x, y] = getSVGCoords(event);
-    const { points } = session.current;
+    const { points } = session.activeLayer;
 
     if (session.drawingShape) {
         const size = {
@@ -130,7 +129,7 @@ function addPoint(event) {
             };
 
         Object.assign(points[0], attrs);
-        mkControlPoint(session.current, session.layer)(
+        mkControlPoint(session.activeLayer, session.layer)(
             points[points.length - 1],
             points.length - 1
         );
@@ -148,54 +147,57 @@ function addPoint(event) {
 
     styleLayer(session.layer);
     drawLayer(session.layer);
+    save();
 }
 
 function centerRotation() {
     const args = session.transformLayerNotDrawing
-        ? [layers[session.layer], session.current.transforms]
+        ? [layers[session.layer], session.activeLayer.transforms]
         : [svg.firstElementChild, drawing.transforms];
 
     setCenterOfRotation(...args);
     applyTransforms(drawing, session);
-    save();
 }
 
 function clearDrawing() {
-    window.localStorage.removeItem('drawing');
     drawing.layers.length = 0;
-    drawing.outputConfig = Object.assign({}, defaults.outputConfig);
-    drawing.transforms = saveCloneObj(defaults.transforms);
-    [...layers].forEach(layer => layer.remove());
+    drawing.outputConfig = { ...defaults.outputConfig };
+    drawing.transforms = cloneObj(defaults.transforms);
+    [...layers].forEach((layer) => layer.remove());
+    save();
 }
 
 function configArcCmd({ target }) {
     const prop = (target.type === 'checkbox') ? 'checked' : 'value';
     session.arcCmdConfig[target.name] = target[prop];
 
-    if (!session.current) return;
+    if (!session.activeLayer) return;
 
-    const lastArcCmd = getLastArcCmd(session.current.points) || {};
-    const updateData = Object.assign({}, defaults.arcCmdConfig, session.arcCmdConfig);
+    const lastArcCmd = getLastArcCmd(session.activeLayer.points);
 
-    Object.assign(lastArcCmd, arc(updateData));
+    if (!lastArcCmd) return;
+
+    Object.assign(lastArcCmd, arc({ ...defaults.arcCmdConfig, ...session.arcCmdConfig }));
     drawLayer(session.layer);
+    save();
 }
 
 function configOutput({ target }) {
     drawing.outputConfig[target.name] = target.value;
-    save();
     updateViewBox();
+    save();
 }
 
-function dataURIToClipboard() { writeToClipboard(generateDataURI()); }
+function copyDataURIToClipboard() { writeToClipboard(generateDataURI()); }
 
 function deleteLastPoint() {
-    if (!session.current) return;
+    if (!(session.activeLayer && session.activeLayer.points.length)) return;
 
-    const latestPoint = session.current.points.pop();
+    const latestPoint = session.activeLayer.points.pop();
 
-    if (!latestPoint) return;
+    save();
 
+    // NOTE: if the latest point has no cmd-prop it's either a rect or a circle
     if (latestPoint.cmd) {
         remLastControlPoint(latestPoint.cmd);
         drawLayer(session.layer);
@@ -205,27 +207,24 @@ function deleteLastPoint() {
 
         remControlPoints();
         layer.getAttributeNames()
-            .filter(n => !steadyAttrs.includes(n))
-            .forEach(n => layer.removeAttribute(n));
-
-        save();
+            .filter((n) => !steadyAttrs.includes(n))
+            .forEach((n) => layer.removeAttribute(n));
     }
 }
 
 function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layer, 1);
-    save();
     layers[session.layer].remove();
+    save();
 }
 
 function initializeDrawing() {
-    // if there's a saved drawing, use it, else use defaults
-    const src = JSON.parse(window.localStorage.getItem('drawing')) || {};
+    const drawingData = JSON.parse(window.localStorage.getItem('drawing')) || {};
     Object.assign(drawing, {
-        outputConfig: src.outputConfig || Object.assign({}, defaults.outputConfig),
-        transforms: src.transforms || saveCloneObj(defaults.transforms),
-        layers: src.layers || []
+        outputConfig: drawingData.outputConfig || ({ ...defaults.outputConfig }),
+        transforms: drawingData.transforms || cloneObj(defaults.transforms),
+        layers: drawingData.layers || []
     });
 
     session.mode = (drawing.layers[0] && drawing.layers[0].mode)
@@ -235,7 +234,7 @@ function initializeDrawing() {
     // initialize session.layer or reset arc-cmd-config
     if (drawing.layers.length) {
         session.layer = 0;
-        pathClosingToggle.checked = session.current.closePath;
+        pathClosingToggle.checked = session.activeLayer.closePath;
     }
 
     // create layer representations and config ea
@@ -261,7 +260,7 @@ function initializeDrawing() {
     setOutputConfiguration(drawing);
 }
 
-function markupToClipboard() { writeToClipboard(generateMarkUp()); }
+function copyMarkupToClipboard() { writeToClipboard(generateMarkUp()); }
 
 function pressKey(event) {
     if (window.location.hash !== '#drawing') return;
@@ -279,8 +278,8 @@ function pressKey(event) {
     const move = moves[key];
 
     if (event.ctrlKey && key.toUpperCase() === 'C') {
-        // add a copy of the current layer after it and focus it
-        const layerData = saveCloneObj(session.current);
+        // NOTE: add a copy of the current layer after it and focus it
+        const layerData = cloneObj(session.activeLayer);
         const layerRepresentation = layers[session.layer].cloneNode(true);
         drawing.layers.splice(session.layer, 0, layerData);
         layers[session.layer].after(layerRepresentation);
@@ -288,16 +287,15 @@ function pressKey(event) {
         session.layer += 1;
         save();
     } else if (move) {
-        if (!session.current && !event.ctrlKey) return;
+        if (!session.activeLayer && !event.ctrlKey) return;
 
         const { transforms: { translate: transformTarget } } = event.ctrlKey
             ? drawing
-            : session.current;
+            : session.activeLayer;
         const { cb, prop } = move;
 
         transformTarget[prop] = cb(transformTarget[prop]);
         applyTransforms(drawing, session);
-        save();
     } else if (key === 'Backspace') {
         deleteLastPoint();
     } else if (cmdTags.includes(key.toUpperCase())) {
@@ -326,7 +324,7 @@ function reorderLayers(event) {
         drawingContent.insertBefore(draggedLayer, droppedOnLayer);
     }
 
-    // NOTE: we want the active layer to remain active,
+    // we want the active layer to remain active,
     // so we may have to add or subtract 1 from session.layer or
     // set the id to the one dropped on
     if (draggedId !== session.layer) {
@@ -348,15 +346,15 @@ function reorderLayers(event) {
 function resetTransforms() {
     const { transforms } = defaults;
 
-    if (transformTargetSwitch.checked && session.current) {
-        session.current.transforms = saveCloneObj(transforms);
+    if (transformTargetSwitch.checked && session.activeLayer) {
+        session.activeLayer.transforms = cloneObj(transforms);
     } else {
-        drawing.transforms = saveCloneObj(transforms);
+        drawing.transforms = cloneObj(transforms);
     }
 
-    save();
     applyTransforms(drawing, session);
     setTransformsFieldset(transforms);
+    save();
 }
 
 function setCenterOfRotation(element, transformTarget) {
@@ -370,26 +368,30 @@ function setCenterOfRotation(element, transformTarget) {
 
     [complexTransforms.rotate[1].value, complexTransforms.rotate[2].value] = coords;
     [transformTarget.rotate[1], transformTarget.rotate[2]] = coords;
+    save();
 }
 
-function setCmd({ target }) { session.cmd = cmdTags[cmdTags.indexOf(target.value)] || cmdTags[0]; }
+function setCmd({ target }) {
+    session.cmd = cmdTags[cmdTags.indexOf(target.value)] || cmdTags[0];
+}
 
 function setFillOrStroke({ target }) {
     if (!drawing.layers[session.layer]) return;
 
     drawing.layers[session.layer].style[target.name] = target.value;
     styleLayer(session.layer);
+    save();
 }
 
-function setLayer({ target }) {
-    const layerId = +target.value;
+function setLayer({ target: { value } }) {
+    const layerId = +value;
     session.mode = drawing.layers[layerId].mode;
     session.layer = layerId;
 }
 
-function setMode({ target }) {
+function setMode({ target, currentTarget }) {
     if (session.drawingShape) {
-        session.mode = session.mode;
+        currentTarget.modes.value = session.mode;
         return;
     }
 
@@ -399,10 +401,10 @@ function setMode({ target }) {
 
     // NOTE: if we change the mode on an existing layer, we add a new layer,
     // but if it has not been edited yet, we replace the shape and the mode
-    if (session.current.points.length) {
+    if (session.activeLayer.points.length) {
         addLayer();
     } else {
-        session.current.mode = session.mode;
+        session.activeLayer.mode = session.mode;
         const shape = configClone(svgTemplates[session.mode])({
             'data-layer-id': session.layer
         });
@@ -410,40 +412,38 @@ function setMode({ target }) {
         oldLayer.replaceWith(shape);
         oldLayer.remove();
         // remove non-default style-props of old layer
-        Object.keys(session.current.style).forEach((key) => {
-            if (defaults.style[key] === undefined) delete session.current.style[key];
+        Object.keys(session.activeLayer.style).forEach((key) => {
+            if (defaults.style[key] === undefined) delete session.activeLayer.style[key];
         });
         // add non-default style-props to new layer
-        Object.assign(session.current.style, getNonDefaultStyles(session.mode));
+        Object.assign(session.activeLayer.style, getNonDefaultStyles(session.mode));
+        save();
     }
 }
 
 function setTransform({ target }) {
-    const transformTarget = session.transformLayerNotDrawing
-        ? session.current
-        : drawing;
-
     // NOTE: 'rotate' and scale have more than one param
     if (target.classList.contains('transform-config')) {
-        transformTarget.transforms[target.dataset.transform][+target.dataset.id] = target.value;
+        const { transform, id } = target.dataset;
+        session.transformTarget.transforms[transform][+id] = target.value;
     } else {
-        transformTarget.transforms[target.name] = target.value;
+        session.transformTarget.transforms[target.name] = target.value;
     }
 
-    save();
     applyTransforms(drawing, session);
+    save();
 }
 
-function setTransformTarget({ target }) {
-    if (target.checked) {
-        setTransformsFieldset(session.current
-            ? session.current.transforms
+function setTransformTarget({ target: { checked } }) {
+    if (checked) {
+        setTransformsFieldset(session.activeLayer
+            ? session.activeLayer.transforms
             : defaults.transforms);
     } else {
         setTransformsFieldset(drawing.transforms);
     }
 
-    session.transformLayerNotDrawing = target.checked;
+    session.transformLayerNotDrawing = checked;
 }
 
 function togglePathClosing() {
@@ -451,6 +451,7 @@ function togglePathClosing() {
 
     drawing.layers[session.layer].closePath = pathClosingToggle.checked;
     drawLayer(session.layer);
+    save();
 }
 
 function triggerDownload() {

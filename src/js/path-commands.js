@@ -1,29 +1,31 @@
-// gives the ordered properties of a point of a cmd
+const basicPathCmd = ({ x, y }) => `${x} ${y}`;
+// A collection of functions that take a path-point and
+// return a string tailored to the point's cmd that can be added to a path's d-attr
 const pathCmds = {
-    H: ({ x }) => [x],
-    V: ({ y }) => [y],
-    Q: p => [p.x1, p.y1, p.x, p.y],
-    C: p => [
-        p.x1,
-        p.y1,
-        p.x2,
-        p.y2,
-        p.x,
-        p.y
-    ],
-    A: p => [
-        p.xR,
-        p.yR,
-        p.xRot,
-        p.large,
-        p.sweep,
-        p.x,
-        p.y
-    ],
-    S: p => [p.x1, p.y1, p.x, p.y],
-    T: ({ x, y }) => [x, y],
-    M: ({ x, y }) => [x, y],
-    L: ({ x, y }) => [x, y]
+    H: ({ x }) => x,
+    V: ({ y }) => y,
+    Q: ({ x, x1, y, y1 }) => `${x1} ${y1} ${x} ${y}`,
+    C: ({
+        x,
+        x1,
+        x2,
+        y,
+        y1,
+        y2
+    }) => `${x1} ${y1} ${x2} ${y2} ${x} ${y}`,
+    A: ({
+        x,
+        xR,
+        xRot,
+        y,
+        yR,
+        large,
+        sweep
+    }) => `${xR} ${yR} ${xRot} ${large} ${sweep} ${x} ${y}`,
+    S: ({ x, x1, y, y1 }) => `${x1} ${y1} ${x} ${y}`,
+    T: basicPathCmd,
+    M: basicPathCmd,
+    L: basicPathCmd
 };
 const offset = 33;
 const calculateOffset = (distA, distB, prior, current) => {

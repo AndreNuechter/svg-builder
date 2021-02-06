@@ -16,15 +16,7 @@ const { elements: fillAndStrokeFields } = fillAndStroke;
 const { elements: outputConfigFields } = outputConfig;
 const configForm = (formElements, conf) => {
     Object.entries(conf).forEach(([key, val]) => {
-        const field = formElements[key];
-
-        if (field.tagName === 'SELECT') {
-            [...field.options].forEach((opt) => {
-                opt.selected = (opt.value === val);
-            });
-        } else {
-            field.value = val;
-        }
+        formElements[key].value = val;
     });
 };
 
@@ -37,7 +29,7 @@ export {
     getNonDefaultStyles,
     getSVGCoords,
     pointToMarkup,
-    saveCloneObj,
+    cloneObj,
     setArcCmdConfig,
     setCmdConfig,
     setFillAndStrokeFields,
@@ -56,7 +48,7 @@ function applyTransforms(drawing, session) {
     const transformations = [drawingTransforms];
 
     if (layers[session.layer]) {
-        const layerTransforms = stringifyTransforms(session.current.transforms);
+        const layerTransforms = stringifyTransforms(session.activeLayer.transforms);
         applicants.push(layers[session.layer]);
         transformations.push(drawingTransforms + layerTransforms, layerTransforms);
     } else {
@@ -72,7 +64,7 @@ function applyTransforms(drawing, session) {
  * @returns { Function }
  */
 function configClone(template) {
-    return attrs => configElement(template.cloneNode(false), attrs);
+    return (attrs) => configElement(template.cloneNode(false), attrs);
 }
 
 /**
@@ -110,12 +102,12 @@ function getLastArcCmd(points) {
     return points
         .slice()
         .reverse()
-        .find(point => point.cmd === 'A');
+        .find((point) => point.cmd === 'A');
 }
 
 function getNonDefaultStyles(mode) {
     return [...fillAndStrokeFields]
-        .filter(field => field.hasAttribute('name')
+        .filter((field) => field.hasAttribute('name')
             && field.closest('label').classList.contains(`for-${mode}`))
         .reduce((obj, field) => Object.assign(obj, {
             [field.name]: field.value
@@ -143,30 +135,32 @@ function getSVGCoords({ x, y }) {
  * @returns { string }
  */
 function pointToMarkup(point) {
-    return point.cmd + pathCmds[point.cmd](point).join(' ');
+    return point.cmd + pathCmds[point.cmd](point);
 }
 
-function saveCloneObj(obj) {
+function cloneObj(obj) {
     if (typeof obj !== 'object' || obj === null) return obj;
 
     const clone = Array.isArray(obj) ? [] : {};
 
     Object.keys(obj).forEach((key) => {
-        clone[key] = saveCloneObj(obj[key]);
+        clone[key] = cloneObj(obj[key]);
     });
 
     return clone;
 }
 
 function setArcCmdConfig(session, defaults) {
-    const conf = session.current
-        ? (getLastArcCmd(session.current.points)
+    const conf = session.activeLayer
+        ? (getLastArcCmd(session.activeLayer.points)
             || { ...defaults.arcCmdConfig, ...session.arcCmdConfig })
         : defaults.arcCmdConfig;
 
     Object.assign(session.arcCmdConfig, conf);
     Object.entries(conf)
-        .filter(([key]) => !['cmd', 'x', 'y'].includes(key)) // NOTE: the data might be coming from a point
+        // NOTE: the data might be coming from a point,
+        // so we filter out props not shared between a point and the form
+        .filter(([key]) => !['cmd', 'x', 'y'].includes(key))
         .forEach(([key, val]) => {
             const field = arcCmdConfig.elements[key];
             field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
@@ -174,13 +168,11 @@ function setArcCmdConfig(session, defaults) {
 }
 
 function setCmdConfig(session) {
-    if (session.current.mode !== 'path') return;
+    if (session.activeLayer.mode !== 'path') return;
 
-    const selected = session.current.points.length
-        ? session.current.points[session.current.points.length - 1].cmd
+    session.cmd = session.activeLayer.points.length
+        ? session.activeLayer.points[session.activeLayer.points.length - 1].cmd
         : 'M';
-
-    session.cmd = selected;
 }
 
 /**
@@ -201,7 +193,8 @@ function setOutputConfiguration({ outputConfig: conf }) {
 
 function setTransformsFieldset(conf) {
     Object.entries(conf)
-        .filter(([key]) => key !== 'translate') // NOTE: we manage translations via arrow-keys
+        // NOTE: we manage translations via arrow-keys and not via the form
+        .filter(([key]) => key !== 'translate')
         .forEach(([key, val]) => {
             if (complexTransforms[key]) {
                 val.forEach((v, i) => { complexTransforms[key][i].value = v; });
@@ -217,10 +210,11 @@ function setTransformsFieldset(conf) {
  * @returns { string } The stringified transforms.
  */
 function stringifyTransforms(transformData) {
-    // NOTE: some transforms take more than 1 param, of which some may be ''
     return Object
         .entries(transformData)
-        .reduce((str, [key, val]) => `${str}${key}(${typeof val === 'object'
-            ? val.filter(v => v !== '')
-            : val})`, '');
+        .reduce((str, [key, val]) => `${str}${key}(${
+            // NOTE: some transforms take more than 1 param, of which some may be ''
+            typeof val === 'object'
+                ? val.filter(Boolean)
+                : val})`, '');
 }

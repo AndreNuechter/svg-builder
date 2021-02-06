@@ -21,7 +21,7 @@ export default (() => {
         if (!target.classList.contains('tab')) return;
 
         body.dataset.activeTab = target.dataset.tabName;
-        tabs.forEach(t => t.classList.remove('active'));
+        tabs.forEach((t) => t.classList.remove('active'));
         target.classList.add('active');
     };
 })();

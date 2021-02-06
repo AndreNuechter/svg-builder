@@ -1,6 +1,7 @@
 import { drawingContent, preview } from './dom-shared-elements.js';
 import { configElement, setOutputConfiguration, stringifyTransforms } from './helper-functions.js';
 
+/** @type { viewBox: String[], layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
 const drawing = {
     get viewBox() {
         return [
@@ -73,7 +74,7 @@ function save() {
 
 function switchToOutputTab() {
     preview.innerHTML = generateMarkUp();
-    if (drawing.viewBox.filter(v => v === 0).length === 4) centerViewBox();
+    if (drawing.viewBox.every((v) => v === 0)) centerViewBox();
 }
 
 function updateViewBox() {

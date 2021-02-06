@@ -1,4 +1,3 @@
-import drawing, { save } from './drawing.js';
 import {
     applyTransforms,
     configElement,
@@ -13,6 +12,7 @@ import {
     layerSelectors
 } from './dom-shared-elements.js';
 import { layerSelectorTemplate } from './dom-created-elements.js';
+import drawing, { save } from './drawing.js';
 import layerTypes from './layer-types.js';
 
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
@@ -37,15 +37,14 @@ function drawLayer(
     layerData = drawing.layers[layerId]
 ) {
     configElement(layer, layerTypes[layerData.mode].geometryProps(layerData));
-    save();
 }
 
 /**
  * Constructor for a default layer.
  * @param { string } mode [ path | rect | ellipse ]
- * @param { Object } style
- * @param { Object } transforms
- * @returns { Object }
+ * @param { Object } style defaults.style + type-specific styles
+ * @param { Object } transforms defaults.transforms
+ * @returns Layer
  */
 function Layer(mode, style, transforms) {
     return {
@@ -57,7 +56,7 @@ function Layer(mode, style, transforms) {
 }
 
 /**
- * Sets up an environment for the callback for the mutation observer and returns the callback.
+ * Sets up an environment for the callback for the mutation-observer (that ensures the layer-selection ui-elements are in line with the drawing) and returns the callback.
  * @param { Object } session The session object.
  * @param { Function } remControlPoints A function to remove all control points.
  * @param { Function } mkControlPoint A function to make a control point.
@@ -69,8 +68,9 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         event.dataTransfer.effectAllowed = 'move';
     };
     const changeLayerLabel = ({ target }) => {
-        // NOTE: we assume edition is preceded by selection and the edited label belongs to the active layer
-        session.current.label = target.textContent.replace(/\n/g, /\s/).trim();
+        // NOTE: since you have to click on the label to edit it,
+        // the edited label belongs to the active layer
+        session.activeLayer.label = target.textContent.replace(/\n/g, /\s/).trim();
         save();
     };
     const addLayerSelector = () => {
@@ -112,11 +112,11 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         if (session.layer === layers.length) {
             session.layer -= 1;
         } else {
-            const cb = mkControlPoint(session.current, session.layer);
-            session.mode = session.current.mode;
+            const cb = mkControlPoint(session.activeLayer, session.layer);
+            session.mode = session.activeLayer.mode;
             remControlPoints();
-            session.current.points.forEach(cb);
-            setFillAndStrokeFields(session.current.style);
+            session.activeLayer.points.forEach(cb);
+            setFillAndStrokeFields(session.activeLayer.style);
             reorderLayerSelectors(id, layerSelect.childElementCount - 1);
         }
 
@@ -163,5 +163,4 @@ function reorderLayerSelectors(startIndex, endIndex) {
  */
 function styleLayer(layerId, conf = drawing.layers[layerId].style) {
     configElement(layers[layerId], conf);
-    save();
 }

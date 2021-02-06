@@ -1,9 +1,9 @@
-import drawing from './drawing.js';
 import { circleTemplate } from './dom-created-elements.js';
 import { controlPoints, controlPointContainer, svg } from './dom-shared-elements.js';
-import controlPointTypes from './control-point-types.js';
 import { configClone, configElement, getSVGCoords } from './helper-functions.js';
 import { drawLayer } from './layer-handling.js';
+import drawing, { save } from './drawing.js';
+import controlPointTypes from './control-point-types.js';
 
 const {
     regularPoint,
@@ -23,9 +23,11 @@ const stopDragging = () => {
         onpointerleave: null,
         onpointerup: null
     });
+    save();
 };
 const startDragging = (layer, pointId, controlPointType) => (event) => {
-    event.stopPropagation(); // NOTE: prevent triggering svg.onpointerdown
+    // NOTE: prevent triggering svg.onpointerdown
+    event.stopPropagation();
     Object.assign(svg, {
         onpointermove: dragging(layer, pointId, controlPointType, event.target),
         onpointerleave: stopDragging,
@@ -50,7 +52,7 @@ function remLastControlPoint(cmd) {
 }
 
 function remControlPoints() {
-    [...controlPoints].forEach(c => c.remove());
+    [...controlPoints].forEach((c) => c.remove());
 }
 
 /**
@@ -98,7 +100,7 @@ function mkControlPoint(layer, layerId) {
  * @param { number } x The x-ccordinate of the cp.
  * @param { number } y The y-ccordinate of the cp.
  * @param { number } pointId The ordinal number of the point within its layer.
- * @param { Object } controlPointType the type of cp we want to create.
+ * @param { ControlPointType } controlPointType the type of cp we want to create.
  * @param { number } layerId The ordinal of the layer the controlled point belongs to.
  */
 function ControlPoint(x, y, pointId, controlPointType, layerId) {

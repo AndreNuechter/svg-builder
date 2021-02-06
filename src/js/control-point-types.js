@@ -2,11 +2,10 @@ import { controlPoints } from './dom-shared-elements.js';
 
 const basicChangeData = ({ x, y }) => ({ x, y });
 const basicFx = (x, y) => ({ cx: x, cy: y });
-const xComponent = x => ({ cx: x });
-const yComponent = (x, y) => ({ cy: y });
+const xComponent = (x) => ({ cx: x });
+const yComponent = (_, y) => ({ cy: y });
 // NOTE: ea of the given cmds has the given number of cps,
 // meaning the id of any given cp can be derived by summing the ones before it
-// TODO: should this be stored on pathCmds? is it a constant?
 // NOTE: to add a new cmd, this, text on cmd-select, the part going into mkControlPoint and remControlPoint (could be based on this?!) need to be provided
 const amounts = {
     M: 1,
@@ -67,11 +66,11 @@ const controlPointTypes = {
     ),
     firstControlPoint: ControlPointType(
         ({ x, y }) => ({ x1: x, y1: y }),
-        controlPoint => [AffectedControlPoint(controlPoint, basicFx)]
+        (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)]
     ),
     secondControlPoint: ControlPointType(
         ({ x, y }) => ({ x2: x, y2: y }),
-        controlPoint => [AffectedControlPoint(controlPoint, basicFx)]
+        (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)]
     ),
     rectTopLeft: ControlPointType(
         basicChangeData,
@@ -111,10 +110,12 @@ const controlPointTypes = {
     ),
     rx: ControlPointType(
         ({ x }, point) => ({ rx: Math.abs(x - point.cx) }),
-        controlPoint => [AffectedControlPoint(controlPoint, xComponent)]
+        (controlPoint) => [AffectedControlPoint(controlPoint, xComponent)]
     ),
-    ry: ControlPointType(({ y }, point) => ({ ry: Math.abs(y - point.cy) }),
-        controlPoint => [AffectedControlPoint(controlPoint, yComponent)])
+    ry: ControlPointType(
+        ({ y }, point) => ({ ry: Math.abs(y - point.cy) }),
+        (controlPoint) => [AffectedControlPoint(controlPoint, yComponent)]
+    )
 };
 
 export default controlPointTypes;
