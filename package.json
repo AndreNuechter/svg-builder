@@ -10,16 +10,16 @@
         "url": "https://github.com/AndreNuechter/svg-builder.git"
     },
     "devDependencies": {
-        "eslint": "^5.16.0",
-        "eslint-config-airbnb-base": "^13.2.0",
-        "eslint-plugin-import": "^2.19.1",
+        "eslint": "^7.19.0",
+        "eslint-config-airbnb-base": "^14.2.1",
+        "eslint-plugin-import": "^2.22.1",
         "express": "^4.17.1",
         "gulp": "^4.0.2",
-        "gulp-csso": "^3.0.1",
+        "gulp-csso": "^4.0.1",
         "gulp-html-replace": "^1.6.2",
         "gulp-pug": "^4.0.1",
-        "gulp-sass": "^4.0.2",
-        "webpack-stream": "^5.2.1"
+        "gulp-sass": "^4.1.0",
+        "webpack-stream": "^6.1.2"
     },
     "scripts": {
         "dev": "gulp",

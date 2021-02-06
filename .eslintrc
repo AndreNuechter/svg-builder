@@ -4,8 +4,10 @@
     },
     "extends": "airbnb-base",
     "rules": {
-        "indent": ["error", 4, { "SwitchCase": 1 }],
         "comma-dangle": ["error", "never"],
+        "eol-last": ["error", "never"],
+        "import/extensions": 0,
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "max-len": ["error", {
             "code": 120,
             "ignoreComments": true,
@@ -14,8 +16,12 @@
         "no-use-before-define": ["error", {
             "functions": false
         }],
-        "eol-last": ["error", "never"],
         "no-param-reassign": ["error", { "props": false }],
-        "import/extensions": false
+        "object-curly-newline": ["error", {
+            "ObjectExpression": { "minProperties": 5, "multiline": true, "consistent": true },
+            "ObjectPattern": { "minProperties": 5, "multiline": true, "consistent": true },
+            "ImportDeclaration": { "minProperties": 5, "multiline": true, "consistent": true },
+            "ExportDeclaration": { "minProperties": 5, "multiline": true, "consistent": true }
+        }]
     }
 }
