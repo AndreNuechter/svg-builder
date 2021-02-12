@@ -1,3 +1,4 @@
+import './util/service-worker-init.js';
 import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
