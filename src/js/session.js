@@ -26,21 +26,20 @@ const proxiedSessionKeys = {
     cmd: Field((val) => cmdTags.includes(val), (val) => {
         cmdSelect.value = val;
     }),
-    layer: LayerField(),
+    layerId: LayerIdField(),
     drawingShape: basicField,
     reordering: basicField,
     transformLayerNotDrawing: basicField
 };
 const session = new Proxy({
     get activeLayer() {
-        return drawing.layers[session.layer];
+        return drawing.layers[session.layerId];
     },
     get transformTarget() {
         return session.transformLayerNotDrawing
             ? session.activeLayer
             : drawing;
     },
-    keys: Object.keys(proxiedSessionKeys),
     cmd: 'M',
     drawingShape: false,
     reordering: false,
@@ -48,9 +47,10 @@ const session = new Proxy({
     shapeStart: {}
 }, {
     set(obj, key, val) {
-        if (!session.keys.includes(key) || !proxiedSessionKeys[key].validate(val)) return false;
+        const field = proxiedSessionKeys[key];
+        if (!field || !field.validate(val)) return false;
         obj[key] = val;
-        proxiedSessionKeys[key].onPass(val);
+        field.onPass(val);
         return true;
     }
 });
@@ -64,7 +64,7 @@ export default session;
  */
 function Field(validate, onPass) { return { validate, onPass }; }
 
-function LayerField() {
+function LayerIdField() {
     return Field(
         (val) => (+val >= 0 && +val <= drawing.layers.length),
         (val) => {

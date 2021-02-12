@@ -28,7 +28,7 @@ export {
 /**
  * Syncs geometry attributes of a layers representation w the data.
  * @param { number } layerId The ordinal number of the affected layer.
- * @param { SVGPathElement | SVGRectElement | SVGEllipseElement } [layerId=session.layer] The affected SVG-element.
+ * @param { SVGPathElement | SVGRectElement | SVGEllipseElement } [layerId=session.layerId] The affected SVG-element.
  * @param { Object } [layerData=drawing.layers[layerId]] The affected layer. Defaults to the current.
  */
 function drawLayer(
@@ -86,7 +86,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         });
         configElement(selector, {
             value: layerId,
-            checked: session.layer === layerSelectors.length
+            checked: session.layerId === layerSelectors.length
         });
         layerSelect.append(layerSelector);
     };
@@ -101,7 +101,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
 
         // if there're no layers left, we do some clean-up and are done
         if (!layers.length) {
-            delete session.layer;
+            delete session.layerId;
             remControlPoints();
             setTransformsFieldset(defaults.transforms);
             applyTransforms(drawing, session);
@@ -109,10 +109,10 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
             return;
         }
 
-        if (session.layer === layers.length) {
-            session.layer -= 1;
+        if (session.layerId === layers.length) {
+            session.layerId -= 1;
         } else {
-            const cb = mkControlPoint(session.activeLayer, session.layer);
+            const cb = mkControlPoint(session.activeLayer, session.layerId);
             session.mode = session.activeLayer.mode;
             remControlPoints();
             session.activeLayer.points.forEach(cb);
@@ -121,7 +121,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         }
 
         // check the active layer's selector
-        layerSelectors[session.layer].checked = true;
+        layerSelectors[session.layerId].checked = true;
     };
 
     return (mutationsList) => {
