@@ -21,7 +21,9 @@ import {
     setArcCmdConfig,
     setTransformsFieldset,
     setOutputConfiguration,
-    stringifyTransforms
+    stringifyTransforms,
+    last,
+    lastId
 } from './helper-functions.js';
 import {
     canvas,
@@ -90,7 +92,7 @@ function addLayer() {
     const untrackedStyle = getNonDefaultStyles(session.mode);
 
     // add new vanilla layer-data and set session-focus to it
-    session.layer = drawing
+    session.layerId = drawing
         .layers
         .push(Layer(
             session.mode, { ...defaults.style, ...untrackedStyle },
@@ -99,7 +101,7 @@ function addLayer() {
     save();
 
     const shape = configClone(svgTemplates[session.mode])({
-        'data-layer-id': session.layer
+        'data-layer-id': session.layerId
     });
 
     drawingContent.append(shape);
@@ -129,9 +131,9 @@ function addPoint(event) {
             };
 
         Object.assign(points[0], attrs);
-        mkControlPoint(session.activeLayer, session.layer)(
-            points[points.length - 1],
-            points.length - 1
+        mkControlPoint(session.activeLayer, session.layerId)(
+            last(points),
+            lastId(points)
         );
         session.drawingShape = false;
         svg.onpointermove = null;
@@ -145,14 +147,13 @@ function addPoint(event) {
         }
     }
 
-    styleLayer(session.layer);
-    drawLayer(session.layer);
-    save();
+    styleLayer(session.layerId);
+    drawLayer(session.layerId);
 }
 
 function centerRotation() {
     const args = session.transformLayerNotDrawing
-        ? [layers[session.layer], session.activeLayer.transforms]
+        ? [layers[session.layerId], session.activeLayer.transforms]
         : [svg.firstElementChild, drawing.transforms];
 
     setCenterOfRotation(...args);
@@ -178,8 +179,7 @@ function configArcCmd({ target }) {
     if (!lastArcCmd) return;
 
     Object.assign(lastArcCmd, arc({ ...defaults.arcCmdConfig, ...session.arcCmdConfig }));
-    drawLayer(session.layer);
-    save();
+    drawLayer(session.layerId);
 }
 
 function configOutput({ target }) {
@@ -200,9 +200,9 @@ function deleteLastPoint() {
     // NOTE: if the latest point has no cmd-prop it's either a rect or a circle
     if (latestPoint.cmd) {
         remLastControlPoint(latestPoint.cmd);
-        drawLayer(session.layer);
+        drawLayer(session.layerId);
     } else {
-        const layer = layers[session.layer];
+        const layer = layers[session.layerId];
         const steadyAttrs = ['data-layer-id', 'transform'];
 
         remControlPoints();
@@ -214,9 +214,8 @@ function deleteLastPoint() {
 
 function deleteLayer() {
     if (!layers.length) return;
-    drawing.layers.splice(session.layer, 1);
-    layers[session.layer].remove();
-    save();
+    drawing.layers.splice(session.layerId, 1);
+    layers[session.layerId].remove();
 }
 
 function initializeDrawing() {
@@ -231,9 +230,9 @@ function initializeDrawing() {
         ? drawing.layers[0].mode
         : defaults.mode;
 
-    // initialize session.layer or reset arc-cmd-config
+    // initialize session.layerId or reset arc-cmd-config
     if (drawing.layers.length) {
-        session.layer = 0;
+        session.layerId = 0;
         pathClosingToggle.checked = session.activeLayer.closePath;
     }
 
@@ -280,12 +279,11 @@ function pressKey(event) {
     if (event.ctrlKey && key.toUpperCase() === 'C') {
         // NOTE: add a copy of the current layer after it and focus it
         const layerData = cloneObj(session.activeLayer);
-        const layerRepresentation = layers[session.layer].cloneNode(true);
-        drawing.layers.splice(session.layer, 0, layerData);
-        layers[session.layer].after(layerRepresentation);
+        const layerRepresentation = layers[session.layerId].cloneNode(true);
+        drawing.layers.splice(session.layerId, 0, layerData);
+        layers[session.layerId].after(layerRepresentation);
         [...layers].forEach((l, i) => { l.dataset.layerId = i; });
-        session.layer += 1;
-        save();
+        session.layerId += 1;
     } else if (move) {
         if (!session.activeLayer && !event.ctrlKey) return;
 
@@ -294,7 +292,7 @@ function pressKey(event) {
             : session.activeLayer;
         const { cb, prop } = move;
 
-        transformTarget[prop] = cb(transformTarget[prop]);
+        transformTarget[prop] = cb(+transformTarget[prop]);
         applyTransforms(drawing, session);
     } else if (key === 'Backspace') {
         deleteLastPoint();
@@ -325,20 +323,20 @@ function reorderLayers(event) {
     }
 
     // we want the active layer to remain active,
-    // so we may have to add or subtract 1 from session.layer or
+    // so we may have to add or subtract 1 from session.layerId or
     // set the id to the one dropped on
-    if (draggedId !== session.layer) {
-        if (draggedId > session.layer && droppedOnId <= session.layer) {
-            session.layer += 1;
-        } else if (draggedId < session.layer && droppedOnId > session.layer) {
-            session.layer -= 1;
+    if (draggedId !== session.layerId) {
+        if (draggedId > session.layerId && droppedOnId <= session.layerId) {
+            session.layerId += 1;
+        } else if (draggedId < session.layerId && droppedOnId > session.layerId) {
+            session.layerId -= 1;
         }
     } else {
-        session.layer = droppedOnId;
+        session.layerId = droppedOnId;
     }
 
     reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId));
-    layerSelectors[session.layer].checked = true;
+    layerSelectors[session.layerId].checked = true;
     session.reordering = true;
     event.preventDefault();
 }
@@ -376,17 +374,16 @@ function setCmd({ target }) {
 }
 
 function setFillOrStroke({ target }) {
-    if (!drawing.layers[session.layer]) return;
+    if (!drawing.layers[session.layerId]) return;
 
-    drawing.layers[session.layer].style[target.name] = target.value;
-    styleLayer(session.layer);
-    save();
+    drawing.layers[session.layerId].style[target.name] = target.value;
+    styleLayer(session.layerId);
 }
 
 function setLayer({ target: { value } }) {
     const layerId = +value;
     session.mode = drawing.layers[layerId].mode;
-    session.layer = layerId;
+    session.layerId = layerId;
 }
 
 function setMode({ target, currentTarget }) {
@@ -397,7 +394,7 @@ function setMode({ target, currentTarget }) {
 
     session.mode = target.value;
 
-    if (!layers[session.layer]) return;
+    if (!layers[session.layerId]) return;
 
     // NOTE: if we change the mode on an existing layer, we add a new layer,
     // but if it has not been edited yet, we replace the shape and the mode
@@ -406,9 +403,9 @@ function setMode({ target, currentTarget }) {
     } else {
         session.activeLayer.mode = session.mode;
         const shape = configClone(svgTemplates[session.mode])({
-            'data-layer-id': session.layer
+            'data-layer-id': session.layerId
         });
-        const oldLayer = layers[session.layer];
+        const oldLayer = layers[session.layerId];
         oldLayer.replaceWith(shape);
         oldLayer.remove();
         // remove non-default style-props of old layer
@@ -447,11 +444,10 @@ function setTransformTarget({ target: { checked } }) {
 }
 
 function togglePathClosing() {
-    if (!drawing.layers[session.layer]) return;
+    if (!drawing.layers[session.layerId]) return;
 
-    drawing.layers[session.layer].closePath = pathClosingToggle.checked;
-    drawLayer(session.layer);
-    save();
+    drawing.layers[session.layerId].closePath = pathClosingToggle.checked;
+    drawLayer(session.layerId);
 }
 
 function triggerDownload() {

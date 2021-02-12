@@ -22,14 +22,17 @@ const configForm = (formElements, conf) => {
 
 export {
     applyTransforms,
+    cloneObj,
+    compareObjs,
     configElement,
     configClone,
     drawShape,
+    last,
+    lastId,
     getLastArcCmd,
     getNonDefaultStyles,
     getSVGCoords,
     pointToMarkup,
-    cloneObj,
     setArcCmdConfig,
     setCmdConfig,
     setFillAndStrokeFields,
@@ -47,15 +50,42 @@ function applyTransforms(drawing, session) {
     const applicants = [drawingContent, controlPointContainer];
     const transformations = [drawingTransforms];
 
-    if (layers[session.layer]) {
+    if (layers[session.layerId]) {
         const layerTransforms = stringifyTransforms(session.activeLayer.transforms);
-        applicants.push(layers[session.layer]);
+        applicants.push(layers[session.layerId]);
         transformations.push(drawingTransforms + layerTransforms, layerTransforms);
     } else {
         transformations.push(drawingTransforms);
     }
 
     applicants.forEach((a, i) => a.setAttribute('transform', transformations[i]));
+}
+
+function cloneObj(obj) {
+    if (typeof obj !== 'object' || obj === null) return obj;
+
+    const clone = Array.isArray(obj) ? [] : {};
+
+    Object.keys(obj).forEach((key) => {
+        clone[key] = cloneObj(obj[key]);
+    });
+
+    return clone;
+}
+
+function compareObjs(a, b) {
+    if (typeof a !== typeof b) return false;
+    if (typeof a !== 'object') return a === b;
+
+    const keysOfA = Object.keys(a);
+    let currentKey;
+
+    while (keysOfA.length) {
+        currentKey = keysOfA.pop();
+        if (!compareObjs(a[currentKey], b[currentKey])) return false;
+    }
+
+    return true;
 }
 
 /**
@@ -129,6 +159,14 @@ function getSVGCoords({ x, y }) {
     return [point.x, point.y];
 }
 
+function last(arr) {
+    return arr[lastId(arr)];
+}
+
+function lastId(arr) {
+    return arr.length - 1;
+}
+
 /**
  * Turns a single point-object into a string that may be inserted into a path's d-attribute.
  * @param { Object } point The point we are trying to draw.
@@ -136,18 +174,6 @@ function getSVGCoords({ x, y }) {
  */
 function pointToMarkup(point) {
     return point.cmd + pathCmds[point.cmd](point);
-}
-
-function cloneObj(obj) {
-    if (typeof obj !== 'object' || obj === null) return obj;
-
-    const clone = Array.isArray(obj) ? [] : {};
-
-    Object.keys(obj).forEach((key) => {
-        clone[key] = cloneObj(obj[key]);
-    });
-
-    return clone;
 }
 
 function setArcCmdConfig(session, defaults) {
@@ -171,7 +197,7 @@ function setCmdConfig(session) {
     if (session.activeLayer.mode !== 'path') return;
 
     session.cmd = session.activeLayer.points.length
-        ? session.activeLayer.points[session.activeLayer.points.length - 1].cmd
+        ? last(session.activeLayer.points).cmd
         : 'M';
 }
 

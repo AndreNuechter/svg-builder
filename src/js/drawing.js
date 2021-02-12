@@ -1,5 +1,12 @@
 import { drawingContent, preview } from './dom-shared-elements.js';
-import { configElement, setOutputConfiguration, stringifyTransforms } from './helper-functions.js';
+import {
+    cloneObj,
+    compareObjs,
+    configElement,
+    last,
+    setOutputConfiguration,
+    stringifyTransforms
+} from './helper-functions.js';
 
 /** @type { viewBox: String[], layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
 const drawing = {
