@@ -7,6 +7,7 @@ import {
     setOutputConfiguration,
     stringifyTransforms
 } from './helper-functions.js';
+import stack from './undo-and-redo/index.js';
 
 /** @type { viewBox: String[], layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
 const drawing = {
@@ -32,6 +33,7 @@ export {
     updateViewBox
 };
 
+// TODO is this a user-action?
 function centerViewBox() {
     const {
         x,
@@ -49,7 +51,7 @@ function centerViewBox() {
 
     updateViewBox();
     setOutputConfiguration(drawing);
-    save();
+    save('centerVB');
 }
 
 /**
@@ -75,10 +77,15 @@ function generateDataURI() {
 /**
  * Saves drawing to localStorage.
  */
-function save() {
+function save(msg) {
+    // TODO we need a diffing strat as some mutations save multiple times in row (eg add layer, add point, dragging)
+    // also, always storing the entire drawing seems wasteful
+    console.log(msg);
+    if (!compareObjs(last(stack), drawing)) stack.push(cloneObj(drawing));
     window.localStorage.setItem('drawing', JSON.stringify(drawing));
 }
 
+// TODO user action?
 function switchToOutputTab() {
     preview.innerHTML = generateMarkUp();
     if (drawing.viewBox.every((v) => v === 0)) centerViewBox();

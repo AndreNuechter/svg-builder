@@ -23,7 +23,7 @@ const stopDragging = () => {
         onpointerleave: null,
         onpointerup: null
     });
-    save();
+    save('dragging');
 };
 const startDragging = (layer, pointId, controlPointType) => (event) => {
     // NOTE: prevent triggering svg.onpointerdown

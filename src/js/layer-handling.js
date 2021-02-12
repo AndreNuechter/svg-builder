@@ -71,7 +71,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         // NOTE: since you have to click on the label to edit it,
         // the edited label belongs to the active layer
         session.activeLayer.label = target.textContent.replace(/\n/g, /\s/).trim();
-        save();
+        save('changeLabel');
     };
     const addLayerSelector = () => {
         const layerId = layerSelect.childElementCount;

@@ -51,6 +51,8 @@ import drawing, {
 import session from './session.js';
 import layerTypes from './layer-types.js';
 
+import stack from './undo-and-redo/index.js';
+
 const ctx = canvas.getContext('2d');
 const download = (url) => {
     Object.assign(downloadLink, {
@@ -88,6 +90,7 @@ export {
 };
 
 function addLayer() {
+    stack.push(1);
     // TODO: it might be better to just read all fields here, since now styling done before layer exists, is lost again
     const untrackedStyle = getNonDefaultStyles(session.mode);
 
@@ -98,7 +101,7 @@ function addLayer() {
             session.mode, { ...defaults.style, ...untrackedStyle },
             cloneObj(defaults.transforms)
         )) - 1;
-    save();
+    save('addLayer');
 
     const shape = configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layerId
@@ -149,6 +152,7 @@ function addPoint(event) {
 
     styleLayer(session.layerId);
     drawLayer(session.layerId);
+    save('addPoint');
 }
 
 function centerRotation() {
@@ -165,7 +169,7 @@ function clearDrawing() {
     drawing.outputConfig = { ...defaults.outputConfig };
     drawing.transforms = cloneObj(defaults.transforms);
     [...layers].forEach((layer) => layer.remove());
-    save();
+    save('clear');
 }
 
 function configArcCmd({ target }) {
@@ -180,12 +184,13 @@ function configArcCmd({ target }) {
 
     Object.assign(lastArcCmd, arc({ ...defaults.arcCmdConfig, ...session.arcCmdConfig }));
     drawLayer(session.layerId);
+    save('configArcCmd');
 }
 
 function configOutput({ target }) {
     drawing.outputConfig[target.name] = target.value;
     updateViewBox();
-    save();
+    save('configOutput');
 }
 
 function copyDataURIToClipboard() { writeToClipboard(generateDataURI()); }
@@ -195,7 +200,7 @@ function deleteLastPoint() {
 
     const latestPoint = session.activeLayer.points.pop();
 
-    save();
+    save('deleteLast');
 
     // NOTE: if the latest point has no cmd-prop it's either a rect or a circle
     if (latestPoint.cmd) {
@@ -216,8 +221,10 @@ function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layerId, 1);
     layers[session.layerId].remove();
+    save('deleteLayer');
 }
 
+// TODO not a user action
 function initializeDrawing() {
     const drawingData = JSON.parse(window.localStorage.getItem('drawing')) || {};
     Object.assign(drawing, {
@@ -277,6 +284,7 @@ function pressKey(event) {
     const move = moves[key];
 
     if (event.ctrlKey && key.toUpperCase() === 'C') {
+        // TODO turn the below into a call to addLayer?
         // NOTE: add a copy of the current layer after it and focus it
         const layerData = cloneObj(session.activeLayer);
         const layerRepresentation = layers[session.layerId].cloneNode(true);
@@ -284,6 +292,7 @@ function pressKey(event) {
         layers[session.layerId].after(layerRepresentation);
         [...layers].forEach((l, i) => { l.dataset.layerId = i; });
         session.layerId += 1;
+        save('ctrl+c');
     } else if (move) {
         if (!session.activeLayer && !event.ctrlKey) return;
 
@@ -303,6 +312,14 @@ function pressKey(event) {
     event.preventDefault();
 }
 
+// TODO better placement
+// NOTE: save when done translating
+window.onkeyup = function saveOnKeyup({ key }) {
+    if (moves[key]) {
+        save('keyup');
+    }
+};
+
 function reorderLayers(event) {
     const droppedOnSelector = event.target.closest('label');
     const droppedOnId = +droppedOnSelector.dataset.layerId;
@@ -313,7 +330,7 @@ function reorderLayers(event) {
     // re-order the layer data
     const [draggedLayerData] = drawing.layers.splice(draggedId, 1);
     drawing.layers.splice(droppedOnId, 0, draggedLayerData);
-    save();
+    save('reorderLayer');
 
     // insert dragged before or after the one dropped on depending on its origin
     if (draggedId < droppedOnId) {
@@ -352,7 +369,7 @@ function resetTransforms() {
 
     applyTransforms(drawing, session);
     setTransformsFieldset(transforms);
-    save();
+    save('resetTransforms');
 }
 
 function setCenterOfRotation(element, transformTarget) {
@@ -366,7 +383,7 @@ function setCenterOfRotation(element, transformTarget) {
 
     [complexTransforms.rotate[1].value, complexTransforms.rotate[2].value] = coords;
     [transformTarget.rotate[1], transformTarget.rotate[2]] = coords;
-    save();
+    save('setCenterofRotation');
 }
 
 function setCmd({ target }) {
@@ -378,6 +395,7 @@ function setFillOrStroke({ target }) {
 
     drawing.layers[session.layerId].style[target.name] = target.value;
     styleLayer(session.layerId);
+    save('setFillOrStroke');
 }
 
 function setLayer({ target: { value } }) {
@@ -414,7 +432,7 @@ function setMode({ target, currentTarget }) {
         });
         // add non-default style-props to new layer
         Object.assign(session.activeLayer.style, getNonDefaultStyles(session.mode));
-        save();
+        save('setMode');
     }
 }
 
@@ -428,7 +446,7 @@ function setTransform({ target }) {
     }
 
     applyTransforms(drawing, session);
-    save();
+    save('setTransform');
 }
 
 function setTransformTarget({ target: { checked } }) {
@@ -448,6 +466,7 @@ function togglePathClosing() {
 
     drawing.layers[session.layerId].closePath = pathClosingToggle.checked;
     drawLayer(session.layerId);
+    save('togglePathClosing');
 }
 
 function triggerDownload() {
