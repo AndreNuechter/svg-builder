@@ -1,6 +1,6 @@
 import { circleTemplate } from './dom-created-elements.js';
 import { controlPoints, controlPointContainer, svg } from './dom-shared-elements.js';
-import { configClone, configElement, getSVGCoords } from './helper-functions.js';
+import { configClone, configElement, getSVGCoords, lastId } from './helper-functions.js';
 import { drawLayer } from './layer-handling.js';
 import drawing, { save } from './drawing.js';
 import controlPointTypes from './control-point-types.js';
@@ -46,9 +46,9 @@ export {
  * @param { string } cmd The command of the removed point.
  */
 function remLastControlPoint(cmd) {
-    controlPoints[controlPoints.length - 1].remove();
-    if (['Q', 'C', 'S'].includes(cmd)) controlPoints[controlPoints.length - 1].remove();
-    if (cmd === 'C') controlPoints[controlPoints.length - 1].remove();
+    controlPoints[lastId(controlPoints)].remove();
+    if (['Q', 'C', 'S'].includes(cmd)) controlPoints[lastId(controlPoints)].remove();
+    if (cmd === 'C') controlPoints[lastId(controlPoints)].remove();
 }
 
 function remControlPoints() {

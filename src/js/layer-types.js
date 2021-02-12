@@ -1,5 +1,11 @@
 import { layers, svg } from './dom-shared-elements.js';
-import { configElement, drawShape, pointToMarkup } from './helper-functions.js';
+import {
+    configElement,
+    drawShape,
+    last,
+    lastId,
+    pointToMarkup
+} from './helper-functions.js';
 import { arc, cube, quad } from './path-commands.js';
 import { defaults } from './constants.js';
 
@@ -20,7 +26,7 @@ const layerTypes = {
         (session, points, x, y) => {
             if (points[0]) return;
 
-            const rect = layers[session.layer];
+            const rect = layers[session.layerId];
             points.push({ x, y });
             configElement(rect, points[0]);
             session.drawingShape = true;
@@ -38,7 +44,7 @@ const layerTypes = {
         (session, points, x, y) => {
             if (points[0]) return;
 
-            const ellipse = layers[session.layer];
+            const ellipse = layers[session.layerId];
             points.push({ cx: x, cy: y });
             configElement(ellipse, points[0]);
             session.drawingShape = true;
@@ -54,7 +60,7 @@ const layerTypes = {
     ),
     path: LayerType(
         (session, points, x, y, mkControlPoint, remLastControlPoint) => {
-            const lastPoint = points[points.length - 1];
+            const lastPoint = last(points);
 
             // prevent using the same point multiple times in a row
             if (lastPoint && x === lastPoint.x && y === lastPoint.y) return;
@@ -82,9 +88,9 @@ const layerTypes = {
                         return {};
                 }
             })(session.cmd);
-            Object.assign(points[points.length - 1], additionalCPs);
+            Object.assign(last(points), additionalCPs);
 
-            mkControlPoint(session.activeLayer, session.layer)(points[points.length - 1], points.length - 1);
+            mkControlPoint(session.activeLayer, session.layerId)(last(points), lastId(points));
         },
         ({ points, closePath }) => ({
             d: `${points.map(pointToMarkup).join('')} ${closePath ? 'Z' : ''}`
