@@ -21,7 +21,7 @@ const defaults = Object.freeze({
         'file-format': 'svg'
     }),
     transforms: Object.freeze({
-        translate: Object.freeze(['0', '0']),
+        translate: Object.freeze([0, 0]),
         scale: Object.freeze(['1', '1']),
         rotate: Object.freeze(['0', '0', '0']),
         skewX: '0',

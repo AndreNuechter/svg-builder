@@ -1,4 +1,4 @@
-import { layers, svg } from './dom-shared-elements.js';
+import { svg } from './dom-shared-elements.js';
 import {
     configElement,
     drawShape,
@@ -7,7 +7,6 @@ import {
     pointToMarkup
 } from './helper-functions.js';
 import { arc, cube, quad } from './path-commands.js';
-import { defaults } from './constants.js';
 
 const shaperFuncs = {
     rect: (x, y) => (x1, y1) => ({
@@ -21,12 +20,13 @@ const shaperFuncs = {
         ry: Math.abs(y - y1)
     })
 };
-const layerTypes = {
+
+export default {
     rect: LayerType(
         (session, points, x, y) => {
             if (points[0]) return;
 
-            const rect = layers[session.layerId];
+            const rect = session.activeSVGElement;
             points.push({ x, y });
             configElement(rect, points[0]);
             session.drawingShape = true;
@@ -44,7 +44,7 @@ const layerTypes = {
         (session, points, x, y) => {
             if (points[0]) return;
 
-            const ellipse = layers[session.layerId];
+            const ellipse = session.activeSVGElement;
             points.push({ cx: x, cy: y });
             configElement(ellipse, points[0]);
             session.drawingShape = true;
@@ -83,7 +83,7 @@ const layerTypes = {
                     case 'C':
                         return cube(x, y, points[points.length - 2]);
                     case 'A':
-                        return arc({ ...defaults.arcCmdConfig, ...session.arcCmdConfig });
+                        return arc(session.arcCmdConfig);
                     default:
                         return {};
                 }
@@ -98,11 +98,9 @@ const layerTypes = {
     )
 };
 
-export default layerTypes;
-
 /**
  * @param { Function } mkPoint Executed when a point for this type of layer has been added. Configs the layers HTML, data and possibly session (the drawingShape bit).
  * @param { Function } geometryProps Exectuted when a layer of this type is drawn. Returns an object of geometry-props relevant for that type of layer paired w the respective layers config.
- * @returns { Object }
+ * @returns {{ mkPoint: Function, geometryProps: Object }}
  */
 function LayerType(mkPoint, geometryProps) { return { mkPoint, geometryProps }; }
