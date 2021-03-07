@@ -78,7 +78,7 @@ const session = new Proxy({
 if (drawing.layers.length) {
     session.layerId = 0;
 }
-session.mode = drawing.layers[0]?.mode || defaults.mode;
+session.mode = (drawing.layers[0] && drawing.layers[0].mode) || defaults.mode;
 
 document.addEventListener('resetCanvas', initializeCanvas);
 window.addEventListener('DOMContentLoaded', () => {

@@ -225,7 +225,7 @@ function copyMarkupToClipboard() {
 // TODO drawing?
 // TODO is there still a need for this?...it works even after refreshing...
 function deleteLastPoint() {
-    if (!session.activeLayer?.points.length) return;
+    if (!session.activeLayer || !session.activeLayer.points.length) return;
 
     const latestPoint = session.activeLayer.points.pop();
 
