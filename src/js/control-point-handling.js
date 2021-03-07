@@ -23,7 +23,7 @@ const stopDragging = () => {
         onpointerleave: null,
         onpointerup: null
     });
-    save();
+    save('dragging');
 };
 const startDragging = (layer, pointId, controlPointType) => (event) => {
     // NOTE: prevent triggering svg.onpointerdown
@@ -97,8 +97,8 @@ function mkControlPoint(layer, layerId) {
 
 /**
  * Constructs a single draggable point to control some prop(s) of the active layer.
- * @param { number } x The x-ccordinate of the cp.
- * @param { number } y The y-ccordinate of the cp.
+ * @param { number } x The x-coordinate of the cp.
+ * @param { number } y The y-coordinate of the cp.
  * @param { number } pointId The ordinal number of the point within its layer.
  * @param { ControlPointType } controlPointType the type of cp we want to create.
  * @param { number } layerId The ordinal of the layer the controlled point belongs to.
@@ -107,8 +107,7 @@ function ControlPoint(x, y, pointId, controlPointType, layerId) {
     return configClone(circleTemplate)({
         cx: x,
         cy: y,
-        onpointerdown: startDragging(layerId, pointId, controlPointType),
-        onpointerup: stopDragging
+        onpointerdown: startDragging(layerId, pointId, controlPointType)
     });
 }
 

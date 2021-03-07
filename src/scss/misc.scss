@@ -63,6 +63,10 @@ a {
     flex-direction: column;
 }
 
+#fill-and-stroke {
+    margin-top: 6px;
+}
+
 #center-content {
     grid-area: center;
     display: flex;
@@ -76,6 +80,10 @@ a {
         display: inline;
         margin-right: 8px;
     }
+}
+
+#time-travel fieldset {
+    display: flex;
 }
 
 #commands {

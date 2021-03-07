@@ -1,29 +1,17 @@
 import { pathCmds } from './path-commands.js';
 import {
-    arcCmdConfig,
     controlPointContainer,
     drawingContent,
-    fillAndStroke,
-    layers,
-    outputConfig,
-    transformFields,
+    fillAndStrokeFields,
     svg
 } from './dom-shared-elements.js';
-import { complexTransforms } from './constants.js';
 
 const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
-const { elements: fillAndStrokeFields } = fillAndStroke;
-const { elements: outputConfigFields } = outputConfig;
-const configForm = (formElements, conf) => {
-    Object.entries(conf).forEach(([key, val]) => {
-        formElements[key].value = val;
-    });
-};
 
 export {
     applyTransforms,
     cloneObj,
-    compareObjs,
+    areEqual,
     configElement,
     configClone,
     drawShape,
@@ -33,11 +21,6 @@ export {
     getNonDefaultStyles,
     getSVGCoords,
     pointToMarkup,
-    setArcCmdConfig,
-    setCmdConfig,
-    setFillAndStrokeFields,
-    setOutputConfiguration,
-    setTransformsFieldset,
     stringifyTransforms
 };
 
@@ -50,9 +33,9 @@ function applyTransforms(drawing, session) {
     const applicants = [drawingContent, controlPointContainer];
     const transformations = [drawingTransforms];
 
-    if (layers[session.layerId]) {
+    if (session.activeSVGElement) {
         const layerTransforms = stringifyTransforms(session.activeLayer.transforms);
-        applicants.push(layers[session.layerId]);
+        applicants.push(session.activeSVGElement);
         transformations.push(drawingTransforms + layerTransforms, layerTransforms);
     } else {
         transformations.push(drawingTransforms);
@@ -73,19 +56,20 @@ function cloneObj(obj) {
     return clone;
 }
 
-function compareObjs(a, b) {
+function areEqual(a, b) {
     if (typeof a !== typeof b) return false;
-    if (typeof a !== 'object') return a === b;
+
+    const temp = [a, b];
+
+    if (temp.every((val) => Number.isNaN(val))) return true;
+    if (typeof a !== 'object' || temp.includes(null)) return a === b;
 
     const keysOfA = Object.keys(a);
-    let currentKey;
+    const keysOfB = Object.keys(b);
 
-    while (keysOfA.length) {
-        currentKey = keysOfA.pop();
-        if (!compareObjs(a[currentKey], b[currentKey])) return false;
-    }
+    if (keysOfA.length !== keysOfB.length) return false;
 
-    return true;
+    return !keysOfA.find((key) => !areEqual(a[key], b[key]));
 }
 
 /**
@@ -176,60 +160,6 @@ function pointToMarkup(point) {
     return point.cmd + pathCmds[point.cmd](point);
 }
 
-function setArcCmdConfig(session, defaults) {
-    const conf = session.activeLayer
-        ? (getLastArcCmd(session.activeLayer.points)
-            || { ...defaults.arcCmdConfig, ...session.arcCmdConfig })
-        : defaults.arcCmdConfig;
-
-    Object.assign(session.arcCmdConfig, conf);
-    Object.entries(conf)
-        // NOTE: the data might be coming from a point,
-        // so we filter out props not shared between a point and the form
-        .filter(([key]) => !['cmd', 'x', 'y'].includes(key))
-        .forEach(([key, val]) => {
-            const field = arcCmdConfig.elements[key];
-            field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
-        });
-}
-
-function setCmdConfig(session) {
-    if (session.activeLayer.mode !== 'path') return;
-
-    session.cmd = session.activeLayer.points.length
-        ? last(session.activeLayer.points).cmd
-        : 'M';
-}
-
-/**
- * Adjusts the Fill & Stroke fieldset to a given style config.
- * @param { Object } style The config to be applied.
- */
-function setFillAndStrokeFields(style) {
-    configForm(fillAndStrokeFields, style);
-}
-
-/**
- * Adjusts the Output configuration fieldset to a given config.
- * @param { Object } conf The config for the output. Expected to be gotten from `drawing`.
- */
-function setOutputConfiguration({ outputConfig: conf }) {
-    configForm(outputConfigFields, conf);
-}
-
-function setTransformsFieldset(conf) {
-    Object.entries(conf)
-        // NOTE: we manage translations via arrow-keys and not via the form
-        .filter(([key]) => key !== 'translate')
-        .forEach(([key, val]) => {
-            if (complexTransforms[key]) {
-                val.forEach((v, i) => { complexTransforms[key][i].value = v; });
-            } else {
-                transformFields[key].value = val;
-            }
-        });
-}
-
 /**
  * Reduces an object of svg-transforms into a string, readily inserted into HTML.
  * @param { Object } transformData The transforms to be stringified.
@@ -239,8 +169,8 @@ function stringifyTransforms(transformData) {
     return Object
         .entries(transformData)
         .reduce((str, [key, val]) => `${str}${key}(${
-            // NOTE: some transforms take more than 1 param, of which some may be ''
+            // NOTE: scale and rotate take more than 1 param, of which some may be ''
             typeof val === 'object'
-                ? val.filter(Boolean)
+                ? val.filter((v) => v !== '')
                 : val})`, '');
 }

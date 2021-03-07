@@ -2,7 +2,6 @@ import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
 import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import { centerViewBox, switchToOutputTab } from './drawing.js';
 import { observeLayers } from './layer-handling.js';
 import {
     arcCmdConfig,
@@ -14,23 +13,26 @@ import {
     outputConfig,
     pathClosingToggle,
     svg,
-    transformFieldSet,
+    transformsForm,
     transformTargetSwitch,
-    fillAndStroke
+    fillAndStrokeForm,
+    undoBtn,
+    redoBtn
 } from './dom-shared-elements.js';
 import {
     addLayer,
     addPoint,
     centerRotation,
+    centerViewBox,
     clearDrawing,
     configArcCmd,
     configOutput,
     copyDataURIToClipboard,
     deleteLastPoint,
-    initializeDrawing,
     deleteLayer,
     copyMarkupToClipboard,
     pressKey,
+    redo,
     reorderLayers,
     resetTransforms,
     setCmd,
@@ -39,11 +41,15 @@ import {
     setMode,
     setTransform,
     setTransformTarget,
+    switchToOutputTab,
     togglePathClosing,
-    triggerDownload
+    triggerDownload,
+    undo,
+    duplicateLayer
 } from './user-actions.js';
 import session from './session.js';
 
+// TODO factor this out?!
 // watches for additions and removals of layers and does some synchronisation
 new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
     .observe(drawingContent, { childList: true });
@@ -58,18 +64,19 @@ document.getElementById('center-vb').onclick = centerViewBox;
 document.getElementById('add-layer').onclick = addLayer;
 document.getElementById('del-layer').onclick = deleteLayer;
 document.getElementById('clear-all').onclick = clearDrawing;
-document.getElementById('undo').onclick = deleteLastPoint;
+document.getElementById('del-last-point').onclick = deleteLastPoint;
+document.getElementById('duplicate-layer').onclick = duplicateLayer;
 document.querySelector('a[data-tab-name="output"]').onclick = switchToOutputTab;
 downloadBtn.onclick = triggerDownload;
-fillAndStroke.oninput = setFillOrStroke;
+fillAndStrokeForm.oninput = setFillOrStroke;
 layerSelect.onchange = setLayer;
 layerSelect.ondrop = reorderLayers;
 modesForm.onchange = setMode;
 outputConfig.oninput = configOutput;
 pathClosingToggle.onchange = togglePathClosing;
+redoBtn.addEventListener('click', redo);
 svg.addEventListener('pointerdown', addPoint);
-transformFieldSet.oninput = setTransform;
+transformsForm.oninput = setTransform;
 transformTargetSwitch.onchange = setTransformTarget;
-window.addEventListener('DOMContentLoaded', initializeDrawing, { once: true });
-window.onsubmit = (e) => e.preventDefault();
+undoBtn.addEventListener('click', undo);
 window.onkeydown = pressKey;

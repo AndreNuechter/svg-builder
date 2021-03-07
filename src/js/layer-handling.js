@@ -1,9 +1,4 @@
-import {
-    applyTransforms,
-    configElement,
-    setFillAndStrokeFields,
-    setTransformsFieldset
-} from './helper-functions.js';
+import { configElement, stringifyTransforms } from './helper-functions.js';
 import { defaults } from './constants.js';
 import {
     drawingContent,
@@ -11,6 +6,7 @@ import {
     layerSelect,
     layerSelectors
 } from './dom-shared-elements.js';
+import { setFillAndStrokeConfig, setTransformsConfig } from './form-handling.js';
 import { layerSelectorTemplate } from './dom-created-elements.js';
 import drawing, { save } from './drawing.js';
 import layerTypes from './layer-types.js';
@@ -44,15 +40,15 @@ function drawLayer(
  * @param { string } mode [ path | rect | ellipse ]
  * @param { Object } style defaults.style + type-specific styles
  * @param { Object } transforms defaults.transforms
- * @returns Layer
+ * @returns {{ mode: String, points: Point[], style: {}, transforms: {} }}
  */
 function Layer(mode, style, transforms) {
-    return {
+    return Object.assign(Object.create(null), {
         mode,
         points: [],
         style,
         transforms
-    };
+    });
 }
 
 /**
@@ -71,7 +67,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         // NOTE: since you have to click on the label to edit it,
         // the edited label belongs to the active layer
         session.activeLayer.label = target.textContent.replace(/\n/g, /\s/).trim();
-        save();
+        save('changeLabel');
     };
     const addLayerSelector = () => {
         const layerId = layerSelect.childElementCount;
@@ -90,39 +86,7 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
         });
         layerSelect.append(layerSelector);
     };
-    const removeLayerSelector = (removedNode) => {
-        // delete selector
-        const id = +removedNode
-            .dataset
-            .layerId;
-        layerSelect
-            .lastChild
-            .remove();
-
-        // if there're no layers left, we do some clean-up and are done
-        if (!layers.length) {
-            delete session.layerId;
-            remControlPoints();
-            setTransformsFieldset(defaults.transforms);
-            applyTransforms(drawing, session);
-            setFillAndStrokeFields(defaults.style);
-            return;
-        }
-
-        if (session.layerId === layers.length) {
-            session.layerId -= 1;
-        } else {
-            const cb = mkControlPoint(session.activeLayer, session.layerId);
-            session.mode = session.activeLayer.mode;
-            remControlPoints();
-            session.activeLayer.points.forEach(cb);
-            setFillAndStrokeFields(session.activeLayer.style);
-            reorderLayerSelectors(id, layerSelect.childElementCount - 1);
-        }
-
-        // check the active layer's selector
-        layerSelectors[session.layerId].checked = true;
-    };
+    const removeLayerSelector = () => layerSelect.lastChild.remove();
 
     return (mutationsList) => {
         // hide/show a message when no layers exist
@@ -134,10 +98,40 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
             return;
         }
 
-        mutationsList.forEach((mutation) => {
-            mutation.addedNodes.forEach(addLayerSelector);
-            mutation.removedNodes.forEach(removeLayerSelector);
+        mutationsList.forEach(({ addedNodes, removedNodes }) => {
+            removedNodes.forEach(removeLayerSelector);
+            addedNodes.forEach(addLayerSelector);
         });
+
+        if (mutationsList.find(({ removedNodes }) => removedNodes.length)) {
+            remControlPoints();
+
+            if (!layers.length) {
+                delete session.layerId;
+                setFillAndStrokeConfig(defaults.style);
+                setTransformsConfig(defaults.transforms);
+                drawingContent.setAttribute('transform', stringifyTransforms(defaults.transforms));
+            } else if (session.layerId === layers.length) {
+                session.layerId -= 1;
+            } else {
+                // NOTE: quickfix for undoing deletion
+                // TODO: restore active layer?!
+                if (session.layerId === undefined) {
+                    session.layerId = 0;
+                }
+
+                const cb = mkControlPoint(session.activeLayer, session.layerId);
+                setFillAndStrokeConfig(session.activeLayer.style);
+                reorderLayerSelectors(0, layerSelect.childElementCount - 1);
+                session.activeLayer.points.forEach(cb);
+                session.mode = session.activeLayer.mode;
+            }
+
+            // check the active layer's selector
+            if (layerSelectors[session.layerId]) {
+                layerSelectors[session.layerId].checked = true;
+            }
+        }
     };
 }
 
@@ -149,10 +143,11 @@ function observeLayers(session, remControlPoints, mkControlPoint) {
 function reorderLayerSelectors(startIndex, endIndex) {
     for (let i = startIndex; i <= endIndex; i += 1) {
         const selector = layerSelect.children[i];
+        const [label, radio] = selector.children;
         selector.dataset.layerId = i;
         layers[i].dataset.layerId = i;
-        selector.children[0].textContent = drawing.layers[i].label || `Layer ${i + 1}`;
-        selector.children[1].value = i;
+        label.textContent = drawing.layers[i].label || `Layer ${i + 1}`;
+        radio.value = i;
     }
 }
 

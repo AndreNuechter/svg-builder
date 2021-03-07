@@ -6,7 +6,8 @@ const controlPointContainer = document.getElementById('control-point-container')
 const downloadBtn = document.getElementById('download-btn');
 const drawingContent = document.getElementById('drawing-content');
 /** @type { HTMLFormElement } */
-const fillAndStroke = document.getElementById('fill-and-stroke');
+const fillAndStrokeForm = document.getElementById('fill-and-stroke');
+const { elements: fillAndStrokeFields } = fillAndStrokeForm;
 const layers = drawingContent.children;
 const layerSelect = document.getElementById('layer-select');
 const layerSelectors = document.getElementsByName('layer-selector');
@@ -15,13 +16,15 @@ const outputConfig = document.getElementById('output-configuration');
 const modesForm = document.getElementById('modes');
 const preview = document.getElementById('preview');
 const pathClosingToggle = document.getElementById('close-path-toggle');
+const redoBtn = document.getElementById('redo-btn');
 /** @type { SVGSVGElement } */
 const svg = document.getElementById('canvas');
-const transformFieldSet = document.getElementById('transformations');
-const transformFields = transformFieldSet.elements;
-const scaleInputs = transformFields.scale.getElementsByTagName('input');
+const transformsForm = document.getElementById('transformations');
+const transformFields = transformsForm.elements;
 const rotateInputs = transformFields.rotate.getElementsByTagName('input');
+const scaleInputs = transformFields.scale.getElementsByTagName('input');
 const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
+const undoBtn = document.getElementById('undo-btn');
 
 export {
     arcCmdConfig,
@@ -30,7 +33,8 @@ export {
     controlPointContainer,
     downloadBtn,
     drawingContent,
-    fillAndStroke,
+    fillAndStrokeForm,
+    fillAndStrokeFields,
     layers,
     layerSelect,
     layerSelectors,
@@ -38,10 +42,12 @@ export {
     modesForm,
     pathClosingToggle,
     preview,
+    redoBtn,
     rotateInputs,
     scaleInputs,
     svg,
     transformFields,
-    transformFieldSet,
-    transformTargetSwitch
+    transformsForm,
+    transformTargetSwitch,
+    undoBtn
 };

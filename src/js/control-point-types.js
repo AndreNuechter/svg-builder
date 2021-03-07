@@ -42,7 +42,8 @@ const getAffectedVAndHCmds = (layer, pointId) => {
 
     return addOns;
 };
-const controlPointTypes = {
+
+export default {
     regularPoint: ControlPointType(
         basicChangeData,
         (controlPoint, layer, pointId) => {
@@ -117,8 +118,6 @@ const controlPointTypes = {
         (controlPoint) => [AffectedControlPoint(controlPoint, yComponent)]
     )
 };
-
-export default controlPointTypes;
 
 /**
  * @param { Function } changeData A function used to change the respective point-data.
