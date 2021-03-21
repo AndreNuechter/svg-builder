@@ -33,8 +33,6 @@ function setArcCmdConfig(session) {
 
     const conf = (session.activeLayer && getLastArcCmd(session.activeLayer.points)) || session.arcCmdConfig;
 
-    // TODO is it necessary to mutate session here? Why is this on session and not on layer level? Is the config shared between layers?!... it doesnt make sense on a layer level since there might be multiple a cmds in a layer, ea w differing configs, BUT that doesnt mean it makes sense here
-    // this is executed on layer-change and start-up...
     Object.assign(session.arcCmdConfig, conf);
     Object.entries(conf)
         // NOTE: the data might be coming from a point,
@@ -47,7 +45,7 @@ function setArcCmdConfig(session) {
 }
 
 function setCmdConfig(session) {
-    if (session.activeLayer.mode !== 'path') return;
+    if (!session.activeLayer || session.activeLayer.mode !== 'path') return;
 
     session.cmd = session.activeLayer.points.length
         ? last(session.activeLayer.points).cmd

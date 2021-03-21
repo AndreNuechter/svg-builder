@@ -1,13 +1,10 @@
 import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
-import { remControlPoints, mkControlPoint } from './control-point-handling.js';
-import { observeLayers } from './layer-handling.js';
 import {
     arcCmdConfig,
     cmdSelect,
     downloadBtn,
-    drawingContent,
     layerSelect,
     modesForm,
     outputConfig,
@@ -47,12 +44,6 @@ import {
     undo,
     duplicateLayer
 } from './user-actions.js';
-import session from './session.js';
-
-// TODO factor this out?!
-// watches for additions and removals of layers and does some synchronisation
-new MutationObserver(observeLayers(session, remControlPoints, mkControlPoint))
-    .observe(drawingContent, { childList: true });
 
 arcCmdConfig.oninput = configArcCmd;
 cmdSelect.onchange = setCmd;

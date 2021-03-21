@@ -25,6 +25,7 @@ const rotateInputs = transformFields.rotate.getElementsByTagName('input');
 const scaleInputs = transformFields.scale.getElementsByTagName('input');
 const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
 const undoBtn = document.getElementById('undo-btn');
+const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
 
 export {
     arcCmdConfig,
@@ -49,5 +50,6 @@ export {
     transformFields,
     transformsForm,
     transformTargetSwitch,
-    undoBtn
+    undoBtn,
+    vacancyMsgStyle
 };

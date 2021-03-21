@@ -15,9 +15,9 @@ const multiSpaces = /\s{2,}/g;
 const drawingData = JSON.parse(window.localStorage.getItem('drawing')) || {};
 /** @type { layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
 const drawing = {
+    layers: drawingData.layers || [],
     outputConfig: drawingData.outputConfig || { ...defaults.outputConfig },
-    transforms: drawingData.transforms || cloneObj(defaults.transforms),
-    layers: drawingData.layers || []
+    transforms: drawingData.transforms || cloneObj(defaults.transforms)
 };
 const drawingBackups = [cloneObj(drawing)];
 const commitDrawingToStorage = () => window.localStorage.setItem('drawing', JSON.stringify(drawing));
@@ -135,7 +135,7 @@ function resetCanvas() {
     Object.assign(drawing, { layers: cloneObj(layersData), transforms: cloneObj(transforms) });
     commitDrawingToStorage();
     [...layers].forEach((l) => l.remove());
-    document.dispatchEvent(new Event('resetCanvas'));
+    document.dispatchEvent(new Event('initializeCanvas'));
 }
 
 function switchToOutputTab() {

@@ -20,7 +20,7 @@ import {
     last,
     lastId
 } from './helper-functions.js';
-import { setTransformsConfig } from './form-handling.js';
+import { setTransformsConfig, setFillAndStrokeConfig } from './form-handling.js';
 import {
     canvas,
     downloadLink,
@@ -32,11 +32,12 @@ import {
     drawingContent,
     fillAndStrokeForm,
     layers,
+    layerSelect,
     layerSelectors,
-    pathClosingToggle,
     svg,
     transformsForm,
-    transformTargetSwitch
+    transformTargetSwitch,
+    vacancyMsgStyle
 } from './dom-shared-elements.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-point-handling.js';
 import { arc } from './path-commands.js';
@@ -50,7 +51,7 @@ import drawing, {
     switchToOutputTab,
     undo
 } from './drawing.js';
-import session from './session.js';
+import session, { addLayerSelector } from './session.js';
 import layerTypes from './layer-types.js';
 
 const steadyAttrs = ['data-layer-id', 'transform'];
@@ -107,11 +108,8 @@ export {
     undo
 };
 
-// TODO drawing?
+// TODO mv to drawing? layer-handling?
 function addLayer() {
-    // TODO: it might be better to just read all fields here, since now styling done before layer exists, is lost again
-    const untrackedStyle = getNonDefaultStyles(session.mode);
-
     // add new vanilla layer-data and set session-focus to it
     drawing.layers.push(Layer(
         session.mode,
@@ -125,9 +123,10 @@ function addLayer() {
     });
 
     drawingContent.append(shape);
+    addLayerSelector();
 }
 
-// TODO drawing?
+// TODO mv to drawing?
 function addPoint(event) {
     if (!layers.length) addLayer();
 
@@ -184,10 +183,13 @@ function centerRotation() {
 
 // TODO mv to drawing
 function clearDrawing() {
-    drawing.layers.length = 0;
-    drawing.outputConfig = { ...defaults.outputConfig };
-    drawing.transforms = cloneObj(defaults.transforms);
+    Object.assign(drawing, {
+        layers: [],
+        outputConfig: { ...defaults.outputConfig },
+        transforms: cloneObj(defaults.transforms)
+    });
     [...layers].forEach((layer) => layer.remove());
+    deleteLayerSelectors();
     save('clear');
 }
 
@@ -222,7 +224,7 @@ function copyMarkupToClipboard() {
     writeToClipboard(generateMarkUp());
 }
 
-// TODO drawing?
+// TODO mv to drawing?
 // TODO is there still a need for this?...it works even after refreshing...
 function deleteLastPoint() {
     if (!session.activeLayer || !session.activeLayer.points.length) return;
@@ -245,23 +247,57 @@ function deleteLastPoint() {
     }
 }
 
-// TODO drawing?
+function deleteLayerSelectors() {
+    vacancyMsgStyle.display = drawingContent.childElementCount ? 'none' : 'initial';
+    remControlPoints();
+
+    while (layerSelect.childElementCount !== layers.length) {
+        layerSelect.lastChild.remove();
+    }
+
+    if (!layers.length) {
+        session.layerId = undefined;
+        document.dispatchEvent(new Event('initializeCanvas'));
+    } else if (session.layerId === layers.length) {
+        session.layerId -= 1;
+    } else {
+        // NOTE: quickfix for undoing deletion
+        // TODO: restore active layer?!
+        if (session.layerId === undefined) {
+            session.layerId = 0;
+        }
+
+        const cb = mkControlPoint(session.activeLayer, session.layerId);
+        setFillAndStrokeConfig(session.activeLayer.style);
+        reorderLayerSelectors(0, layerSelect.childElementCount - 1);
+        session.activeLayer.points.forEach(cb);
+        session.mode = session.activeLayer.mode;
+    }
+
+    // check the active layer's selector
+    if (layerSelectors[session.layerId]) {
+        layerSelectors[session.layerId].checked = true;
+    }
+}
+
+// TODO mv to drawing?
 function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layerId, 1);
     session.activeSVGElement.remove();
+    deleteLayerSelectors();
     save('deleteLayer');
 }
 
-// TODO drawing?
+// TODO mv to drawing?
 function duplicateLayer() {
     // NOTE: add a copy of the current layer after it and focus it
-    const layerData = cloneObj(session.activeLayer);
-    const layerRepresentation = session.activeSVGElement.cloneNode(true);
-    drawing.layers.splice(session.layerId, 0, layerData);
-    session.activeSVGElement.after(layerRepresentation);
-    [...layers].forEach((l, i) => { l.dataset.layerId = i; });
+    drawing.layers.splice(session.layerId, 0, cloneObj(session.activeLayer));
+    session.activeSVGElement.after(session.activeSVGElement.cloneNode(true));
     session.layerId += 1;
+    addLayerSelector();
+    reorderLayerSelectors();
+    [...layers].forEach((l, i) => { l.dataset.layerId = i; });
     save('ctrl+c');
 }
 
@@ -301,7 +337,7 @@ function pressKey(event) {
     event.preventDefault();
 }
 
-// TODO layer-handling?
+// TODO mv to layer-handling?
 function reorderLayers(event) {
     const droppedOnSelector = event.target.closest('label');
     const droppedOnId = +droppedOnSelector.dataset.layerId;
@@ -336,7 +372,6 @@ function reorderLayers(event) {
 
     reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId));
     layerSelectors[session.layerId].checked = true;
-    session.reordering = true;
     event.preventDefault();
 }
 
@@ -371,11 +406,11 @@ function setCenterOfRotation(element, transformTarget) {
 }
 
 // TODO mv to formhandling
-function setCmd({ target }) {
-    session.cmd = cmdTags[cmdTags.indexOf(target.value)] || cmdTags[0];
+function setCmd({ target: { value } }) {
+    session.cmd = value;
 }
 
-// TODO mv to formhandling
+// TODO mv to formhandling...cant close over session there
 function setFillOrStroke({ target: { name, value } }) {
     if (!session.activeLayer) return;
 
@@ -392,18 +427,18 @@ function setLayer({ target: { value } }) {
 }
 
 // TODO mv to formhandling
-function setMode({ target, currentTarget }) {
+function setMode({ target: { value }, currentTarget }) {
     if (session.drawingShape) {
         currentTarget.modes.value = session.mode;
         return;
     }
 
-    session.mode = target.value;
+    session.mode = value;
 
-    if (!session.activeSVGElement) return;
+    if (!session.activeLayer) return;
 
-    // NOTE: if we change the mode on an existing layer, we add a new layer,
-    // but if it has not yet been edited, we replace the shape and the mode
+    // if the active layer isnt empty, we add (and focus) a new layer,
+    // otherwise we just replace the shape and the mode of the current
     if (session.activeLayer.points.length) {
         addLayer();
     } else {
@@ -434,9 +469,9 @@ function setTransform({ target: { classList, dataset, name, value } }) {
     // NOTE: 'rotate' and 'scale' have more than one param
     if (classList.contains('transform-config')) {
         const { transform, id } = dataset;
-        session.transformTarget.transforms[transform][+id] = value;
+        session.transformTarget[transform][+id] = value;
     } else {
-        session.transformTarget.transforms[name] = value;
+        session.transformTarget[name] = value;
     }
 
     applyTransforms(drawing, session);
@@ -456,10 +491,10 @@ function setTransformTarget({ target: { checked } }) {
 }
 
 // TODO mv to formhandling
-function togglePathClosing() {
+function togglePathClosing({ target }) {
     if (!session.activeLayer) return;
 
-    session.activeLayer.closePath = pathClosingToggle.checked;
+    session.activeLayer.closePath = target.checked;
     drawLayer(session.layerId);
     save('togglePathClosing');
 }

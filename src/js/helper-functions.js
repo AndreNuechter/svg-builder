@@ -11,7 +11,6 @@ const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointe
 export {
     applyTransforms,
     cloneObj,
-    areEqual,
     configElement,
     configClone,
     drawShape,
@@ -54,22 +53,6 @@ function cloneObj(obj) {
     });
 
     return clone;
-}
-
-function areEqual(a, b) {
-    if (typeof a !== typeof b) return false;
-
-    const temp = [a, b];
-
-    if (temp.every((val) => Number.isNaN(val))) return true;
-    if (typeof a !== 'object' || temp.includes(null)) return a === b;
-
-    const keysOfA = Object.keys(a);
-    const keysOfB = Object.keys(b);
-
-    if (keysOfA.length !== keysOfB.length) return false;
-
-    return !keysOfA.find((key) => !areEqual(a[key], b[key]));
 }
 
 /**
