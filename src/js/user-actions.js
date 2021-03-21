@@ -14,7 +14,7 @@ import {
     applyTransforms,
     configClone,
     getLastArcCmd,
-    getNonDefaultStyles,
+    getRelevantStyles,
     getSVGCoords,
     cloneObj,
     last,
@@ -115,7 +115,7 @@ function addLayer() {
     // add new vanilla layer-data and set session-focus to it
     drawing.layers.push(Layer(
         session.mode,
-        { ...defaults.style, ...untrackedStyle },
+        { ...getRelevantStyles(session.mode) },
         cloneObj(defaults.transforms)
     ));
     session.layerId = lastId(drawing.layers);
@@ -414,12 +414,17 @@ function setMode({ target, currentTarget }) {
         const oldLayer = session.activeSVGElement;
         oldLayer.replaceWith(shape);
         oldLayer.remove();
-        // remove non-default style-props of old layer
+        // remove mode-specific style-props of old mode
         Object.keys(session.activeLayer.style).forEach((key) => {
-            if (defaults.style[key] === undefined) delete session.activeLayer.style[key];
+            if (
+                defaults.styleRelevancies[key]
+                && !defaults.styleRelevancies[key].includes(session.mode)
+            ) {
+                delete session.activeLayer.style[key];
+            }
         });
-        // add non-default style-props to new layer
-        Object.assign(session.activeLayer.style, getNonDefaultStyles(session.mode));
+        // add mode-specific style-props of new mode
+        Object.assign(session.activeLayer.style, getRelevantStyles(session.mode));
         save('setMode');
     }
 }

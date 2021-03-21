@@ -31,8 +31,18 @@ const defaults = Object.freeze({
         stroke: '#000',
         'stroke-opacity': '1',
         'stroke-width': '2',
-        fill: 'none',
-        'fill-opacity': '1'
+        fill: '#000',
+        'fill-opacity': '1',
+        'stroke-linecap': 'butt',
+        'stroke-linejoin': 'arcs',
+        'stroke-miterlimit': '1',
+        'fill-rule': 'evenodd'
+    }),
+    styleRelevancies: Object.freeze({
+        'stroke-linecap': 'path',
+        'stroke-linejoin': 'path,rect',
+        'stroke-miterlimit': 'path,rect',
+        'fill-rule': 'path'
     }),
     arcCmdConfig: Object.freeze({
         xR: '50',

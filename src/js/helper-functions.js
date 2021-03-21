@@ -18,7 +18,7 @@ export {
     last,
     lastId,
     getLastArcCmd,
-    getNonDefaultStyles,
+    getRelevantStyles,
     getSVGCoords,
     pointToMarkup,
     stringifyTransforms
@@ -119,10 +119,13 @@ function getLastArcCmd(points) {
         .find((point) => point.cmd === 'A');
 }
 
-function getNonDefaultStyles(mode) {
+function getRelevantStyles(mode) {
     return [...fillAndStrokeFields]
-        .filter((field) => field.hasAttribute('name')
-            && field.closest('label').classList.contains(`for-${mode}`))
+        .filter((field) => {
+            if (!field.hasAttribute('name')) return false;
+            const parentLabelClasses = field.closest('label').classList;
+            return parentLabelClasses.contains('for-all') || parentLabelClasses.contains(`for-${mode}`);
+        })
         .reduce((obj, field) => Object.assign(obj, {
             [field.name]: field.value
         }), {});
