@@ -9,8 +9,7 @@ const sass = require('gulp-sass');
 const minifyCSS = require('gulp-csso');
 const express = require('express');
 const htmlreplace = require('gulp-html-replace');
-const webpack = require('webpack-stream');
-const webpackConfig = require('./webpack.config.js');
+const gulpEsbuild = require('gulp-esbuild');
 
 const htmlRoot = 'src/pug/index.pug';
 const style = 'src/scss/style.scss';
@@ -50,8 +49,12 @@ function cssProd() {
 }
 
 function js() {
-    return src('src/js/**/*.js')
-        .pipe(webpack(webpackConfig))
+    return src('./src/js/index.js')
+        .pipe(gulpEsbuild({
+            outfile: 'bundle.js',
+            bundle: true,
+            minify: true
+        }))
         .pipe(dest(`${deployDir}/js`));
 }
 
