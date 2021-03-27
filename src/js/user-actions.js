@@ -20,7 +20,7 @@ import {
     last,
     lastId
 } from './helper-functions.js';
-import { setTransformsConfig, setFillAndStrokeConfig } from './form-handling.js';
+import { setTransformsConfig } from './form-handling.js';
 import {
     canvas,
     downloadLink,
@@ -32,12 +32,10 @@ import {
     drawingContent,
     fillAndStrokeForm,
     layers,
-    layerSelect,
     layerSelectors,
     svg,
     transformsForm,
-    transformTargetSwitch,
-    vacancyMsgStyle
+    transformTargetSwitch
 } from './dom-shared-elements.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-point-handling.js';
 import { arc } from './path-commands.js';
@@ -51,7 +49,7 @@ import drawing, {
     switchToOutputTab,
     undo
 } from './drawing.js';
-import session, { addLayerSelector } from './session.js';
+import session, { addLayerSelector, deleteLayerSelectors, initializeCanvas } from './session.js';
 import layerTypes from './layer-types.js';
 
 const steadyAttrs = ['data-layer-id', 'transform'];
@@ -110,25 +108,23 @@ export {
 
 // TODO mv to drawing? layer-handling?
 function addLayer() {
-    // add new vanilla layer-data and set session-focus to it
     drawing.layers.push(Layer(
         session.mode,
         { ...getRelevantStyles(session.mode) },
         cloneObj(defaults.transforms)
     ));
+
     session.layerId = lastId(drawing.layers);
 
-    const shape = configClone(svgTemplates[session.mode])({
+    drawingContent.append(configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layerId
-    });
-
-    drawingContent.append(shape);
-    addLayerSelector();
+    }));
+    addLayerSelector(session.layerId);
 }
 
 // TODO mv to drawing?
 function addPoint(event) {
-    if (!layers.length) addLayer();
+    if (!session.activeLayer) addLayer();
 
     const [x, y] = getSVGCoords(event);
     const { points } = session.activeLayer;
@@ -138,7 +134,8 @@ function addPoint(event) {
             hor: Math.abs(session.shapeStart.x - x),
             vert: Math.abs(session.shapeStart.y - y)
         };
-        const attrs = (session.mode === 'rect')
+
+        Object.assign(points[0], (session.mode === 'rect')
             ? {
                 x: Math.min(session.shapeStart.x, x),
                 y: Math.min(session.shapeStart.y, y),
@@ -148,16 +145,15 @@ function addPoint(event) {
             : {
                 rx: size.hor,
                 ry: size.vert
-            };
-
-        Object.assign(points[0], attrs);
+            });
         save('drawShape');
+
+        session.drawingShape = false;
 
         mkControlPoint(session.activeLayer, session.layerId)(
             last(points),
             lastId(points)
         );
-        session.drawingShape = false;
         svg.onpointermove = null;
     } else {
         layerTypes[session.mode].mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
@@ -188,15 +184,17 @@ function clearDrawing() {
         outputConfig: { ...defaults.outputConfig },
         transforms: cloneObj(defaults.transforms)
     });
-    [...layers].forEach((layer) => layer.remove());
-    deleteLayerSelectors();
+    initializeCanvas();
     save('clear');
 }
 
 // TODO mv to formhandling
 function configArcCmd({ target }) {
-    const prop = (target.type === 'checkbox') ? 'checked' : 'value';
-    session.arcCmdConfig[target.name] = target[prop];
+    session.arcCmdConfig[target.name] = target[
+        target.type === 'checkbox'
+            ? 'checked'
+            : 'value'
+    ];
 
     if (!session.activeLayer) return;
 
@@ -227,15 +225,15 @@ function copyMarkupToClipboard() {
 // TODO mv to drawing?
 // TODO is there still a need for this?...it works even after refreshing...
 function deleteLastPoint() {
-    if (!session.activeLayer || !session.activeLayer.points.length) return;
+    if (!session.activeLayer?.points.length) return;
 
-    const latestPoint = session.activeLayer.points.pop();
+    const deletedPoint = session.activeLayer.points.pop();
 
     save('deleteLastPoint');
 
     // NOTE: if the latest point has no cmd-prop it's either a rect or a circle
-    if (latestPoint.cmd) {
-        remLastControlPoint(latestPoint.cmd);
+    if (deletedPoint.cmd) {
+        remLastControlPoint(deletedPoint.cmd);
         drawLayer(session.layerId);
     } else {
         const layer = session.activeSVGElement;
@@ -247,57 +245,22 @@ function deleteLastPoint() {
     }
 }
 
-function deleteLayerSelectors() {
-    vacancyMsgStyle.display = drawingContent.childElementCount ? 'none' : 'initial';
-    remControlPoints();
-
-    while (layerSelect.childElementCount !== layers.length) {
-        layerSelect.lastChild.remove();
-    }
-
-    if (!layers.length) {
-        session.layerId = undefined;
-        document.dispatchEvent(new Event('initializeCanvas'));
-    } else if (session.layerId === layers.length) {
-        session.layerId -= 1;
-    } else {
-        // NOTE: quickfix for undoing deletion
-        // TODO: restore active layer?!
-        if (session.layerId === undefined) {
-            session.layerId = 0;
-        }
-
-        const cb = mkControlPoint(session.activeLayer, session.layerId);
-        setFillAndStrokeConfig(session.activeLayer.style);
-        reorderLayerSelectors(0, layerSelect.childElementCount - 1);
-        session.activeLayer.points.forEach(cb);
-        session.mode = session.activeLayer.mode;
-    }
-
-    // check the active layer's selector
-    if (layerSelectors[session.layerId]) {
-        layerSelectors[session.layerId].checked = true;
-    }
-}
-
 // TODO mv to drawing?
 function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layerId, 1);
     session.activeSVGElement.remove();
+    remControlPoints();
     deleteLayerSelectors();
     save('deleteLayer');
 }
 
 // TODO mv to drawing?
 function duplicateLayer() {
-    // NOTE: add a copy of the current layer after it and focus it
     drawing.layers.splice(session.layerId, 0, cloneObj(session.activeLayer));
     session.activeSVGElement.after(session.activeSVGElement.cloneNode(true));
     session.layerId += 1;
-    addLayerSelector();
-    reorderLayerSelectors();
-    [...layers].forEach((l, i) => { l.dataset.layerId = i; });
+    addLayerSelector(session.layerId);
     save('ctrl+c');
 }
 
@@ -370,7 +333,7 @@ function reorderLayers(event) {
         session.layerId = droppedOnId;
     }
 
-    reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId));
+    reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId) + 1);
     layerSelectors[session.layerId].checked = true;
     event.preventDefault();
 }

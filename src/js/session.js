@@ -26,7 +26,8 @@ import {
     setFillAndStrokeConfig,
     setTransformsConfig
 } from './form-handling.js';
-import drawing, { save, toggleTimeTravelButtons } from './drawing.js';
+import drawing, { save } from './drawing.js';
+import { reorderLayerSelectors } from './layer-handling.js';
 import layerTypes from './layer-types.js';
 
 const modes = Object.keys(layerTypes);
@@ -118,14 +119,13 @@ window.addEventListener('DOMContentLoaded', () => {
     Object.assign(session, {
         cmd: 'M',
         layerId: drawing.layers.length ? 0 : undefined,
-        mode: (drawing.layers[0] && drawing.layers[0].mode) || defaults.mode
+        mode: drawing.layers[0]?.mode || defaults.mode
     });
     initializeCanvas();
-    toggleTimeTravelButtons();
 }, { once: true });
 
 export default session;
-export { addLayerSelector };
+export { addLayerSelector, deleteLayerSelectors, initializeCanvas };
 
 const dragLayerSelector = (event) => {
     event.dataTransfer.setData('text', event.target.dataset.layerId);
@@ -137,27 +137,63 @@ const changeLayerLabel = ({ target }) => {
     session.activeLayer.label = target.textContent.replace(/\n/g, /\s/).trim();
     save('changeLabel');
 };
-function addLayerSelector() {
-    const latestId = layerSelect.childElementCount;
+
+function addLayerSelector(id = layerSelect.childElementCount) {
     const layerSelector = layerSelectorTemplate.cloneNode(true);
     const [label, selector] = layerSelector.children;
-    layerSelector.dataset.layerId = latestId;
+    layerSelector.dataset.layerId = id;
     layerSelector.ondragstart = dragLayerSelector;
     label.oninput = changeLayerLabel;
     configElement(label, {
-        textContent: (drawing.layers[latestId] && drawing.layers[latestId].label)
-            || `Layer ${latestId + 1}`
+        textContent: (drawing.layers[id] && drawing.layers[id].label)
+            || `Layer ${id + 1}`
     });
     configElement(selector, {
-        value: latestId,
+        value: id,
         checked: session.layerId === layerSelectors.length
     });
     layerSelect.append(layerSelector);
+    reorderLayerSelectors(id);
     vacancyMsgStyle.display = 'none';
 }
 
+function deleteLayerSelectors() {
+    vacancyMsgStyle.display = drawingContent.childElementCount ? 'none' : 'initial';
+
+    while (layerSelect.childElementCount !== layers.length) {
+        layerSelect.lastChild.remove();
+    }
+
+    if (!layers.length) {
+        session.layerId = undefined;
+    } else if (session.layerId === layers.length) {
+        session.layerId -= 1;
+    } else {
+        // NOTE: quickfix for undoing deletion
+        // TODO: restore active layer?!
+        if (session.layerId === undefined) {
+            session.layerId = 0;
+        }
+
+        const cb = mkControlPoint(session.activeLayer, session.layerId);
+        setFillAndStrokeConfig(session.activeLayer.style);
+        reorderLayerSelectors(session.layerId);
+        session.activeLayer.points.forEach(cb);
+        session.mode = session.activeLayer.mode;
+    }
+
+    // check the active layer's selector
+    if (layerSelectors[session.layerId]) {
+        layerSelectors[session.layerId].checked = true;
+    }
+}
+
 function initializeCanvas() {
-    // create layer representations and config ea
+    // clear canvas
+    remControlPoints();
+    [...layers].forEach((l) => l.remove());
+    deleteLayerSelectors();
+    // add layers and layer-selectors
     drawingContent.append(...drawing.layers.map((layer, i) => {
         const shape = svgTemplates[layer.mode];
         const geometryProps = (layer.mode === 'path')
@@ -169,12 +205,10 @@ function initializeCanvas() {
             ...geometryProps,
             transform: stringifyTransforms(layer.transforms)
         };
-
-        addLayerSelector();
-
         return configClone(shape)(attrs);
     }));
-    // set form-elements
+    drawing.layers.forEach((_, i) => addLayerSelector(i));
+    // adjust ui-elements
     pathClosingToggle.checked = session.activeLayer && session.activeLayer.closePath;
     setCmdConfig(session);
     applyTransforms(drawing, session);

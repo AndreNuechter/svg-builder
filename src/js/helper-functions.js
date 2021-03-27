@@ -143,7 +143,7 @@ function lastId(arr) {
  * @returns { string }
  */
 function pointToMarkup(point) {
-    return point.cmd + pathCmds[point.cmd](point);
+    return `${point.cmd}${pathCmds[point.cmd](point)}`;
 }
 
 /**

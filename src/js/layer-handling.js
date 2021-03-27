@@ -48,12 +48,12 @@ function Layer(mode, style, transforms) {
  * @param { number } startIndex The ordinal of the first affected item.
  * @param { number } endIndex The ordinal of the last affected item.
  */
-function reorderLayerSelectors(startIndex, endIndex) {
-    for (let i = startIndex; i <= endIndex; i += 1) {
+function reorderLayerSelectors(startIndex = 0, endIndex = layerSelect.childElementCount) {
+    for (let i = startIndex; i < endIndex; i += 1) {
         const selector = layerSelect.children[i];
         const [label, radio] = selector.children;
-        selector.dataset.layerId = i;
         layers[i].dataset.layerId = i;
+        selector.dataset.layerId = i;
         label.textContent = drawing.layers[i].label || `Layer ${i + 1}`;
         radio.value = i;
     }
