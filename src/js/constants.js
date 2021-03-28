@@ -32,7 +32,7 @@ const defaults = Object.freeze({
         'stroke-opacity': '1',
         'stroke-width': '2',
         fill: '#000',
-        'fill-opacity': '1',
+        'fill-opacity': '0',
         'stroke-linecap': 'butt',
         'stroke-linejoin': 'arcs',
         'stroke-miterlimit': '1',

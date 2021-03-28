@@ -74,8 +74,7 @@ const session = {
             if (val === undefined) return;
 
             remControlPoints();
-            const cb = mkControlPoint(session.activeLayer, val);
-            drawing.layers[val].points.forEach(cb);
+            createControlPoints();
             pathClosingToggle.checked = session.activeLayer.closePath;
             setCmdConfig(session);
             setArcCmdConfig(session);
@@ -138,6 +137,12 @@ const changeLayerLabel = ({ target }) => {
     save('changeLabel');
 };
 
+function createControlPoints() {
+    if (!session.activeLayer) return;
+    const cb = mkControlPoint(session.activeLayer, session.layerId);
+    session.activeLayer.points.forEach(cb);
+}
+
 function addLayerSelector(id = layerSelect.childElementCount) {
     const layerSelector = layerSelectorTemplate.cloneNode(true);
     const [label, selector] = layerSelector.children;
@@ -170,7 +175,7 @@ function deleteLayerSelectors() {
         session.layerId -= 1;
     } else {
         // NOTE: quickfix for undoing deletion
-        // TODO: restore active layer?!
+        // TODO: restore active layer?!...in resetCanvas()?
         if (session.layerId === undefined) {
             session.layerId = 0;
         }
@@ -193,19 +198,23 @@ function initializeCanvas() {
     remControlPoints();
     [...layers].forEach((l) => l.remove());
     deleteLayerSelectors();
-    // add layers and layer-selectors
+    // populate canvas
+    createControlPoints();
     drawingContent.append(...drawing.layers.map((layer, i) => {
         const shape = svgTemplates[layer.mode];
         const geometryProps = (layer.mode === 'path')
-            ? { d: layer.points.map(pointToMarkup).join(' ') + (layer.closePath ? 'Z' : '') }
+            ? {
+                d: `${layer.points.map(pointToMarkup).join(' ')}${layer.closePath
+                    ? 'Z'
+                    : ''}`
+            }
             : layer.points[0] || {};
-        const attrs = {
+        return configClone(shape)({
             'data-layer-id': i,
             ...layer.style,
             ...geometryProps,
             transform: stringifyTransforms(layer.transforms)
-        };
-        return configClone(shape)(attrs);
+        });
     }));
     drawing.layers.forEach((_, i) => addLayerSelector(i));
     // adjust ui-elements
@@ -214,7 +223,9 @@ function initializeCanvas() {
     applyTransforms(drawing, session);
     setTransformsConfig(session.transformTarget);
     transformTargetSwitch.checked = session.transformLayerNotDrawing;
-    setFillAndStrokeConfig(session.activeLayer ? session.activeLayer.style : defaults.style);
+    setFillAndStrokeConfig(session.activeLayer
+        ? session.activeLayer.style
+        : defaults.style);
     setArcCmdConfig(session);
     setOutputConfig(drawing);
 }

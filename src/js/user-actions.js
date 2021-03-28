@@ -378,6 +378,12 @@ function setFillOrStroke({ target: { name, value } }) {
     if (!session.activeLayer) return;
 
     session.activeLayer.style[name] = value;
+
+    // NOTE: make sure a change in fill is visible to the user
+    if (name === 'fill' && session.activeLayer.style['fill-opacity'] === '0') {
+        session.activeLayer.style['fill-opacity'] = '1';
+    }
+
     styleLayer(session.layerId);
 }
 fillAndStrokeForm.onchange = () => save('setFillOrStroke');
