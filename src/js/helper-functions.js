@@ -5,6 +5,7 @@ import {
     fillAndStrokeFields,
     svg
 } from './dom-shared-elements.js';
+import { defaults } from './constants.js';
 
 const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
 
@@ -17,7 +18,8 @@ export {
     last,
     lastId,
     getLastArcCmd,
-    getRelevantStyles,
+    getRelevantConfiguredStyles,
+    getRelevantDefaultStyles,
     getSVGCoords,
     pointToMarkup,
     stringifyTransforms
@@ -102,16 +104,25 @@ function getLastArcCmd(points) {
         .find((point) => point.cmd === 'A');
 }
 
-function getRelevantStyles(mode) {
-    return [...fillAndStrokeFields]
-        .filter((field) => {
-            if (!field.hasAttribute('name')) return false;
-            const parentLabelClasses = field.closest('label').classList;
-            return parentLabelClasses.contains('for-all') || parentLabelClasses.contains(`for-${mode}`);
-        })
-        .reduce((obj, field) => Object.assign(obj, {
-            [field.name]: field.value
-        }), {});
+function getRelevantConfiguredStyles(mode) {
+    return getModeSpecificStyleNames(mode)
+        .reduce(
+            (obj, key) => ({ ...obj, [key]: fillAndStrokeFields[key].value }),
+            Object.create(null)
+        );
+}
+
+function getRelevantDefaultStyles(mode) {
+    return getModeSpecificStyleNames(mode)
+        .reduce(
+            (obj, key) => ({ ...obj, [key]: defaults.style[key] }),
+            Object.create(null)
+        );
+}
+
+function getModeSpecificStyleNames(mode) {
+    return Object.keys(defaults.style)
+        .filter((key) => !defaults.styleRelevancies[key] || defaults.styleRelevancies[key].includes(mode));
 }
 
 /**

@@ -223,9 +223,7 @@ function initializeCanvas() {
     applyTransforms(drawing, session);
     setTransformsConfig(session.transformTarget);
     transformTargetSwitch.checked = session.transformLayerNotDrawing;
-    setFillAndStrokeConfig(session.activeLayer
-        ? session.activeLayer.style
-        : defaults.style);
+    setFillAndStrokeConfig(session.activeLayer?.style || defaults.style);
     setArcCmdConfig(session);
     setOutputConfig(drawing);
 }

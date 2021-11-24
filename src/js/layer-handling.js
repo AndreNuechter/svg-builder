@@ -30,7 +30,7 @@ function drawLayer(
 /**
  * Constructor for a default layer.
  * @param { string } mode [ path | rect | ellipse ]
- * @param { Object } style type-specific defaults.style
+ * @param { Object } style Mode-specific defaults.style
  * @param { Object } transforms defaults.transforms
  * @returns {{ mode: String, points: Point[], style: {}, transforms: {} }}
  */

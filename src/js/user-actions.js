@@ -14,7 +14,8 @@ import {
     applyTransforms,
     configClone,
     getLastArcCmd,
-    getRelevantStyles,
+    getRelevantConfiguredStyles,
+    getRelevantDefaultStyles,
     getSVGCoords,
     cloneObj,
     last,
@@ -110,7 +111,10 @@ export {
 function addLayer() {
     drawing.layers.push(Layer(
         session.mode,
-        { ...getRelevantStyles(session.mode) },
+        (!session.activeLayer
+            ? getRelevantConfiguredStyles
+            : getRelevantDefaultStyles)(session.mode),
+        // TODO see above for styles. Should we take the configured transform values on a blank canvas?
         cloneObj(defaults.transforms)
     ));
 
@@ -407,7 +411,7 @@ function setMode({ target: { value }, currentTarget }) {
     if (!session.activeLayer) return;
 
     // if the active layer isnt empty, we add (and focus) a new layer,
-    // otherwise we just replace the shape and the mode of the current
+    // otherwise we just replace shape and mode of the current one
     if (session.activeLayer.points.length) {
         addLayer();
     } else {
@@ -421,14 +425,14 @@ function setMode({ target: { value }, currentTarget }) {
         // remove mode-specific style-props of old mode
         Object.keys(session.activeLayer.style).forEach((key) => {
             if (
-                defaults.styleRelevancies[key]
+                key in defaults.styleRelevancies
                 && !defaults.styleRelevancies[key].includes(session.mode)
             ) {
                 delete session.activeLayer.style[key];
             }
         });
         // add mode-specific style-props of new mode
-        Object.assign(session.activeLayer.style, getRelevantStyles(session.mode));
+        Object.assign(session.activeLayer.style, getRelevantConfiguredStyles(session.mode));
         save('setMode');
     }
 }
