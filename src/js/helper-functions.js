@@ -8,6 +8,7 @@ import {
 import { defaults } from './constants.js';
 
 const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
+const svgPoint = svg.createSVGPoint();
 
 export {
     applyTransforms,
@@ -131,13 +132,13 @@ function getModeSpecificStyleNames(mode) {
  * @returns { number[] }
  */
 function getSVGCoords({ x, y }) {
-    let point = svg.createSVGPoint();
-    Object.assign(point, { x, y });
-    // NOTE: the second child of our canvas is the control-points-container,
-    // which has drawing- as well as layer-transforms applied to it
-    point = point.matrixTransform(svg.children[1].getScreenCTM().inverse());
+    const { x: svgX, y: svgY } = Object
+        .assign(svgPoint, { x, y })
+        // NOTE: the second child of our canvas is the control-points-container,
+        // which has drawing- as well as layer-transforms applied to it
+        .matrixTransform(svg.children[1].getScreenCTM().inverse());
 
-    return [point.x, point.y];
+    return [svgX, svgY];
 }
 
 function last(arr) {
