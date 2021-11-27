@@ -7,7 +7,7 @@
     },
     "extends": "airbnb-base",
     "rules": {
-        "comma-dangle": ["error", "never"],
+        "comma-dangle": ["error", "always-multiline"],
         "eol-last": ["error", "never"],
         "import/extensions": 0,
         "indent": ["error", 4, { "SwitchCase": 1 }],

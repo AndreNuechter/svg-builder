@@ -4,7 +4,7 @@ import {
     drawShape,
     last,
     lastId,
-    pointToMarkup
+    pointToMarkup,
 } from './helper-functions.js';
 import { arc, cube, quad } from './path-commands.js';
 
@@ -13,12 +13,12 @@ const shaperFuncs = {
         x: Math.min(x, x1),
         y: Math.min(y, y1),
         width: Math.abs(x - x1),
-        height: Math.abs(y - y1)
+        height: Math.abs(y - y1),
     }),
     ellipse: (x, y) => (x1, y1) => ({
         rx: Math.abs(x - x1),
-        ry: Math.abs(y - y1)
-    })
+        ry: Math.abs(y - y1),
+    }),
 };
 
 export default {
@@ -37,8 +37,8 @@ export default {
             x: point.x,
             y: point.y,
             width: point.width || 0,
-            height: point.height || 0
-        })
+            height: point.height || 0,
+        }),
     ),
     ellipse: LayerType(
         (session, points, x, y) => {
@@ -55,8 +55,8 @@ export default {
             cx: point.cx,
             cy: point.cy,
             rx: point.rx || 0,
-            ry: point.ry || 0
-        })
+            ry: point.ry || 0,
+        }),
     ),
     path: LayerType(
         (session, points, x, y, mkControlPoint, remLastControlPoint) => {
@@ -93,9 +93,9 @@ export default {
             mkControlPoint(session.activeLayer, session.layerId)(last(points), lastId(points));
         },
         ({ points, closePath }) => ({
-            d: `${points.map(pointToMarkup).join('')} ${closePath ? 'Z' : ''}`
-        })
-    )
+            d: `${points.map(pointToMarkup).join('')} ${closePath ? 'Z' : ''}`,
+        }),
+    ),
 };
 
 /**

@@ -51,5 +51,5 @@ export {
     transformsForm,
     transformTargetSwitch,
     undoBtn,
-    vacancyMsgStyle
+    vacancyMsgStyle,
 };

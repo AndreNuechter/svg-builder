@@ -15,13 +15,13 @@ const {
     rectLowerRight,
     ellipseCenter,
     rx,
-    ry
+    ry,
 } = controlPointTypes;
 const stopDragging = () => {
     Object.assign(svg, {
         onpointermove: null,
         onpointerleave: null,
-        onpointerup: null
+        onpointerup: null,
     });
     save('dragging');
 };
@@ -31,14 +31,14 @@ const startDragging = (layer, pointId, controlPointType) => (event) => {
     Object.assign(svg, {
         onpointermove: dragging(layer, pointId, controlPointType, event.target),
         onpointerleave: stopDragging,
-        onpointerup: stopDragging
+        onpointerup: stopDragging,
     });
 };
 
 export {
     remLastControlPoint,
     remControlPoints,
-    mkControlPoint
+    mkControlPoint,
 };
 
 /**
@@ -107,7 +107,7 @@ function ControlPoint(x, y, pointId, controlPointType, layerId) {
     return configClone(circleTemplate)({
         cx: x,
         cy: y,
-        onpointerdown: startDragging(layerId, pointId, controlPointType)
+        onpointerdown: startDragging(layerId, pointId, controlPointType),
     });
 }
 

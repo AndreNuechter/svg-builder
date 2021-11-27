@@ -3,7 +3,7 @@ import {
     controlPointContainer,
     drawingContent,
     fillAndStrokeFields,
-    svg
+    svg,
 } from './dom-shared-elements.js';
 import { defaults } from './constants.js';
 
@@ -23,7 +23,7 @@ export {
     getRelevantDefaultStyles,
     getSVGCoords,
     pointToMarkup,
-    stringifyTransforms
+    stringifyTransforms,
 };
 
 /**
@@ -109,7 +109,7 @@ function getRelevantConfiguredStyles(mode) {
     return getModeSpecificStyleNames(mode)
         .reduce(
             (obj, key) => ({ ...obj, [key]: fillAndStrokeFields[key].value }),
-            Object.create(null)
+            Object.create(null),
         );
 }
 
@@ -117,7 +117,7 @@ function getRelevantDefaultStyles(mode) {
     return getModeSpecificStyleNames(mode)
         .reduce(
             (obj, key) => ({ ...obj, [key]: defaults.style[key] }),
-            Object.create(null)
+            Object.create(null),
         );
 }
 

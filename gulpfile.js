@@ -2,7 +2,7 @@ const {
     src,
     dest,
     parallel,
-    watch
+    watch,
 } = require('gulp');
 const pug = require('gulp-pug');
 const sass = require('gulp-sass');
@@ -15,6 +15,7 @@ const htmlRoot = 'src/pug/index.pug';
 const style = 'src/scss/style.scss';
 const devDir = 'dev';
 const deployDir = 'docs';
+const port = 3001;
 
 exports.default = parallel(html, css, serve, watchCSSAndHTML);
 exports.bundle = parallel(htmlProd, cssProd, js);
@@ -29,7 +30,7 @@ function htmlProd() {
     return src(htmlRoot)
         .pipe(pug())
         .pipe(htmlreplace({
-            js: { src: './js/bundle.js', tpl: '<script src="%s" defer></script>' }
+            js: { src: './js/bundle.js', tpl: '<script src="%s" defer></script>' },
         }))
         .pipe(dest(`${deployDir}/`));
 }
@@ -53,7 +54,7 @@ function js() {
         .pipe(gulpEsbuild({
             outfile: 'bundle.js',
             bundle: true,
-            minify: true
+            minify: true,
         }))
         .pipe(dest(`${deployDir}/js`));
 }
@@ -68,5 +69,5 @@ function serve() {
     app.use(express.static('src'));
     app.use(express.static(devDir));
     // eslint-disable-next-line no-console
-    app.listen(3001, () => console.log('Build that SVG!'));
+    app.listen(port, () => console.log(`Build that SVG@http://localhost:${port}`));
 }

@@ -1,3 +1,5 @@
+// TODO mv into drawing/
+
 import { drawingContent, preview } from './dom-shared-elements.js';
 import { cloneObj, configElement, stringifyTransforms } from './helper-functions.js';
 import { setOutputConfig } from './form-handling.js';
@@ -11,7 +13,7 @@ const drawingData = JSON.parse(window.localStorage.getItem('drawing')) || {};
 const drawing = {
     layers: drawingData.layers || [],
     outputConfig: drawingData.outputConfig || { ...defaults.outputConfig },
-    transforms: drawingData.transforms || cloneObj(defaults.transforms)
+    transforms: drawingData.transforms || cloneObj(defaults.transforms),
 };
 const commitDrawingToStorage = () => window.localStorage.setItem('drawing', JSON.stringify(drawing));
 const { createBackup, redo, undo } = timeTravel(drawing, commitDrawingToStorage);
@@ -25,7 +27,7 @@ export {
     save,
     switchToOutputTab,
     undo,
-    updateViewBox
+    updateViewBox,
 };
 
 function getDrawingVBox() {
@@ -33,7 +35,7 @@ function getDrawingVBox() {
         drawing.outputConfig['vb-min-x'],
         drawing.outputConfig['vb-min-y'],
         drawing.outputConfig['vb-width'],
-        drawing.outputConfig['vb-height']
+        drawing.outputConfig['vb-height'],
     ];
 }
 
@@ -42,14 +44,14 @@ function centerViewBox() {
         x,
         y,
         width,
-        height
+        height,
     } = drawingContent.getBBox();
 
     Object.assign(drawing.outputConfig, {
         'vb-min-x': Math.trunc(x).toString(),
         'vb-min-y': Math.trunc(y).toString(),
         'vb-width': Math.trunc(width).toString(),
-        'vb-height': Math.trunc(height).toString()
+        'vb-height': Math.trunc(height).toString(),
     });
 
     updateViewBox();
@@ -96,6 +98,6 @@ function updateViewBox() {
         width: drawing.outputConfig.width,
         height: drawing.outputConfig.height,
         viewBox: getDrawingVBox(),
-        preserveAspectRatio: `${drawing.outputConfig.ratio} ${drawing.outputConfig['slice-or-meet']}`
+        preserveAspectRatio: `${drawing.outputConfig.ratio} ${drawing.outputConfig['slice-or-meet']}`,
     });
 }

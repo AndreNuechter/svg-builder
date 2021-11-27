@@ -1,7 +1,7 @@
 import { configElement } from './helper-functions.js';
 import {
     layers,
-    layerSelect
+    layerSelect,
 } from './dom-shared-elements.js';
 import drawing from './drawing.js';
 import layerTypes from './layer-types.js';
@@ -10,7 +10,7 @@ export {
     drawLayer,
     Layer,
     reorderLayerSelectors,
-    styleLayer
+    styleLayer,
 };
 
 /**
@@ -22,7 +22,7 @@ export {
 function drawLayer(
     layerId,
     layer = layers[layerId],
-    layerData = drawing.layers[layerId]
+    layerData = drawing.layers[layerId],
 ) {
     configElement(layer, layerTypes[layerData.mode].geometryProps(layerData));
 }
@@ -39,7 +39,7 @@ function Layer(mode, style, transforms) {
         mode,
         points: [],
         style,
-        transforms
+        transforms,
     });
 }
 
@@ -50,10 +50,12 @@ function Layer(mode, style, transforms) {
  */
 function reorderLayerSelectors(startIndex = 0, endIndex = layerSelect.childElementCount) {
     for (let i = startIndex; i < endIndex; i += 1) {
-        const selector = layerSelect.children[i];
-        const [label, radio] = selector.children;
-        layers[i].dataset.layerId = i;
-        selector.dataset.layerId = i;
+        const layerView = layers[i];
+        const layerSelector = layerSelect.children[i];
+        const [label, radio] = layerSelector.children;
+
+        layerView.dataset.layerId = i;
+        layerSelector.dataset.layerId = i;
         label.textContent = drawing.layers[i].label || `Layer ${i + 1}`;
         radio.value = i;
     }

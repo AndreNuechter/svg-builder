@@ -2,7 +2,7 @@ import {
     arcCmdConfig,
     fillAndStrokeFields,
     outputConfig,
-    transformFields
+    transformFields,
 } from './dom-shared-elements.js';
 import { complexTransforms } from './constants.js';
 import { last, getLastArcCmd } from './helper-functions.js';
@@ -21,7 +21,7 @@ export {
     setCmdConfig,
     setFillAndStrokeConfig,
     setOutputConfig,
-    setTransformsConfig
+    setTransformsConfig,
 };
 
 /**

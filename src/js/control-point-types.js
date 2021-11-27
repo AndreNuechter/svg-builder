@@ -16,7 +16,7 @@ const amounts = {
     C: 3,
     A: 1,
     S: 2,
-    T: 1
+    T: 1,
 };
 const getIdOfControlPoint = (layer, id) => layer.points
     .slice(0, id)
@@ -30,12 +30,12 @@ const getAffectedVAndHCmds = (layer, pointId) => {
         if (cmd === 'V') {
             addOns.push(AffectedControlPoint(
                 controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                xComponent
+                xComponent,
             ));
         } else if (cmd === 'H') {
             addOns.push(AffectedControlPoint(
                 controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                yComponent
+                yComponent,
             ));
         }
     }
@@ -49,29 +49,29 @@ export default {
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [AffectedControlPoint(controlPoint, basicFx), ...addOns];
-        }
+        },
     ),
     hCmd: ControlPointType(
         ({ x }) => ({ x }),
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [AffectedControlPoint(controlPoint, xComponent), ...addOns];
-        }
+        },
     ),
     vCmd: ControlPointType(
         ({ y }) => ({ y }),
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [AffectedControlPoint(controlPoint, yComponent), ...addOns];
-        }
+        },
     ),
     firstControlPoint: ControlPointType(
         ({ x, y }) => ({ x1: x, y1: y }),
-        (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)]
+        (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)],
     ),
     secondControlPoint: ControlPointType(
         ({ x, y }) => ({ x2: x, y2: y }),
-        (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)]
+        (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)],
     ),
     rectTopLeft: ControlPointType(
         basicChangeData,
@@ -80,14 +80,14 @@ export default {
             return [
                 AffectedControlPoint(controlPoint, basicFx),
                 AffectedControlPoint(controlPoints[1],
-                    (x, y) => ({ cx: x + point.width, cy: y + point.height }))
+                    (x, y) => ({ cx: x + point.width, cy: y + point.height })),
             ];
-        }
+        },
     ),
     rectLowerRight: ControlPointType(
         ({ x, y }, point) => ({
             width: x > point.x ? x - point.x : point.width,
-            height: y > point.y ? y - point.y : point.height
+            height: y > point.y ? y - point.y : point.height,
         }),
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
@@ -96,7 +96,7 @@ export default {
                 const cy = (y < point.y) ? point.y : y;
                 return { cx, cy };
             })];
-        }
+        },
     ),
     ellipseCenter: ControlPointType(
         ({ x, y }) => ({ cx: x, cy: y }),
@@ -105,18 +105,18 @@ export default {
             return [
                 AffectedControlPoint(controlPoint, basicFx),
                 AffectedControlPoint(controlPoints[1], () => ({ cx: point.cx - point.rx, cy: point.cy })),
-                AffectedControlPoint(controlPoints[2], () => ({ cx: point.cx, cy: point.cy - point.ry }))
+                AffectedControlPoint(controlPoints[2], () => ({ cx: point.cx, cy: point.cy - point.ry })),
             ];
-        }
+        },
     ),
     rx: ControlPointType(
         ({ x }, point) => ({ rx: Math.abs(x - point.cx) }),
-        (controlPoint) => [AffectedControlPoint(controlPoint, xComponent)]
+        (controlPoint) => [AffectedControlPoint(controlPoint, xComponent)],
     ),
     ry: ControlPointType(
         ({ y }, point) => ({ ry: Math.abs(y - point.cy) }),
-        (controlPoint) => [AffectedControlPoint(controlPoint, yComponent)]
-    )
+        (controlPoint) => [AffectedControlPoint(controlPoint, yComponent)],
+    ),
 };
 
 /**

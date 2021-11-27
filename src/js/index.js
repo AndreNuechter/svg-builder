@@ -14,7 +14,7 @@ import {
     transformTargetSwitch,
     fillAndStrokeForm,
     undoBtn,
-    redoBtn
+    redoBtn,
 } from './dom-shared-elements.js';
 import {
     addLayer,
@@ -42,7 +42,7 @@ import {
     togglePathClosing,
     triggerDownload,
     undo,
-    duplicateLayer
+    duplicateLayer,
 } from './user-actions.js';
 
 arcCmdConfig.oninput = configArcCmd;

@@ -11,7 +11,7 @@ const pathCmds = {
         x2,
         y,
         y1,
-        y2
+        y2,
     }) => `${x1} ${y1} ${x2} ${y2} ${x} ${y}`,
     A: ({
         x,
@@ -20,12 +20,12 @@ const pathCmds = {
         y,
         yR,
         large,
-        sweep
+        sweep,
     }) => `${xR} ${yR} ${xRot} ${large} ${sweep} ${x} ${y}`,
     S: ({ x, x1, y, y1 }) => `${x1} ${y1} ${x} ${y}`,
     T: basicPathCmd,
     M: basicPathCmd,
-    L: basicPathCmd
+    L: basicPathCmd,
 };
 const offset = 33;
 const calculateOffset = (distA, distB, prior, current) => {
@@ -46,7 +46,7 @@ const cmdControlPointDefaults = (xEnd, yEnd, xPrev, yPrev) => {
         xMin,
         yMin,
         yOffset,
-        xOffset
+        xOffset,
     };
 };
 
@@ -54,7 +54,7 @@ export {
     arc,
     cube,
     pathCmds,
-    quad
+    quad,
 };
 
 /**
@@ -68,7 +68,7 @@ function arc(config) {
         yR: config.yR,
         xRot: config.xRot,
         large: +config.large,
-        sweep: +config.sweep
+        sweep: +config.sweep,
     };
 }
 
@@ -84,14 +84,14 @@ function cube(xEnd, yEnd, { x: xPrev, y: yPrev }) {
         xMin,
         yMin,
         yOffset,
-        xOffset
+        xOffset,
     } = cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev);
 
     return {
         x1: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.25,
         y1: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.25,
         x2: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.75,
-        y2: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.75
+        y2: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.75,
     };
 }
 
@@ -107,11 +107,11 @@ function quad(xEnd, yEnd, { x: xPrev, y: yPrev }) {
         xMin,
         yMin,
         yOffset,
-        xOffset
+        xOffset,
     } = cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev);
 
     return {
         x1: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.5,
-        y1: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.5
+        y1: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.5,
     };
 }

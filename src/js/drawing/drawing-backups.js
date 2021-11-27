@@ -1,10 +1,10 @@
 import {
     redoBtn,
-    undoBtn
+    undoBtn,
 } from '../dom-shared-elements.js';
 import {
     cloneObj,
-    lastId
+    lastId,
 } from '../helper-functions.js';
 
 export default (drawing, commitDrawingToStorage) => {
@@ -59,6 +59,6 @@ export default (drawing, commitDrawingToStorage) => {
     return {
         createBackup,
         redo,
-        undo
+        undo,
     };
 };

@@ -4,11 +4,11 @@ const ns = 'http://www.w3.org/2000/svg';
 const layerSelectorTemplate = (() => {
     const label = configElement(document.createElement('label'), { draggable: true });
     const labelTextContainer = configElement(document.createElement('span'), {
-        contenteditable: true
+        contenteditable: true,
     });
     const selector = configElement(document.createElement('input'), {
         type: 'radio',
-        name: 'layer-selector'
+        name: 'layer-selector',
     });
 
     label.append(labelTextContainer, selector);
@@ -18,11 +18,11 @@ const layerSelectorTemplate = (() => {
 const svgTemplates = {
     path: document.createElementNS(ns, 'path'),
     rect: document.createElementNS(ns, 'rect'),
-    ellipse: document.createElementNS(ns, 'ellipse')
+    ellipse: document.createElementNS(ns, 'ellipse'),
 };
 const circleTemplate = configElement(document.createElementNS(ns, 'circle'), {
     r: 3,
-    class: 'control-point'
+    class: 'control-point',
 });
 const downloadLink = document.createElement('a');
 const dummyImg = document.createElement('img');
@@ -34,5 +34,5 @@ export {
     downloadLink,
     dummyImg,
     layerSelectorTemplate,
-    svgTemplates
+    svgTemplates,
 };

@@ -2,13 +2,13 @@ import {
     drawLayer,
     Layer,
     reorderLayerSelectors,
-    styleLayer
+    styleLayer,
 } from './layer-handling.js';
 import {
     cmdTags,
     complexTransforms,
     defaults,
-    moves
+    moves,
 } from './constants.js';
 import {
     applyTransforms,
@@ -19,14 +19,14 @@ import {
     getSVGCoords,
     cloneObj,
     last,
-    lastId
+    lastId,
 } from './helper-functions.js';
 import { setTransformsConfig } from './form-handling.js';
 import {
     canvas,
     downloadLink,
     dummyImg,
-    svgTemplates
+    svgTemplates,
 } from './dom-created-elements.js';
 import {
     controlPointContainer,
@@ -36,7 +36,7 @@ import {
     layerSelectors,
     svg,
     transformsForm,
-    transformTargetSwitch
+    transformTargetSwitch,
 } from './dom-shared-elements.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-point-handling.js';
 import { arc } from './path-commands.js';
@@ -48,7 +48,7 @@ import drawing, {
     redo,
     save,
     switchToOutputTab,
-    undo
+    undo,
 } from './drawing.js';
 import session, { addLayerSelector, deleteLayerSelectors, initializeCanvas } from './session.js';
 import layerTypes from './layer-types.js';
@@ -58,7 +58,7 @@ const ctx = canvas.getContext('2d');
 const download = (url) => {
     Object.assign(downloadLink, {
         download: `My_SVG.${drawing.outputConfig['file-format']}`,
-        href: url
+        href: url,
     });
     downloadLink.click();
 };
@@ -66,7 +66,7 @@ const writeToClipboard = (text) => window.navigator.clipboard.writeText(text);
 const ctrlActions = {
     C: duplicateLayer,
     Z: undo,
-    Y: redo
+    Y: redo,
 };
 
 // NOTE: save when done translating/inputting transforms
@@ -104,7 +104,7 @@ export {
     switchToOutputTab,
     togglePathClosing,
     triggerDownload,
-    undo
+    undo,
 };
 
 // TODO mv to drawing? layer-handling?
@@ -115,13 +115,13 @@ function addLayer() {
             ? getRelevantConfiguredStyles
             : getRelevantDefaultStyles)(session.mode),
         // TODO see above for styles. Should we take the configured transform values on a blank canvas?
-        cloneObj(defaults.transforms)
+        cloneObj(defaults.transforms),
     ));
 
     session.layerId = lastId(drawing.layers);
 
     drawingContent.append(configClone(svgTemplates[session.mode])({
-        'data-layer-id': session.layerId
+        'data-layer-id': session.layerId,
     }));
     addLayerSelector(session.layerId);
 }
@@ -136,7 +136,7 @@ function addPoint(event) {
     if (session.drawingShape) {
         const size = {
             hor: Math.abs(session.shapeStart.x - x),
-            vert: Math.abs(session.shapeStart.y - y)
+            vert: Math.abs(session.shapeStart.y - y),
         };
 
         Object.assign(points[0], (session.mode === 'rect')
@@ -144,11 +144,11 @@ function addPoint(event) {
                 x: Math.min(session.shapeStart.x, x),
                 y: Math.min(session.shapeStart.y, y),
                 width: size.hor,
-                height: size.vert
+                height: size.vert,
             }
             : {
                 rx: size.hor,
-                ry: size.vert
+                ry: size.vert,
             });
         save('drawShape');
 
@@ -156,7 +156,7 @@ function addPoint(event) {
 
         mkControlPoint(session.activeLayer, session.layerId)(
             last(points),
-            lastId(points)
+            lastId(points),
         );
         svg.onpointermove = null;
     } else {
@@ -186,7 +186,7 @@ function clearDrawing() {
     Object.assign(drawing, {
         layers: [],
         outputConfig: { ...defaults.outputConfig },
-        transforms: cloneObj(defaults.transforms)
+        transforms: cloneObj(defaults.transforms),
     });
     initializeCanvas();
     save('clear');
@@ -254,6 +254,7 @@ function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layerId, 1);
     session.activeSVGElement.remove();
+    // NOTE: this might be done twice (or more times) as `deleteLayerSelectors` might set layerId
     remControlPoints();
     deleteLayerSelectors();
     save('deleteLayer');
@@ -363,7 +364,7 @@ function setCenterOfRotation(element, transformTarget) {
         x,
         y,
         width,
-        height
+        height,
     } = element.getBBox();
     const coords = [Math.trunc(x + width * 0.5), Math.trunc(y + height * 0.5)];
 
@@ -417,7 +418,7 @@ function setMode({ target: { value }, currentTarget }) {
     } else {
         session.activeLayer.mode = session.mode;
         const shape = configClone(svgTemplates[session.mode])({
-            'data-layer-id': session.layerId
+            'data-layer-id': session.layerId,
         });
         const oldLayer = session.activeSVGElement;
         oldLayer.replaceWith(shape);
@@ -483,7 +484,7 @@ function triggerDownload() {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             Object.assign(ctx.canvas, {
                 width: drawing.outputConfig.width,
-                height: drawing.outputConfig.height
+                height: drawing.outputConfig.height,
             });
             ctx.drawImage(dummyImg, 0, 0);
             download(canvas.toDataURL());
