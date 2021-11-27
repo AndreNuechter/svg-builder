@@ -182,10 +182,10 @@ function deleteLayerSelectors() {
             session.layerId = 0;
         }
 
-        const cb = mkControlPoint(session.activeLayer, session.layerId);
-        setFillAndStrokeConfig(session.activeLayer.style);
+        applyTransforms(drawing, session);
         reorderLayerSelectors(session.layerId);
-        session.activeLayer.points.forEach(cb);
+        setFillAndStrokeConfig(session.activeLayer.style);
+        createControlPoints();
         session.mode = session.activeLayer.mode;
     }
 
