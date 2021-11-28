@@ -27,6 +27,7 @@ import {
     copyDataURIToClipboard,
     deleteLastPoint,
     deleteLayer,
+    finalizeShape,
     copyMarkupToClipboard,
     pressKey,
     redo,
@@ -67,6 +68,7 @@ outputConfig.oninput = configOutput;
 pathClosingToggle.onchange = togglePathClosing;
 redoBtn.addEventListener('click', redo);
 svg.addEventListener('pointerdown', addPoint);
+document.addEventListener('pointerup', finalizeShape);
 transformsForm.oninput = setTransform;
 transformTargetSwitch.onchange = setTransformTarget;
 undoBtn.addEventListener('click', undo);

@@ -80,7 +80,7 @@ function generateDataURI() {
 }
 
 /**
- * Creates a backup of drawing and saves to localStorage.
+ * Creates a backup of drawing and saves it to localStorage.
  */
 function save(msg) {
     createBackup({ layers: cloneObj(drawing.layers), transforms: cloneObj(drawing.transforms) });

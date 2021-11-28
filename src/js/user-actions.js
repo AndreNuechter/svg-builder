@@ -90,6 +90,7 @@ export {
     deleteLastPoint,
     deleteLayer,
     duplicateLayer,
+    finalizeShape,
     pressKey,
     redo,
     reorderLayers,
@@ -117,9 +118,7 @@ function addLayer() {
         // TODO see above for styles. Should we take the configured transform values on a blank canvas?
         cloneObj(defaults.transforms),
     ));
-
     session.layerId = lastId(drawing.layers);
-
     drawingContent.append(configClone(svgTemplates[session.mode])({
         'data-layer-id': session.layerId,
     }));
@@ -133,39 +132,11 @@ function addPoint(event) {
     const [x, y] = getSVGCoords(event);
     const { points } = session.activeLayer;
 
-    if (session.drawingShape) {
-        const size = {
-            hor: Math.abs(session.shapeStart.x - x),
-            vert: Math.abs(session.shapeStart.y - y),
-        };
+    layerTypes[session.mode].mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
 
-        Object.assign(points[0], (session.mode === 'rect')
-            ? {
-                x: Math.min(session.shapeStart.x, x),
-                y: Math.min(session.shapeStart.y, y),
-                width: size.hor,
-                height: size.vert,
-            }
-            : {
-                rx: size.hor,
-                ry: size.vert,
-            });
-        save('drawShape');
-
-        session.drawingShape = false;
-
-        mkControlPoint(session.activeLayer, session.layerId)(
-            last(points),
-            lastId(points),
-        );
-        svg.onpointermove = null;
-    } else {
-        layerTypes[session.mode].mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
-
-        // start dragging newly created path-point
-        if (session.mode === 'path') {
-            controlPointContainer.lastElementChild.dispatchEvent(new Event('pointerdown'));
-        }
+    // start dragging newly created path-point
+    if (session.mode === 'path') {
+        controlPointContainer.lastElementChild.dispatchEvent(new Event('pointerdown'));
     }
 
     styleLayer(session.layerId);
@@ -267,6 +238,38 @@ function duplicateLayer() {
     session.layerId += 1;
     addLayerSelector(session.layerId);
     save('ctrl+c');
+}
+
+function finalizeShape(event) {
+    if (!session.drawingShape) return;
+
+    session.drawingShape = false;
+
+    const [x, y] = getSVGCoords(event);
+    const { points = [] } = session.activeLayer;
+    const size = {
+        hor: Math.abs(session.shapeStart.x - x),
+        vert: Math.abs(session.shapeStart.y - y),
+    };
+
+    Object.assign(points[0], (session.mode === 'rect')
+        ? {
+            x: Math.min(session.shapeStart.x, x),
+            y: Math.min(session.shapeStart.y, y),
+            width: size.hor,
+            height: size.vert,
+        }
+        : {
+            rx: size.hor,
+            ry: size.vert,
+        });
+    save('drawShape');
+
+    mkControlPoint(session.activeLayer, session.layerId)(
+        last(points),
+        lastId(points),
+    );
+    svg.onpointermove = null;
 }
 
 function pressKey(event) {
