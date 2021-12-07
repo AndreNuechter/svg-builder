@@ -46,6 +46,7 @@ const getAffectedVAndHCmds = (layer, pointId) => {
 export default {
     regularPoint: ControlPointType(
         basicChangeData,
+        'control-point__regular',
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [AffectedControlPoint(controlPoint, basicFx), ...addOns];
@@ -53,6 +54,7 @@ export default {
     ),
     hCmd: ControlPointType(
         ({ x }) => ({ x }),
+        'control-point__h',
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [AffectedControlPoint(controlPoint, xComponent), ...addOns];
@@ -60,6 +62,7 @@ export default {
     ),
     vCmd: ControlPointType(
         ({ y }) => ({ y }),
+        'control-point__v',
         (controlPoint, layer, pointId) => {
             const addOns = getAffectedVAndHCmds(layer, pointId);
             return [AffectedControlPoint(controlPoint, yComponent), ...addOns];
@@ -67,14 +70,17 @@ export default {
     ),
     firstControlPoint: ControlPointType(
         ({ x, y }) => ({ x1: x, y1: y }),
+        'control-point__a',
         (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)],
     ),
     secondControlPoint: ControlPointType(
         ({ x, y }) => ({ x2: x, y2: y }),
+        'control-point__b',
         (controlPoint) => [AffectedControlPoint(controlPoint, basicFx)],
     ),
     rectTopLeft: ControlPointType(
         basicChangeData,
+        'control-point__rect-top-left',
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
             return [
@@ -89,6 +95,7 @@ export default {
             width: x > point.x ? x - point.x : point.width,
             height: y > point.y ? y - point.y : point.height,
         }),
+        'control-point__rect-bottom-right',
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
             return [AffectedControlPoint(controlPoint, (x, y) => {
@@ -100,6 +107,7 @@ export default {
     ),
     ellipseCenter: ControlPointType(
         ({ x, y }) => ({ cx: x, cy: y }),
+        'control-point__ellipse-center',
         (controlPoint, layer, pointId) => {
             const point = layer.points[pointId];
             return [
@@ -111,19 +119,24 @@ export default {
     ),
     rx: ControlPointType(
         ({ x }, point) => ({ rx: Math.abs(x - point.cx) }),
+        'control-point__ellipse-rx',
         (controlPoint) => [AffectedControlPoint(controlPoint, xComponent)],
     ),
     ry: ControlPointType(
         ({ y }, point) => ({ ry: Math.abs(y - point.cy) }),
+        'control-point__ellipse-ry',
         (controlPoint) => [AffectedControlPoint(controlPoint, yComponent)],
     ),
 };
 
 /**
  * @param { Function } changeData A function used to change the respective point-data.
+ * @param { String } CSSClass The CSS-class applied to an instance.
  * @param { Function } getAffectedPoints A function returning an array of objects of affected control-points and effects to be applied to them.
  */
-function ControlPointType(changeData, getAffectedPoints) { return { changeData, getAffectedPoints }; }
+function ControlPointType(changeData, CSSClass, getAffectedPoints) {
+    return { changeData, CSSClass, getAffectedPoints };
+}
 
 /**
  * @param { SVGCircleElement } cp The control-point affected by dragging.

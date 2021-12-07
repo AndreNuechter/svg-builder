@@ -105,6 +105,7 @@ function mkControlPoint(layer, layerId) {
  */
 function ControlPoint(x, y, pointId, controlPointType, layerId) {
     return configClone(circleTemplate)({
+        class: `control-point ${controlPointType.CSSClass}`,
         cx: x,
         cy: y,
         onpointerdown: startDragging(layerId, pointId, controlPointType),
