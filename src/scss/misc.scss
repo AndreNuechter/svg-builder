@@ -89,3 +89,9 @@ a {
 #commands {
     margin-left: 8px;
 }
+
+line {
+    stroke-dasharray: 4 3;
+    stroke: #000;
+    stroke-opacity: 0.8;
+}

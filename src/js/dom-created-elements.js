@@ -1,7 +1,7 @@
 import { configElement } from './helper-functions.js';
 
 const ns = 'http://www.w3.org/2000/svg';
-const layerSelectorTemplate = (() => {
+export const layerSelectorTemplate = (() => {
     const label = configElement(document.createElement('label'), { draggable: true });
     const labelTextContainer = configElement(document.createElement('span'), {
         contenteditable: true,
@@ -15,24 +15,13 @@ const layerSelectorTemplate = (() => {
 
     return label;
 })();
-const svgTemplates = {
+export const svgTemplates = {
     path: document.createElementNS(ns, 'path'),
     rect: document.createElementNS(ns, 'rect'),
     ellipse: document.createElementNS(ns, 'ellipse'),
 };
-const circleTemplate = configElement(document.createElementNS(ns, 'circle'), {
-    r: 3,
-    class: 'control-point',
-});
-const downloadLink = document.createElement('a');
-const dummyImg = document.createElement('img');
-const canvas = document.createElement('canvas');
-
-export {
-    canvas,
-    circleTemplate,
-    downloadLink,
-    dummyImg,
-    layerSelectorTemplate,
-    svgTemplates,
-};
+export const lineTemplate = document.createElementNS(ns, 'line');
+export const circleTemplate = configElement(document.createElementNS(ns, 'circle'), { r: 3 });
+export const downloadLink = document.createElement('a');
+export const dummyImg = document.createElement('img');
+export const canvas = document.createElement('canvas');

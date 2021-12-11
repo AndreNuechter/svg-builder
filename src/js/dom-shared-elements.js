@@ -23,6 +23,7 @@ const transformsForm = document.getElementById('transformations');
 const transformFields = transformsForm.elements;
 const rotateInputs = transformFields.rotate.getElementsByTagName('input');
 const scaleInputs = transformFields.scale.getElementsByTagName('input');
+const slopes = controlPointContainer.getElementsByTagName('line');
 const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
 const undoBtn = document.getElementById('undo-btn');
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
@@ -46,6 +47,7 @@ export {
     redoBtn,
     rotateInputs,
     scaleInputs,
+    slopes,
     svg,
     transformFields,
     transformsForm,
