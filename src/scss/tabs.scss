@@ -1,12 +1,13 @@
-#tabs {
+#tab-links {
     margin-bottom: 8px;
     color: var(--main-heading-color);
 }
 
-.tab {
+.tab-link {
     padding: 4px 8px;
     margin-right: 8px;
     color: inherit;
+    cursor: pointer;
 
     &.active {
         background: var(--sub-bg-color);
@@ -28,7 +29,7 @@
         ". center"
     ;
 
-    &:target {
+    &.active {
         overflow: visible;
         z-index: 1;
         opacity: 1;

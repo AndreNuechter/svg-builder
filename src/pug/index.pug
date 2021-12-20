@@ -14,11 +14,11 @@ html(lang="en")
         // endbuild
 
     body
-        #tabs
-            a.tab(data-tab-name="drawing" href="#drawing") Drawing
-            a.tab(data-tab-name="output" href="#output") Output
+        #tab-links
+            a.tab-link.active(data-tab-name="drawing") Drawing
+            a.tab-link(data-tab-name="output") Output
 
-        #drawing.tab-content(data-tab="drawing")
+        #drawing.tab-content.active(data-tab="drawing")
             include drawing.pug
 
         #output.tab-content(data-tab="output")
