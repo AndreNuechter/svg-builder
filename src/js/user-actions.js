@@ -225,10 +225,15 @@ function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layerId, 1);
     session.activeSVGElement.remove();
-    // NOTE: this might be done twice (or more times) as `deleteLayerSelectors` might set layerId
+    // NOTE: `remControlPoints` might be called more than once,
+    // as `deleteLayerSelectors` might change the layerId
     remControlPoints();
     deleteLayerSelectors();
     save('deleteLayer');
+    // NOTE: this needs to happen now because deleting the last layer,
+    // before `deleteLayerSelectors` had a chance to correct the layerId,
+    // would cause an invalid lookup
+    session.mode = session.activeLayer.mode;
 }
 
 // TODO mv to drawing?
