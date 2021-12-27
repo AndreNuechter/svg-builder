@@ -278,8 +278,7 @@ function finalizeShape(event) {
 }
 
 function pressKey(event) {
-    if (window.location.hash !== '#drawing') return;
-
+    // TODO find another way to prevent this when not in the drawing tab
     const { key } = event;
 
     if (key === 'F12') return;
