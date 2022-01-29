@@ -4,8 +4,13 @@ fieldset {
     background: linear-gradient(135deg, var(--main-bg-color), 95%, var(--sub-highlight-color));
 
     fieldset {
+        margin-bottom: 4px;
         background: var(--main-bg-color);
         box-shadow: none;
+
+        legend {
+            font-weight: 500;
+        }
 
         +fieldset {
             margin-top: 0.5rem;
@@ -46,7 +51,7 @@ fieldset.togglable {
     }
 
     &.open {
-        max-height: 400px;
+        max-height: 444px;
 
         >legend::after {
             transform: rotate(180deg);
@@ -56,6 +61,7 @@ fieldset.togglable {
 
 legend {
     color: var(--main-heading-color);
+    font-weight: 600;
 }
 
 @keyframes fade {

@@ -1,11 +1,14 @@
-select {
-    padding: 0 5px;
+select, input[type=number] {
+    padding: 4px;
+    border-radius: var(--border-radius);
+    border: 0;
 }
 
 label {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+    margin-bottom: 2px;
 }
 
 a {
@@ -23,6 +26,11 @@ a {
 
 #output-configuration {
     grid-area: leftSidebar;
+
+    > fieldset {
+        display: inline-flex;
+        flex-direction: column;
+    }
 }
 
 #preview {
@@ -79,6 +87,17 @@ a {
     label {
         display: inline;
         margin-right: 8px;
+    }
+
+    fieldset {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+
+        [data-mode="rect"] &.for-path,
+        [data-mode="ellipse"] &.for-path {
+            display: none;
+        }
     }
 }
 
