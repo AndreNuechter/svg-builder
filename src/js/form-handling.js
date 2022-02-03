@@ -8,12 +8,24 @@ import { complexTransforms } from './constants.js';
 import { last, getLastArcCmd } from './helper-functions.js';
 
 const { elements: outputConfigFields } = outputConfig;
+const configRangeInputLabel = (target, value) => { target.previousElementSibling.dataset.value = ` (${value})`; };
+const configInput = (input, value) => {
+    input.value = value;
+    if (input.type === 'range') {
+        configRangeInputLabel(input, value);
+    }
+};
 const configForm = (formElements, conf) => {
     Object.entries(conf).forEach(([key, val]) => {
-        formElements[key].value = val;
+        configInput(formElements[key], val);
     });
 };
 
+[...document.querySelectorAll('input[type="range"]')].forEach((slider) => {
+    slider.addEventListener('input', ({ target }) => {
+        configRangeInputLabel(target, target.value);
+    });
+});
 window.onsubmit = (e) => e.preventDefault();
 
 export {
@@ -40,7 +52,12 @@ function setArcCmdConfig(session) {
         .filter(([key]) => !['cmd', 'x', 'y'].includes(key))
         .forEach(([key, val]) => {
             const field = arcCmdConfig.elements[key];
-            field[(field.type === 'checkbox') ? 'checked' : 'value'] = val;
+
+            if (field.type === 'checkbox') {
+                field.checked = val;
+            } else {
+                configInput(field, val);
+            }
         });
 }
 
@@ -78,9 +95,9 @@ function setTransformsConfig(conf) {
         .filter(([key]) => key !== 'translate')
         .forEach(([key, val]) => {
             if (complexTransforms[key]) {
-                val.forEach((v, i) => { complexTransforms[key][i].value = v; });
+                val.forEach((v, i) => configInput(complexTransforms[key][i], v));
             } else {
-                transformFields[key].value = val;
+                configInput(transformFields[key], val);
             }
         });
 }

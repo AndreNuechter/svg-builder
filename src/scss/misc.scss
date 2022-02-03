@@ -114,3 +114,7 @@ line {
     stroke: #000;
     stroke-opacity: 0.8;
 }
+
+[data-value]::after {
+    content: attr(data-value);
+}
