@@ -27,6 +27,8 @@ function html() {
 }
 
 function htmlProd() {
+    src('src/images/icons-192.png')
+        .pipe(dest(`${deployDir}/images/`));
     return src(htmlRoot)
         .pipe(pug())
         .pipe(htmlreplace({
@@ -50,7 +52,7 @@ function cssProd() {
 }
 
 function js() {
-    return src('./src/js/index.js')
+    return src('src/js/index.js')
         .pipe(gulpEsbuild({
             outfile: 'bundle.js',
             bundle: true,

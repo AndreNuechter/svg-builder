@@ -43,8 +43,6 @@ form#output-configuration
                 select#slice-or-meet(name="slice-or-meet")
                     option meet
                     option slice
-        button#get-markup(title="...copied to clipboard") Get Markup
-        button#get-data-uri(title="...copied to clipboard") Get Data URI
         fieldset#download
             legend Download
             label
@@ -54,5 +52,7 @@ form#output-configuration
                 span PNG
                 input(type="radio" name="file-format" value="png")
             button#download-btn Download
+            button#get-markup(title="...copied to clipboard") Get Markup
+            button#get-data-uri(title="...copied to clipboard") Get Data URI
 
 #preview
