@@ -71,5 +71,5 @@ function serve() {
     app.use(express.static('src'));
     app.use(express.static(devDir));
     // eslint-disable-next-line no-console
-    app.listen(port, () => console.log(`Build that SVG@http://localhost:${port}`));
+    app.listen(port, () => console.log(`Build that SVG @ http://localhost:${port}`));
 }

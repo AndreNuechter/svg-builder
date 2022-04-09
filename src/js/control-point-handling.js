@@ -119,9 +119,8 @@ function mkControlPoint(layer, layerId) {
 
         // NOTE: path, rect or ellipse
         if ('cmd' in point) {
-            const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
-
             if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
+                const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
                 if (['Q', 'C', 'S'].includes(point.cmd)) {
                     const previousPoint = layer.points[pointId - 1];
                     const firstCP = ControlPoint(
@@ -160,6 +159,8 @@ function mkControlPoint(layer, layerId) {
                         addedElements.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
                     }
                 }
+                // NOTE: this cp is only pushed here to have it be last, which is important for the slopes
+                addedElements.push(mainCP);
             } else if (point.cmd === 'H') {
                 addedElements.push(
                     ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId),
@@ -169,8 +170,6 @@ function mkControlPoint(layer, layerId) {
                     ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId),
                 );
             }
-            // NOTE: this cp is only pushed here to have it be last, which is important for the slopes
-            addedElements.push(mainCP);
         } else if ('width' in point) {
             addedElements.push(
                 ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
