@@ -9,6 +9,6 @@
     margin-left: 3px;
     background: var(--sub-bg-color);
     touch-action: none;
-    background-size: 40px 40px;
+    background-size: var(--bg-grid-size) var(--bg-grid-size);
     background-image: radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 1px);
 }

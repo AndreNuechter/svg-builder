@@ -21,6 +21,7 @@ import {
     addPoint,
     centerRotation,
     centerViewBox,
+    changeBackgroundGridSize,
     clearDrawing,
     configArcCmd,
     configOutput,
@@ -68,6 +69,7 @@ outputConfig.oninput = configOutput;
 pathClosingToggle.onchange = togglePathClosing;
 redoBtn.addEventListener('click', redo);
 svg.addEventListener('pointerdown', addPoint);
+svg.onwheel = changeBackgroundGridSize;
 document.addEventListener('pointerup', finalizeShape);
 transformsForm.oninput = setTransform;
 transformTargetSwitch.onchange = setTransformTarget;

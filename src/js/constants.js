@@ -60,8 +60,10 @@ const moves = Object.freeze({
     ArrowLeft: Object.freeze({ prop: 0, cb: dec }),
     ArrowRight: Object.freeze({ prop: 0, cb: inc }),
 });
+const backgroundGridStepsize = 5;
 
 export {
+    backgroundGridStepsize,
     cmdTags,
     complexTransforms,
     defaults,
