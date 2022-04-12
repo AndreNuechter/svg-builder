@@ -70,6 +70,7 @@ pathClosingToggle.onchange = togglePathClosing;
 redoBtn.addEventListener('click', redo);
 svg.addEventListener('pointerdown', addPoint);
 svg.onwheel = changeBackgroundGridSize;
+svg.addEventListener('pointerleave', finalizeShape);
 document.addEventListener('pointerup', finalizeShape);
 transformsForm.oninput = setTransform;
 transformTargetSwitch.onchange = setTransformTarget;

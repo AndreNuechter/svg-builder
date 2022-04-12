@@ -278,7 +278,7 @@ function finalizeShape(event) {
         vert: Math.abs(session.shapeStart.y - y),
     };
 
-    Object.assign(points[0], (session.mode === 'rect')
+    Object.assign(points[0], session.mode === 'rect'
         ? {
             x: Math.min(session.shapeStart.x, x),
             y: Math.min(session.shapeStart.y, y),
