@@ -1,25 +1,9 @@
-doctype html
-html(lang="en")
-    head
-        meta(charset="UTF-8")
-        meta(name="viewport" content="width=device-width, initial-scale=1")
-        meta(name="description" content="A simple tool to build complex svgs")
-        meta(name="theme-color" content="#ffffff")
-        title SVG Builder
-        link(rel="shortcut icon" type="image/png" href="./images/icons-192.png")
-        link(rel="stylesheet" href="./css/style.css")
-        link(rel="manifest" href="./manifest.json")
-        // build:js
-        script(src="./js/index.js" type="module")
-        // endbuild
+#tab-links
+    a.tab-link.active(data-tab-name="drawing") Drawing
+    a.tab-link(data-tab-name="output") Output
 
-    body
-        #tab-links
-            a.tab-link.active(data-tab-name="drawing") Drawing
-            a.tab-link(data-tab-name="output") Output
+#drawing.tab-content.active(data-tab="drawing")
+    include drawing.pug
 
-        #drawing.tab-content.active(data-tab="drawing")
-            include drawing.pug
-
-        #output.tab-content(data-tab="output")
-            include output.pug
+#output.tab-content(data-tab="output")
+    include output.pug
