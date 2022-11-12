@@ -6,6 +6,6 @@ export default defineConfig({
     plugins: [pugPlugin()],
     build: {
         outDir: './docs',
+        emptyOutDir: true,
     },
-    base: './',
 });

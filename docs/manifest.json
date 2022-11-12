@@ -5,13 +5,14 @@
     "orientation": "landscape",
     "theme_color": "#ffffff",
     "background_color": "#000000",
+    "start_url": "./",
     "icons": [{
-        "src": "./src/images/icons-192.png",
+        "src": "./images/icons-192.png",
         "type": "image/png",
         "sizes": "192x192",
-        "purpose": "any maskable"
+        "purpose": "any monochrome"
     }, {
-        "src": "./src/images/icons-512.png",
+        "src": "./images/icons-512.png",
         "type": "image/png",
         "sizes": "512x512"
     }]
