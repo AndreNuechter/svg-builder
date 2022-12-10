@@ -1,10 +1,9 @@
-// TODO mv into drawing/
-
-import { drawingContent, preview } from './dom-shared-elements.js';
-import { cloneObj, configElement, stringifyTransforms } from './helper-functions.js';
-import { setOutputConfig } from './form-handling.js';
-import { defaults } from './constants.js';
-import timeTravel from './drawing/drawing-backups.js';
+import { optimize } from 'svgo';
+import { drawingContent, preview } from '../dom-shared-elements.js';
+import { cloneObj, configElement, stringifyTransforms } from '../helper-functions.js';
+import { setOutputConfig } from '../form-handling.js';
+import { defaults } from '../constants.js';
+import timeTravel from './drawing-backups.js';
 
 const layerIdRe = / data-layer-id="\d+"/g;
 const multiSpaces = /\s{2,}/g;
@@ -63,14 +62,14 @@ function centerViewBox() {
  * Returns the markup of the created drawing (wo the cps) inside default svg markup.
  */
 function generateMarkUp() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" 
+    return optimize(`<svg xmlns="http://www.w3.org/2000/svg" 
     width="${drawing.outputConfig.width}" 
     height="${drawing.outputConfig.height}" 
     viewBox="${getDrawingVBox()}" 
     preserveAspectRatio="${`${drawing.outputConfig.ratio} ${drawing.outputConfig['slice-or-meet']}`}">
     <g transform="${stringifyTransforms(drawing.transforms)}">${drawingContent.innerHTML}</g></svg>`
         .replace(layerIdRe, '')
-        .replace(multiSpaces, ' ');
+        .replace(multiSpaces, ' ')).data;
 }
 
 function generateDataURI() {

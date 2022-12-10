@@ -8,7 +8,10 @@ import { complexTransforms } from './constants.js';
 import { last, getLastArcCmd } from './helper-functions.js';
 
 const { elements: outputConfigFields } = outputConfig;
-const configRangeInputLabel = (target, value) => { target.previousElementSibling.dataset.value = ` (${value})`; };
+// display the value of range inputs behind their labels
+const configRangeInputLabel = (target, value) => {
+    target.previousElementSibling.dataset.value = ` (${value})`;
+};
 const configInput = (input, value) => {
     input.value = value;
     if (input.type === 'range') {

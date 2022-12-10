@@ -103,4 +103,6 @@ export default {
  * @param { Function } geometryProps Exectuted when a layer of this type is drawn. Returns an object of geometry-props relevant for that type of layer paired w the respective layers config.
  * @returns {{ mkPoint: Function, geometryProps: Object }}
  */
-function LayerType(mkPoint, geometryProps) { return { mkPoint, geometryProps }; }
+function LayerType(mkPoint, geometryProps) {
+    return { mkPoint, geometryProps };
+}

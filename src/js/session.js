@@ -26,7 +26,7 @@ import {
     setFillAndStrokeConfig,
     setTransformsConfig,
 } from './form-handling.js';
-import drawing, { save } from './drawing.js';
+import drawing, { save } from './drawing/drawing.js';
 import { reorderLayerSelectors } from './layer-handling.js';
 import layerTypes from './layer-types.js';
 

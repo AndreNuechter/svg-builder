@@ -50,7 +50,7 @@ import drawing, {
     save,
     switchToOutputTab,
     undo,
-} from './drawing.js';
+} from './drawing/drawing.js';
 import session, { addLayerSelector, deleteLayerSelectors, initializeCanvas } from './session.js';
 import layerTypes from './layer-types.js';
 

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { defineConfig } from 'vite';
 import pugPlugin from 'vite-plugin-pug';
 
@@ -7,6 +6,9 @@ export default defineConfig({
     build: {
         outDir: './docs',
         emptyOutDir: true,
+    },
+    optimizeDeps: {
+        needsInterop: ['svgo']
     },
     base: './',
 });

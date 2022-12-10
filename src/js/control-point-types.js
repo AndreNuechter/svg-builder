@@ -142,4 +142,6 @@ function ControlPointType(changeData, CSSClass, getAffectedPoints) {
  * @param { SVGCircleElement } cp The control-point affected by dragging.
  * @param { Function } fx The effects applied to the cp.
  */
-function AffectedControlPoint(cp, fx) { return { ref: cp, fx }; }
+function AffectedControlPoint(cp, fx) {
+    return { ref: cp, fx };
+}

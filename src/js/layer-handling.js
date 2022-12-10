@@ -3,7 +3,7 @@ import {
     layers,
     layerSelect,
 } from './dom-shared-elements.js';
-import drawing from './drawing.js';
+import drawing from './drawing/drawing.js';
 import layerTypes from './layer-types.js';
 
 export {

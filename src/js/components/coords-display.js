@@ -12,5 +12,7 @@ const coordToolTips = (event) => {
 
 export default (() => {
     svg.addEventListener('pointermove', coordToolTips);
-    svg.addEventListener('pointerleave', () => { coords.style = null; });
+    svg.addEventListener('pointerleave', () => {
+        coords.style = null;
+    });
 })();

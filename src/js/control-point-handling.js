@@ -8,7 +8,7 @@ import {
     lastId,
 } from './helper-functions.js';
 import { drawLayer } from './layer-handling.js';
-import drawing, { save } from './drawing.js';
+import drawing, { save } from './drawing/drawing.js';
 import controlPointTypes from './control-point-types.js';
 
 const {
@@ -52,11 +52,10 @@ const mkSlope = (x1, y1, x2, y2, startPoint, endPoint) => {
         slope.setAttribute('x2', endPoint.getAttribute('cx'));
         slope.setAttribute('y2', endPoint.getAttribute('cy'));
     });
-    // https://dom.spec.whatwg.org/#garbage-collection
-    // TODO it seems, a observer is cleaned up when the observed dom-node is gc'd.
-    // It would still be better to explicitly disconnect them, which rn seems tricky.
+
     startPointObserver.observe(startPoint, slopeObserverOptions);
     endPointObserver.observe(endPoint, slopeObserverOptions);
+
     return slope;
 };
 
