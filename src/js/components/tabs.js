@@ -1,3 +1,5 @@
+import { centerViewBox } from '../user-actions';
+
 export default (() => {
     const tabLinksContainer = document.getElementById('tab-links');
     const tabLinks = [...tabLinksContainer.children];
@@ -8,6 +10,7 @@ export default (() => {
         id: 'output',
         element: document.querySelector('[data-tab="output"]'),
     }];
+    let enteredOutputTabBefore = false;
 
     tabLinksContainer.onclick = ({ target }) => {
         if (!target.classList.contains('tab-link')) return;
@@ -18,5 +21,10 @@ export default (() => {
         // hide all tabs, then show the one matching the clicked tab-link
         tabs.forEach((tab) => tab.element.classList.remove('active'));
         tabs.find(({ id }) => id === target.dataset.tabName).element.classList.add('active');
+        // set viewBox to boundingBox, when entering output tab for the first time
+        if (target.dataset.tabName === 'output' && !enteredOutputTabBefore) {
+            enteredOutputTabBefore = true;
+            centerViewBox();
+        }
     };
 })();
