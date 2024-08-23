@@ -42,6 +42,10 @@ fieldset.togglable {
     &.closed {
         max-height: 28px;
 
+        label {
+            pointer-events: none;
+        }
+
         *:not(legend) {
             animation-name: fade;
             animation-duration: 0.3s;
