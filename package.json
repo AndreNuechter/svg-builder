@@ -5,6 +5,7 @@
     "main": "gulpfile.js",
     "author": "AndreNuechter",
     "license": "MIT",
+    "type": "module",
     "repository": {
         "type": "git",
         "url": "https://github.com/AndreNuechter/svg-builder.git"
@@ -17,12 +18,12 @@
         "lint": "eslint ./src --fix"
     },
     "devDependencies": {
-        "eslint": "^8.29.0",
-        "sass": "^1.56.2",
-        "vite": "^4.0.0",
-        "vite-plugin-pug": "^0.3.2"
+        "eslint": "^8.40.0",
+        "sass": "^1.83.1",
+        "vite": "^6.0.7",
+        "vite-plugin-pug": "^0.4.1"
     },
     "dependencies": {
-        "svgo": "^3.0.2"
+        "svgo": "^3.3.2"
     }
 }
