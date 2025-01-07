@@ -7,6 +7,9 @@ export default defineConfig({
         outDir: './docs',
         emptyOutDir: true,
     },
+    server: {
+        open: true,
+    },
     optimizeDeps: {
         needsInterop: ['svgo']
     },
