@@ -1,9 +1,9 @@
-import { configElement } from './helper-functions.js';
+import { configElement } from '../helper-functions.js';
 import {
     layers,
     layerSelect,
-} from './dom-shared-elements.js';
-import drawing from './drawing/drawing.js';
+} from '../dom-shared-elements.js';
+import drawing from '../drawing/drawing.js';
 import layerTypes from './layer-types.js';
 
 export {

@@ -3,7 +3,7 @@ import {
     Layer,
     reorderLayerSelectors,
     styleLayer,
-} from './layer-handling.js';
+} from './layers/layer-handling.js';
 import {
     backgroundGridStepsize,
     cmdTags,
@@ -39,7 +39,7 @@ import {
     transformsForm,
     transformTargetSwitch,
 } from './dom-shared-elements.js';
-import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-point-handling.js';
+import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-points/control-point-handling.js';
 import { arc } from './path-commands.js';
 import drawing, {
     centerViewBox,
@@ -52,7 +52,7 @@ import drawing, {
     undo,
 } from './drawing/drawing.js';
 import session, { addLayerSelector, deleteLayerSelectors, initializeCanvas } from './session.js';
-import layerTypes from './layer-types.js';
+import layerTypes from './layers/layer-types.js';
 
 const steadyAttrs = ['data-layer-id', 'transform'];
 const ctx = canvas.getContext('2d');

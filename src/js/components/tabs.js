@@ -3,13 +3,20 @@ import { centerViewBox } from '../user-actions';
 export default (() => {
     const tabLinksContainer = document.getElementById('tab-links');
     const tabLinks = [...tabLinksContainer.children];
-    const tabs = [{
-        id: 'drawing',
-        element: document.querySelector('[data-tab="drawing"]'),
-    }, {
-        id: 'output',
-        element: document.querySelector('[data-tab="output"]'),
-    }];
+    const tabs = [
+        {
+            id: 'project-selection',
+            element: document.querySelector('[data-tab="project-selection"]'),
+        },
+        {
+            id: 'drawing',
+            element: document.querySelector('[data-tab="drawing"]'),
+        },
+        {
+            id: 'output',
+            element: document.querySelector('[data-tab="output"]'),
+        }
+    ];
     let enteredOutputTabBefore = false;
 
     tabLinksContainer.onclick = ({ target }) => {

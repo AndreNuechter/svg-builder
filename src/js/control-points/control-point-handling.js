@@ -1,14 +1,14 @@
-import { circleTemplate, lineTemplate } from './dom-created-elements.js';
-import { controlPoints, controlPointContainer, slopes, svg } from './dom-shared-elements.js';
+import { circleTemplate, lineTemplate } from '../dom-created-elements.js';
+import { controlPoints, controlPointContainer, slopes, svg } from '../dom-shared-elements.js';
 import {
     configClone,
     configElement,
     getSVGCoords,
     last,
     lastId,
-} from './helper-functions.js';
-import { drawLayer } from './layer-handling.js';
-import drawing, { save } from './drawing/drawing.js';
+} from '../helper-functions.js';
+import { drawLayer } from '../layers/layer-handling.js';
+import drawing, { save } from '../drawing/drawing.js';
 import controlPointTypes from './control-point-types.js';
 
 const {

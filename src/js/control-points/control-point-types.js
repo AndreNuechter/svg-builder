@@ -1,4 +1,4 @@
-import { controlPoints } from './dom-shared-elements.js';
+import { controlPoints } from '../dom-shared-elements.js';
 
 const basicChangeData = ({ x, y }) => ({ x, y });
 const basicFx = (x, y) => ({ cx: x, cy: y });

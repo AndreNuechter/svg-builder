@@ -1,12 +1,12 @@
-import { svg } from './dom-shared-elements.js';
+import { svg } from '../dom-shared-elements.js';
 import {
     configElement,
     drawShape,
     last,
     lastId,
     pointToMarkup,
-} from './helper-functions.js';
-import { arc, cube, quad } from './path-commands.js';
+} from '../helper-functions.js';
+import { arc, cube, quad } from '../path-commands.js';
 
 const shaperFuncs = {
     rect: (x, y) => (x1, y1) => ({

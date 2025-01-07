@@ -1,5 +1,5 @@
 import { cmdTags, defaults } from './constants.js';
-import { remControlPoints, mkControlPoint } from './control-point-handling.js';
+import { remControlPoints, mkControlPoint } from './control-points/control-point-handling.js';
 import {
     cmdSelect,
     drawingContent,
@@ -27,8 +27,8 @@ import {
     setTransformsConfig,
 } from './form-handling.js';
 import drawing, { save } from './drawing/drawing.js';
-import { reorderLayerSelectors } from './layer-handling.js';
-import layerTypes from './layer-types.js';
+import { reorderLayerSelectors } from './layers/layer-handling.js';
+import layerTypes from './layers/layer-types.js';
 
 const modes = Object.keys(layerTypes);
 const isBoolean = (val) => typeof val === 'boolean';

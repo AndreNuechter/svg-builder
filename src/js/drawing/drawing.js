@@ -83,6 +83,7 @@ function generateDataURI() {
  */
 function save(msg) {
     createBackup({ layers: cloneObj(drawing.layers), transforms: cloneObj(drawing.transforms) });
+    // eslint-disable-next-line no-console
     console.log(msg);
     commitDrawingToStorage();
 }
