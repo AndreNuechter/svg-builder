@@ -1,0 +1,31 @@
+#left-sidebar {
+    grid-area: leftSidebar;
+    display: flex;
+    flex-direction: column;
+    // FIXME fill-and-stroke form needs explicit margin/doesnt respect the gap
+    gap: 12px;
+    margin-right: 4px;
+    // TODO add visible padding to bottom (padding-bottom doesnt really work!)
+    overflow-y: auto;
+}
+
+#layer-management {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#layer-select {
+    margin-bottom: 10px;
+
+    label {
+        flex-wrap: initial;
+        cursor: grab;
+    }
+}
+
+#layer-select,
+#layer-controls {
+    display: inline-flex;
+    flex-direction: column;
+}

@@ -1,6 +1,7 @@
 #tab-links {
     margin-bottom: 8px;
     color: var(--main-heading-color);
+    height: var(--tab-links-height);
 }
 
 .tab-link {
@@ -19,18 +20,17 @@
     position: absolute;
     opacity: 0;
     overflow: hidden;
-    height: 96%;
-    width: 99%;
+    height: calc(100% - var(--tab-links-height));
+    width: 100%;
     display: grid;
     grid-template-columns: 12rem auto;
-    grid-template-rows: max-content auto;
+    grid-template-rows: 1fr;
     grid-template-areas:
         "leftSidebar center"
         ". center"
     ;
 
     &.active {
-        overflow: visible;
         z-index: 1;
         opacity: 1;
     }

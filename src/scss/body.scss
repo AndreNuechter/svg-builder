@@ -1,16 +1,12 @@
 body {
-    font-family: Helvetica, Arial, sans-serif;
     background: var(--main-bg-color);
     color: var(--main-text-color);
-    margin: 0;
     padding: 2px 2px 0;
-    height: 100%;
-    box-sizing: border-box;
+    overflow: hidden;
 
-    *,
-    *::before,
-    *::after {
-        box-sizing: inherit;
+    .for-path,
+    .for-rect {
+        display: none;
     }
 
     &[data-mode="path"] {

@@ -1,11 +1,14 @@
-@import './html.scss';
+@import './variables.scss';
+@import './reset.scss';
 @import './body.scss';
 @import './input.scss';
 @import './button.scss';
 @import './fieldset.scss';
 @import './tabs.scss';
+@import './left-sidebar.scss';
+@import './center-content.scss';
 @import './svg-canvas.scss';
 @import './control-point.scss';
-@import './coords-display.scss';
+@import './coords.scss';
 @import './misc.scss';
 @import './mobile.scss';

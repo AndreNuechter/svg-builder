@@ -18,7 +18,7 @@ const preview = document.getElementById('preview');
 const pathClosingToggle = document.getElementById('close-path-toggle');
 const redoBtn = document.getElementById('redo-btn');
 /** @type { SVGSVGElement } */
-const svg = document.getElementById('canvas');
+const svg = document.getElementById('svg-canvas');
 const transformsForm = document.getElementById('transformations');
 const transformFields = transformsForm.elements;
 const rotateInputs = transformFields.rotate.getElementsByTagName('input');

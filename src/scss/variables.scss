@@ -1,5 +1,4 @@
-html {
-    height: 100%;
+:root {
     --main-text-color: rgb(182, 182, 182);
     --main-heading-color: whitesmoke;
     --main-bg-color: rgb(40, 40, 40);
@@ -10,4 +9,5 @@ html {
     --sub-highlight-color: rgb(80, 80, 80);
     --border-radius: 2px;
     --bg-grid-size: 40px;
+    --tab-links-height: 24px;
 }

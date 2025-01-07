@@ -1,0 +1,65 @@
+#center-content {
+    grid-area: center;
+    display: flex;
+    flex-direction: column;
+}
+
+#center-top {
+    display: flex;
+    gap: 4px;
+
+    label {
+        display: inline;
+        margin-right: 8px;
+    }
+
+    fieldset {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+
+        [data-mode="rect"] &.for-path,
+        [data-mode="ellipse"] &.for-path {
+            display: none;
+        }
+    }
+}
+
+#time-travel fieldset {
+    display: flex;
+}
+
+#commands {
+    margin-left: 8px;
+}
+
+// to visualize the slope of bezier curve cps
+line {
+    stroke-dasharray: 4 3;
+    stroke: #000;
+    stroke-opacity: 0.8;
+}
+
+// to display the value of range-inputs after their label
+[data-value]::after {
+    content: attr(data-value);
+}
+
+#output-configuration {
+    grid-area: leftSidebar;
+
+    >fieldset {
+        display: inline-flex;
+        flex-direction: column;
+    }
+}
+
+#preview {
+    margin-top: 3rem;
+    grid-area: center;
+
+    svg {
+        background: var(--sub-bg-color);
+        margin: 8px;
+    }
+}

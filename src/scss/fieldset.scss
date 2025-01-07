@@ -19,8 +19,6 @@ fieldset {
 }
 
 fieldset.togglable {
-    margin-top: 6px;
-    overflow: hidden;
     transition: all .3s ease;
 
     >legend {
@@ -29,9 +27,9 @@ fieldset.togglable {
         width: 100%;
 
         &::after {
+            content: '▼';
             position: absolute;
             right: 0;
-            content: '▼';
             width: 16px;
             height: 16px;
             display: inline-block;
@@ -41,6 +39,7 @@ fieldset.togglable {
 
     &.closed {
         max-height: 28px;
+        overflow: clip;
 
         label {
             pointer-events: none;
@@ -55,7 +54,7 @@ fieldset.togglable {
     }
 
     &.open {
-        max-height: 444px;
+        max-height: 456px;
 
         >legend::after {
             transform: rotate(180deg);
