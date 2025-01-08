@@ -16,6 +16,7 @@ const drawing = {
 };
 const commitDrawingToStorage = () => window.localStorage.setItem('drawing', JSON.stringify(drawing));
 const { createBackup, redo, undo } = timeTravel(drawing, commitDrawingToStorage);
+let enteredOutputTabBefore = false;
 
 export default drawing;
 export {
@@ -91,6 +92,11 @@ function save(msg) {
 function switchToOutputTab() {
     preview.innerHTML = generateMarkUp();
     if (getDrawingVBox().every((v) => v === 0)) centerViewBox();
+    // set viewBox to boundingBox, when entering output tab for the first time
+    if (!enteredOutputTabBefore) {
+        enteredOutputTabBefore = true;
+        centerViewBox();
+    }
 }
 
 function updateViewBox() {

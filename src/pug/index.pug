@@ -1,9 +1,10 @@
 #tab-links
-    a.tab-link.active(data-tab-name="drawing") Drawing
-    a.tab-link(data-tab-name="output") Output
+    a.tab-link.active(data-linked-tab="project-selection") Projects
+    a.tab-link(data-linked-tab="drawing") Drawing
+    a.tab-link(data-linked-tab="output") Output
 
-#drawing.tab-content.active(data-tab="drawing")
+#drawing.tab-content.active(data-tab-name="drawing")
     include drawing.pug
 
-#output.tab-content(data-tab="output")
+#output.tab-content(data-tab-name="output")
     include output.pug
