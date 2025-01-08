@@ -18,8 +18,22 @@ fieldset {
     }
 }
 
+legend {
+    color: var(--main-heading-color);
+    font-weight: 600;
+}
+
 fieldset.togglable {
-    transition: all .3s ease;
+    height: 28px;
+    overflow: clip;
+
+    label {
+        pointer-events: none;
+    }
+
+    *:not(legend) {
+        opacity: 0;
+    }
 
     >legend {
         position: relative;
@@ -37,42 +51,15 @@ fieldset.togglable {
         }
     }
 
-    &.closed {
-        max-height: 28px;
-        overflow: clip;
-
-        label {
-            pointer-events: none;
-        }
-
-        *:not(legend) {
-            animation-name: fade;
-            animation-duration: 0.3s;
-            animation-iteration-count: 1;
-            animation-fill-mode: forwards;
-        }
-    }
-
     &.open {
-        max-height: 456px;
+        height: max-content;
 
         >legend::after {
             transform: rotate(180deg);
         }
-    }
-}
 
-legend {
-    color: var(--main-heading-color);
-    font-weight: 600;
-}
-
-@keyframes fade {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
+        *:not(legend) {
+            opacity: 1;
+        }
     }
 }

@@ -1,13 +1,10 @@
 export default (() => window.addEventListener('load', () => {
-    const collapse = ({ target: { parentElement: fieldset } }) => {
-        fieldset.classList.toggle('closed');
+    const toggleState = ({ target: { parentElement: fieldset } }) => {
         fieldset.classList.toggle('open');
     };
 
-    [...document.getElementsByClassName('togglable')].forEach((f) => {
-        // clicking on the legend triggers the collapse
-        f.firstElementChild.onclick = collapse;
-
-        if (!f.classList.contains('open') && !f.classList.contains('closed')) f.classList.add('closed');
+    document.querySelectorAll('.togglable').forEach((fieldset) => {
+        // clicking on the legend opens or closes the fieldset
+        fieldset.firstElementChild.onclick = toggleState;
     });
 }, { once: true }))();
