@@ -20,3 +20,15 @@ a {
         color: inherit;
     }
 }
+
+// to visualize the slope of bezier curve cps
+line {
+    stroke-dasharray: 4 3;
+    stroke: #000;
+    stroke-opacity: 0.8;
+}
+
+// to display the value of range-inputs after their label
+[data-value]::after {
+    content: attr(data-value);
+}

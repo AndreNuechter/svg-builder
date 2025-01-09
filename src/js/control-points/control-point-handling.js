@@ -23,26 +23,37 @@ const {
     rx,
     ry,
 } = controlPointTypes;
-const stopDragging = () => {
+const slopeObserverOptions = { attributes: true, attributeFilter: ['cx', 'cy'] };
+
+export {
+    remLastControlPoint,
+    remControlPoints,
+    mkControlPoint,
+};
+
+function stopDragging() {
     Object.assign(svg, {
         onpointermove: null,
         onpointerleave: null,
         onpointerup: null,
     });
     save('dragging');
-};
+}
+
 // pointerdown-event-handler-factory for cps
-const startDragging = (layer, pointId, controlPointType) => (event) => {
-    // NOTE: prevent triggering svg.onpointerdown
-    event.stopPropagation();
-    Object.assign(svg, {
-        onpointermove: dragging(layer, pointId, controlPointType, event.target),
-        onpointerleave: stopDragging,
-        onpointerup: stopDragging,
-    });
-};
-const slopeObserverOptions = { attributes: true, attributeFilter: ['cx', 'cy'] };
-const mkSlope = (x1, y1, x2, y2, startPoint, endPoint) => {
+function startDragging(layer, pointId, controlPointType) {
+    return (event) => {
+        // NOTE: prevent triggering svg.onpointerdown
+        event.stopPropagation();
+        Object.assign(svg, {
+            onpointermove: dragging(layer, pointId, controlPointType, event.target),
+            onpointerleave: stopDragging,
+            onpointerup: stopDragging,
+        });
+    };
+}
+
+function mkSlope(x1, y1, x2, y2, startPoint, endPoint) {
     const slope = configClone(lineTemplate)({ x1, y1, x2, y2 });
     const startPointObserver = new MutationObserver(() => {
         slope.setAttribute('x1', startPoint.getAttribute('cx'));
@@ -57,13 +68,7 @@ const mkSlope = (x1, y1, x2, y2, startPoint, endPoint) => {
     endPointObserver.observe(endPoint, slopeObserverOptions);
 
     return slope;
-};
-
-export {
-    remLastControlPoint,
-    remControlPoints,
-    mkControlPoint,
-};
+}
 
 /**
  * Constructs a single draggable point to control some prop(s) of the active layer.

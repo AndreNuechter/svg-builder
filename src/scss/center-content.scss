@@ -5,18 +5,20 @@
 }
 
 #center-top {
+    height: 66px;
     display: flex;
     gap: 4px;
 
     label {
         display: inline;
-        margin-right: 8px;
     }
 
     fieldset {
-        min-height: 66px;
+        height: 100%;
+        ;
         display: flex;
         align-items: center;
+        gap: 8px;
 
         [data-mode="rect"] &.for-path,
         [data-mode="ellipse"] &.for-path {
@@ -33,29 +35,7 @@
     margin-left: 8px;
 }
 
-// to visualize the slope of bezier curve cps
-line {
-    stroke-dasharray: 4 3;
-    stroke: #000;
-    stroke-opacity: 0.8;
-}
-
-// to display the value of range-inputs after their label
-[data-value]::after {
-    content: attr(data-value);
-}
-
-#output-configuration {
-    grid-area: leftSidebar;
-
-    >fieldset {
-        display: inline-flex;
-        flex-direction: column;
-    }
-}
-
 #preview {
-    margin-top: 3rem;
     grid-area: center;
 
     svg {
