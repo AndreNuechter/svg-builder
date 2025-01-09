@@ -1,18 +1,23 @@
 #tab-links {
     margin-bottom: 8px;
-    color: var(--main-heading-color);
     height: var(--tab-links-height);
+    background: var(--tab-links-bg-color);
+    border-bottom: var(--tab-border);
 }
 
 .tab-link {
+    display: inline-block;
+    color: var(--sub-bg-color);
+    background: var(--sub-highlight-color);
+    border-right: var(--tab-border);
+    border-bottom: var(--tab-border);
+    height: var(--tab-links-height);
     padding: 4px 8px;
-    margin-right: 8px;
-    color: inherit;
     cursor: pointer;
 
     &.active {
-        background: var(--sub-bg-color);
-        color: var(--main-bg-color)
+        background: var(--main-bg-color);
+        border-bottom: 0;
     }
 }
 
