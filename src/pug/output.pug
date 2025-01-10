@@ -2,57 +2,8 @@
 form#output-configuration
     fieldset
         legend Output
-        fieldset#dims
-            legend Dimensions
-            label
-                span Width
-                input(type="number" min=1 value=320 name="width" required)
-            label
-                span Height
-                input(type="number" min=1 value=180 name="height" required)
-        fieldset#viewbox
-            legend ViewBox
-            label
-                span min-x
-                input(type="number" name="vb-min-x" required)
-            label
-                span min-y
-                input(type="number" name="vb-min-y" required)
-            label
-                span width
-                input(type="number" name="vb-width" required)
-            label
-                span height
-                input(type="number" name="vb-height" required)
-            button#center-vb Set to bBox
-        fieldset#preserve-aspect-ratio
-            legend Preserve Aspect Ratio
-            label Alignment Values
-                select#ratio(name="ratio")
-                    option xMidYMid
-                    option xMinYMin
-                    option xMaxYMax
-                    option xMidYMax
-                    option xMidYMin
-                    option xMinYMid
-                    option xMinYMax
-                    option xMaxYMid
-                    option xMaxYMin
-                    option none
-            label Meet Or Slice Reference
-                select#slice-or-meet(name="slice-or-meet")
-                    option meet
-                    option slice
-        fieldset#download
-            legend Download
-            label
-                span SVG
-                input(type="radio" name="file-format" value="svg" checked)
-            label
-                span PNG
-                input(type="radio" name="file-format" value="png")
-            button#download-btn Download
-            button#get-markup(title="...copied to clipboard") Get Markup
-            button#get-data-uri(title="...copied to clipboard") Get Data URI
-
+        include output-tab/left-sidebar/dimension-config.pug
+        include output-tab/left-sidebar/viewbox-config.pug
+        include output-tab/left-sidebar/preserve-aspect-ratio-config.pug
+        include output-tab/left-sidebar/download-config.pug
 #preview
