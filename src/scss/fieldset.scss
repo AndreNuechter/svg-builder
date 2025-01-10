@@ -27,11 +27,8 @@ fieldset.togglable {
     height: 28px;
     overflow: clip;
 
-    label {
+    *:not(:first-child) {
         pointer-events: none;
-    }
-
-    *:not(legend) {
         opacity: 0;
     }
 
@@ -58,7 +55,8 @@ fieldset.togglable {
             transform: rotate(180deg);
         }
 
-        *:not(legend) {
+        *:not(:first-child) {
+            pointer-events: all;
             opacity: 1;
         }
     }

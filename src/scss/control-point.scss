@@ -2,6 +2,7 @@
     fill: var(--main-highlight-color);
     stroke: var(--sub-highlight-color);
     stroke-width: 2;
+    opacity: 0.7;
 
     &:hover {
         stroke-width: 10;
