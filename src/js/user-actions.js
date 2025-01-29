@@ -18,7 +18,6 @@ import {
     getRelevantConfiguredStyles,
     getRelevantDefaultStyles,
     getSVGCoords,
-    cloneObj,
     last,
     lastId,
 } from './helper-functions.js';
@@ -71,12 +70,12 @@ const ctrlActions = {
 };
 
 // NOTE: save when done translating/inputting transforms
-window.onkeyup = ({ key }) => {
+window.addEventListener('keyup', ({ key }) => {
     if (moves[key]) {
         save('keyup');
     }
-};
-transformsForm.onchange = () => save('setTransform');
+});
+transformsForm.addEventListener('change', () => save('setTransform'));
 
 export {
     addLayer,
@@ -118,7 +117,7 @@ function addLayer() {
             ? getRelevantConfiguredStyles
             : getRelevantDefaultStyles)(session.mode),
         // TODO see above for styles. Should we take the configured transform values on a blank canvas?
-        cloneObj(defaults.transforms),
+        structuredClone(defaults.transforms),
     ));
     session.layerId = lastId(drawing.layers);
     drawingContent.append(configClone(svgTemplates[session.mode])({
@@ -176,9 +175,10 @@ function changeBackgroundGridSize({ deltaY }) {
 // TODO mv to drawing
 function clearDrawing() {
     Object.assign(drawing, {
+        name: '',
         layers: [],
-        outputConfig: { ...defaults.outputConfig },
-        transforms: cloneObj(defaults.transforms),
+        outputConfig: structuredClone(defaults.outputConfig),
+        transforms: structuredClone(defaults.transforms),
     });
     initializeCanvas();
     save('clear');
@@ -259,7 +259,7 @@ function deleteLayer() {
 
 // TODO mv to drawing?
 function duplicateLayer() {
-    drawing.layers.splice(session.layerId, 0, cloneObj(session.activeLayer));
+    drawing.layers.splice(session.layerId, 0, structuredClone(session.activeLayer));
     session.activeSVGElement.after(session.activeSVGElement.cloneNode(true));
     session.layerId += 1;
     addLayerSelector(session.layerId);
@@ -310,17 +310,16 @@ function pressKey(event) {
     // prevent interference w eg custom labeling
     if (document.activeElement !== document.body) return;
 
-    const move = moves[key];
-
     if (event.ctrlKey && ctrlActions[key.toUpperCase()]) {
         ctrlActions[key.toUpperCase()]();
-    } else if (move) {
+    } else if (key in moves) {
         if (!session.activeLayer && !event.ctrlKey) return;
 
+        // move the entire drawing when ctrl is pressed, otherwise only the active layer
         const { transforms: { translate: transformTarget } } = event.ctrlKey
             ? drawing
             : session.activeLayer;
-        const { cb, prop } = move;
+        const { cb, prop } = moves[key];
 
         transformTarget[prop] = cb(+transformTarget[prop]);
         applyTransforms(drawing, session);
@@ -376,9 +375,9 @@ function resetTransforms() {
     const { transforms } = defaults;
 
     if (transformTargetSwitch.checked && session.activeLayer) {
-        session.activeLayer.transforms = cloneObj(transforms);
+        session.activeLayer.transforms = structuredClone(transforms);
     } else {
-        drawing.transforms = cloneObj(transforms);
+        drawing.transforms = structuredClone(transforms);
     }
 
     applyTransforms(drawing, session);
@@ -419,7 +418,7 @@ function setFillOrStroke({ target: { name, value } }) {
 
     styleLayer(session.layerId);
 }
-fillAndStrokeForm.onchange = () => save('setFillOrStroke');
+fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));
 
 // TODO mv to formhandling
 function setLayer({ target: { value } }) {
@@ -508,7 +507,7 @@ function triggerDownload() {
         download(svgDataURI);
     } else {
         dummyImg.src = svgDataURI;
-        dummyImg.onload = () => {
+        dummyImg.addEventListener('load', () => {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             Object.assign(ctx.canvas, {
                 width: drawing.outputConfig.width,
@@ -516,6 +515,6 @@ function triggerDownload() {
             });
             ctx.drawImage(dummyImg, 0, 0);
             download(canvas.toDataURL());
-        };
+        });
     }
 }

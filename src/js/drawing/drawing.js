@@ -1,6 +1,6 @@
 import { optimize } from 'svgo';
 import { drawingContent, preview } from '../dom-shared-elements.js';
-import { cloneObj, configElement, stringifyTransforms } from '../helper-functions.js';
+import { configElement, stringifyTransforms } from '../helper-functions.js';
 import { setOutputConfig } from '../form-handling.js';
 import { defaults } from '../constants.js';
 import timeTravel from './drawing-backups.js';
@@ -9,26 +9,45 @@ const layerIdRe = / data-layer-id="\d+"/g;
 const multiSpaces = /\s{2,}/g;
 const drawingData = JSON.parse(window.localStorage.getItem('drawing')) || {};
 /** @type { layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
-const drawing = {
-    layers: drawingData.layers || [],
-    outputConfig: drawingData.outputConfig || { ...defaults.outputConfig },
-    transforms: drawingData.transforms || cloneObj(defaults.transforms),
-};
-const commitDrawingToStorage = () => window.localStorage.setItem('drawing', JSON.stringify(drawing));
+const drawing = Object.assign(
+    Object.create(null),
+    {
+        name: drawingData.name || '',
+        layers: drawingData.layers || [],
+        outputConfig: drawingData.outputConfig || structuredClone(defaults.outputConfig),
+        transforms: drawingData.transforms || structuredClone(defaults.transforms),
+    }
+);
 const { createBackup, redo, undo } = timeTravel(drawing, commitDrawingToStorage);
 let enteredOutputTabBefore = false;
 
 export default drawing;
 export {
     centerViewBox,
+    commitDrawingToStorage,
     generateDataURI,
     generateMarkUp,
+    isDrawingUntouched,
     redo,
     save,
     switchToOutputTab,
     undo,
     updateViewBox,
 };
+
+function commitDrawingToStorage() {
+    window.localStorage.setItem('drawing', JSON.stringify(drawing));
+}
+
+function isDrawingUntouched() {
+    return drawing.layers.length === 0 &&
+        areObjectsEqual(drawing.outputConfig, defaults.outputConfig) &&
+        areObjectsEqual(drawingData.transforms, defaults.transforms);
+}
+
+function areObjectsEqual(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
+}
 
 function getDrawingVBox() {
     return [
@@ -83,9 +102,13 @@ function generateDataURI() {
  * Creates a backup of drawing and saves it to localStorage.
  */
 function save(msg) {
-    createBackup({ layers: cloneObj(drawing.layers), transforms: cloneObj(drawing.transforms) });
+    createBackup({
+        layers: structuredClone(drawing.layers),
+        transforms: structuredClone(drawing.transforms)
+    });
     // eslint-disable-next-line no-console
     console.log(msg);
+    document.dispatchEvent(new Event('saveDrawing'));
     commitDrawingToStorage();
 }
 

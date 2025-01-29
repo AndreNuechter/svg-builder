@@ -1,6 +1,7 @@
 import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
+import './project-management.js';
 import {
     arcCmdConfig,
     cmdSelect,
@@ -47,32 +48,32 @@ import {
     duplicateLayer,
 } from './user-actions.js';
 
-arcCmdConfig.oninput = configArcCmd;
-cmdSelect.onchange = setCmd;
-document.getElementById('reset-transforms').onclick = resetTransforms;
-document.getElementById('get-markup').onclick = copyMarkupToClipboard;
-document.getElementById('get-data-uri').onclick = copyDataURIToClipboard;
-document.getElementById('center-rotation-btn').onclick = centerRotation;
-document.getElementById('center-vb').onclick = centerViewBox;
-document.getElementById('add-layer').onclick = addLayer;
-document.getElementById('del-layer').onclick = deleteLayer;
-document.getElementById('clear-all').onclick = clearDrawing;
-document.getElementById('del-last-point').onclick = deleteLastPoint;
-document.getElementById('duplicate-layer').onclick = duplicateLayer;
-document.querySelector('a[data-linked-tab="output"]').onclick = switchToOutputTab;
-downloadBtn.onclick = triggerDownload;
-fillAndStrokeForm.oninput = setFillOrStroke;
-layerSelect.onchange = setLayer;
-layerSelect.ondrop = reorderLayers;
-modesForm.onchange = setMode;
-outputConfig.oninput = configOutput;
-pathClosingToggle.onchange = togglePathClosing;
+arcCmdConfig.addEventListener('input', configArcCmd);
+cmdSelect.addEventListener('change', setCmd);
+document.getElementById('reset-transforms').addEventListener('click', resetTransforms);
+document.getElementById('get-markup').addEventListener('click', copyMarkupToClipboard);
+document.getElementById('get-data-uri').addEventListener('click', copyDataURIToClipboard);
+document.getElementById('center-rotation-btn').addEventListener('click', centerRotation);
+document.getElementById('center-vb').addEventListener('click', centerViewBox);
+document.getElementById('add-layer').addEventListener('click', addLayer);
+document.getElementById('del-layer').addEventListener('click', deleteLayer);
+document.getElementById('clear-all').addEventListener('click', clearDrawing);
+document.getElementById('del-last-point').addEventListener('click', deleteLastPoint);
+document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
+document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
+downloadBtn.addEventListener('click', triggerDownload);
+fillAndStrokeForm.addEventListener('input', setFillOrStroke);
+layerSelect.addEventListener('change', setLayer);
+layerSelect.addEventListener('drop', reorderLayers);
+modesForm.addEventListener('change', setMode);
+outputConfig.addEventListener('input', configOutput);
+pathClosingToggle.addEventListener('change', togglePathClosing);
 redoBtn.addEventListener('click', redo);
-svg.onwheel = changeBackgroundGridSize;
+svg.addEventListener('wheel', changeBackgroundGridSize);
 svg.addEventListener('pointerdown', addPoint);
 svg.addEventListener('pointerleave', finalizeShape);
-document.addEventListener('pointerup', finalizeShape);
-transformsForm.oninput = setTransform;
-transformTargetSwitch.onchange = setTransformTarget;
+svg.addEventListener('pointerup', finalizeShape);
+transformsForm.addEventListener('input', setTransform);
+transformTargetSwitch.addEventListener('change', setTransformTarget);
 undoBtn.addEventListener('click', undo);
-window.onkeydown = pressKey;
+window.addEventListener('keydown', pressKey);

@@ -1,0 +1,61 @@
+dialog {
+    margin: auto;
+    background-color: var(--main-bg-color);
+
+    &::backdrop {
+        background: rgba(80 80 80 / 0.7);
+    }
+}
+
+#project-management {
+    button {
+        width: 70px;
+    }
+}
+
+#project-management-overlay {
+
+    input,
+    select {
+        width: 100%;
+        padding: 4px 12px;
+        margin: 4px 2px;
+    }
+
+    #name-drawing-form,
+    #select-type-of-new-project-form,
+    #select-drawing-form,
+    #update-drawing-form {
+        display: none;
+    }
+
+    &[data-step]:not([data-step=""]) {
+        #save-drawing-form {
+            display: none;
+        }
+    }
+
+    &[data-step="enter-name"] {
+        #name-drawing-form {
+            display: block;
+        }
+    }
+
+    &[data-step="select-type-of-new-project"] {
+        #select-type-of-new-project-form {
+            display: block;
+        }
+    }
+
+    &[data-step="select-drawing"] {
+        #select-drawing-form {
+            display: block;
+        }
+    }
+
+    &[data-step="confirm-drawing-update"] {
+        #update-drawing-form {
+            display: block;
+        }
+    }
+}

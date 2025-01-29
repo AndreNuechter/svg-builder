@@ -12,7 +12,6 @@ const svgPoint = svg.createSVGPoint();
 
 export {
     applyTransforms,
-    cloneObj,
     configElement,
     configClone,
     drawShape,
@@ -44,18 +43,6 @@ function applyTransforms(drawing, session) {
     }
 
     applicants.forEach((a, i) => a.setAttribute('transform', transformations[i]));
-}
-
-function cloneObj(obj) {
-    if (typeof obj !== 'object' || obj === null) return obj;
-
-    const clone = Array.isArray(obj) ? [] : {};
-
-    Object.keys(obj).forEach((key) => {
-        clone[key] = cloneObj(obj[key]);
-    });
-
-    return clone;
 }
 
 /**

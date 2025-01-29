@@ -1,8 +1,23 @@
-#tab-links {
-    margin-bottom: 8px;
-    height: var(--tab-links-height);
+header {
     background: var(--tab-links-bg-color);
     border-bottom: var(--tab-border);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+
+    >* {
+        height: var(--tab-links-height);
+    }
+}
+
+#drawing-title {
+    font-size: 1.3rem;
+    padding-right: 8px;
+    line-height: var(--tab-links-height);
+}
+
+#tab-links {
+    background: var(--tab-links-bg-color);
 }
 
 .tab-link {
@@ -10,14 +25,14 @@
     color: var(--sub-bg-color);
     background: var(--sub-highlight-color);
     border-right: var(--tab-border);
-    border-bottom: var(--tab-border);
     height: var(--tab-links-height);
     padding: 4px 8px;
     cursor: pointer;
 
     &.active {
         background: var(--main-bg-color);
-        border-bottom: 0;
+        // TODO find better way to hide container border on active tab
+        border-bottom: 20px solid var(--main-bg-color);
     }
 }
 

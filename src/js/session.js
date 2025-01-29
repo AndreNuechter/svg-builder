@@ -3,6 +3,7 @@ import { remControlPoints, mkControlPoint } from './control-points/control-point
 import {
     cmdSelect,
     drawingContent,
+    drawingTitle,
     layers,
     layerSelect,
     layerSelectors,
@@ -125,16 +126,17 @@ window.addEventListener('DOMContentLoaded', () => {
 export default session;
 export { addLayerSelector, deleteLayerSelectors, initializeCanvas };
 
-const dragLayerSelector = (event) => {
+function dragLayerSelector(event) {
     event.dataTransfer.setData('text', event.target.dataset.layerId);
     event.dataTransfer.effectAllowed = 'move';
-};
-const changeLayerLabel = ({ target }) => {
+}
+
+function changeLayerLabel({ target }) {
     // NOTE: since you have to click on the label to edit it,
     // the edited label belongs to the active layer
     session.activeLayer.label = target.textContent.replace(/\n/g, /\s/).trim();
     save('changeLabel');
-};
+}
 
 // TODO move to controlPointHandling and take session as arg
 function createControlPoints() {
@@ -198,7 +200,7 @@ function deleteLayerSelectors() {
 function initializeCanvas() {
     // clear canvas
     remControlPoints();
-    [...layers].forEach((l) => l.remove());
+    [...layers].forEach((layer) => layer.remove());
     deleteLayerSelectors();
     // populate canvas
     createControlPoints();
@@ -228,4 +230,5 @@ function initializeCanvas() {
     setFillAndStrokeConfig(session.activeLayer?.style || defaults.style);
     setArcCmdConfig(session);
     setOutputConfig(drawing);
+    drawingTitle.textContent = drawing.name || 'Unnamed drawing';
 }

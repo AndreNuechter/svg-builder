@@ -24,12 +24,12 @@ const configForm = (formElements, conf) => {
     });
 };
 
-[...document.querySelectorAll('input[type="range"]')].forEach((slider) => {
+document.querySelectorAll('input[type="range"]').forEach((slider) => {
     slider.addEventListener('input', ({ target }) => {
         configRangeInputLabel(target, target.value);
     });
 });
-window.onsubmit = (e) => e.preventDefault();
+window.addEventListener('submit', (event) => event.preventDefault());
 
 export {
     setArcCmdConfig,

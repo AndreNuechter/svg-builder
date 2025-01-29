@@ -27,28 +27,40 @@ const slopes = controlPointContainer.getElementsByTagName('line');
 const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
 const undoBtn = document.getElementById('undo-btn');
 const vacancyMsgStyle = document.getElementById('no-layer-msg').style;
+const startNewDrawingBtn = document.getElementById('start-new-drawing-btn');
+const loadDrawingBtn = document.getElementById('load-drawing-btn');
+const deleteDrawingBtn = document.getElementById('delete-drawing-btn');
+const projectManagementOverlay = document.getElementById('project-management-overlay');
+const drawingSelection = document.getElementById('select-drawing-form').querySelector('select');
+const drawingTitle = document.getElementById('drawing-title');
 
 export {
     arcCmdConfig,
     cmdSelect,
     controlPoints,
     controlPointContainer,
+    deleteDrawingBtn,
     downloadBtn,
     drawingContent,
+    drawingTitle,
     fillAndStrokeForm,
     fillAndStrokeFields,
     layers,
     layerSelect,
     layerSelectors,
+    loadDrawingBtn,
     outputConfig,
     modesForm,
     pathClosingToggle,
     preview,
     redoBtn,
     rotateInputs,
+    projectManagementOverlay,
+    drawingSelection,
     scaleInputs,
     slopes,
     svg,
+    startNewDrawingBtn,
     transformFields,
     transformsForm,
     transformTargetSwitch,
