@@ -1,13 +1,16 @@
 # svg-builder
 
-A simple app to help with the creation of complex svgs.
+An app to help with the creation of svgs.
 
 ## Getting started
 
 Check out the [page](https://andrenuechter.github.io/svg-builder).
 
-To try it out locally, clone the repo and initialize it via NPM.
-Then just execute `npm run dev` and navigate to `localhost:3000`.
+To try it out locally...
+1. clone the repo,
+2. run `npm install`,
+3. execute `npm run dev` and
+4. open `localhost:5173` in your browser.
 
 ## Layers
 
