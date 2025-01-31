@@ -15,6 +15,8 @@ import { clearDrawing } from './user-actions';
 const openDbRequest = window.indexedDB.open('savedDrawings');
 const savedDrawingsOptions = drawingSelection.children;
 const drawingNameInput = document.querySelector('#name-drawing-form input');
+// this allows us to later tell which btn was initially pressed
+let userIntent;
 let db;
 
 openDbRequest.addEventListener('error', console.error);
@@ -57,8 +59,7 @@ document.addEventListener('dbOpened', () => {
     });
 });
 startNewDrawingBtn.addEventListener('click', () => {
-    // NOTE: the data-user-intent attr allows us to later tell which btn was initially pressed
-    projectManagementOverlay.dataset.userIntent = 'start-new-drawing';
+    userIntent = 'start-new-drawing';
     // if the drawing is clean, dont ask the user to save and take em directly to the drawing-selection
     projectManagementOverlay.dataset.step = isDrawingUntouched()
         ? 'select-drawing'
@@ -66,7 +67,7 @@ startNewDrawingBtn.addEventListener('click', () => {
     projectManagementOverlay.showModal();
 });
 loadDrawingBtn.addEventListener('click', () => {
-    projectManagementOverlay.dataset.userIntent = 'load-drawing';
+    userIntent = 'load-drawing';
     // possibly ask the user what to do w the current workspace before loading (update or save)
     projectManagementOverlay.dataset.step = isDrawingUntouched()
         ? 'select-drawing'
@@ -74,7 +75,7 @@ loadDrawingBtn.addEventListener('click', () => {
     projectManagementOverlay.showModal();
 });
 deleteDrawingBtn.addEventListener('click', () => {
-    projectManagementOverlay.dataset.userIntent = 'delete-drawing';
+    userIntent = 'delete-drawing';
     projectManagementOverlay.dataset.step = 'select-drawing';
     projectManagementOverlay.showModal();
 });
@@ -98,7 +99,7 @@ projectManagementOverlay.addEventListener('submit', (event) => {
                 case 'discard-drawing':
                     clearWorkspace();
 
-                    if (projectManagementOverlay.dataset.userIntent === 'start-new-drawing') {
+                    if (userIntent === 'start-new-drawing') {
                         // if the user wanted to start a new drawing and there's no saved drawing, we're done
                         // else ask if they want to start fresh or based on another
                         if (savedDrawingsOptions.length === 0) {
@@ -106,7 +107,7 @@ projectManagementOverlay.addEventListener('submit', (event) => {
                         } else {
                             projectManagementOverlay.dataset.step = 'select-type-of-new-project';
                         }
-                    } else if (projectManagementOverlay.dataset.userIntent === 'load-drawing') {
+                    } else if (userIntent === 'load-drawing') {
                         projectManagementOverlay.dataset.step = 'select-drawing';
                     }
                     break;
@@ -157,7 +158,7 @@ projectManagementOverlay.addEventListener('submit', (event) => {
             }
             break;
         case 'select-drawing-form':
-            if (projectManagementOverlay.dataset.userIntent === 'delete-drawing') {
+            if (userIntent === 'delete-drawing') {
                 deleteDrawing(drawingSelection.value);
             } else {
                 loadAndApplyDrawing(drawingSelection.value);
@@ -186,7 +187,7 @@ function loadAndApplyDrawing(name) {
         const { layers: layersData, transforms, name } = getRequest.result;
 
         Object.assign(drawing, {
-            name: projectManagementOverlay.dataset.userIntent === 'start-new-drawing' ? '' : name,
+            name: userIntent === 'start-new-drawing' ? '' : name,
             layers: structuredClone(layersData),
             transforms: structuredClone(transforms)
         });

@@ -1,5 +1,5 @@
 export default (() => window.addEventListener('load', () => {
-    document.querySelectorAll('.togglable').forEach((fieldset) => {
+    document.querySelectorAll('.collapsable').forEach((fieldset) => {
         // clicking on the <legend> opens or closes the fieldset
         fieldset.firstElementChild.addEventListener('click', toggleFieldset);
     });

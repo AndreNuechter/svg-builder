@@ -133,7 +133,15 @@ function addPoint(event) {
     const [x, y] = getSVGCoords(event);
     const { points } = session.activeLayer;
 
-    layerTypes[session.mode].mkPoint(session, points, x, y, mkControlPoint, remLastControlPoint);
+    layerTypes[session.mode]
+        .mkPoint(
+            session,
+            points,
+            x,
+            y,
+            mkControlPoint,
+            remLastControlPoint
+        );
 
     // start dragging newly created path-point
     if (session.mode === 'path') {
@@ -290,10 +298,11 @@ function finalizeShape(event) {
             ry: size.vert,
         });
     save('drawShape');
-
-    mkControlPoint(session.activeLayer, session.layerId)(
+    mkControlPoint(
+        session.activeLayer,
+        session.layerId,
         last(points),
-        lastId(points),
+        lastId(points)
     );
     svg.onpointermove = null;
 }

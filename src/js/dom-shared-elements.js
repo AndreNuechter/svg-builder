@@ -33,8 +33,10 @@ const deleteDrawingBtn = document.getElementById('delete-drawing-btn');
 const projectManagementOverlay = document.getElementById('project-management-overlay');
 const drawingSelection = document.getElementById('select-drawing-form').querySelector('select');
 const drawingTitle = document.getElementById('drawing-title');
+const activeLayerConfigForm = document.getElementById('active-layer-config');
 
 export {
+    activeLayerConfigForm,
     arcCmdConfig,
     cmdSelect,
     controlPoints,

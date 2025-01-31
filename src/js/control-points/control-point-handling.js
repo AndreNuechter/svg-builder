@@ -26,6 +26,7 @@ const {
 const slopeObserverOptions = { attributes: true, attributeFilter: ['cx', 'cy'] };
 
 export {
+    createControlPoints,
     remLastControlPoint,
     remControlPoints,
     mkControlPoint,
@@ -111,85 +112,96 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
     };
 }
 
-/**
- * A factory for layer-specific control-point creation functions.
- * @param { object } layer The layer the controlled point belongs to.
- * @param { number } layerId The ordinal of the layer the controlled point belongs to.
- * @returns { Function } A function creating and appending the control point(s) for the given point.
- */
-function mkControlPoint(layer, layerId) {
-    return (point, pointId) => {
-        const addedElements = [];
+/** Draws all controlpoints of to the active layer. */
+function createControlPoints({ activeLayer, layerId }) {
+    activeLayer?.points
+        .forEach((point, pointId) => mkControlPoint(
+            activeLayer,
+            layerId,
+            point,
+            pointId)
+        );
+}
 
-        // NOTE: path, rect or ellipse
-        if ('cmd' in point) {
-            if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
-                const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
-                if (['Q', 'C', 'S'].includes(point.cmd)) {
-                    const previousPoint = layer.points[pointId - 1];
-                    const firstCP = ControlPoint(
+/**
+ * Adds all the controlpoints associated with an addition to a layer.
+ * @param { object } layer The layer the new controlpoint belongs to.
+ * @param { number } layerId The index of that layer.
+ * @param { object } point The point being added to the layer.
+ * @param { number } pointId The index of that point.
+ */
+function mkControlPoint(layer, layerId, point, pointId) {
+    const addedElements = [];
+
+    // we branch based on the mode, which we tell by duck-typing:
+    // cmd-prop implies it's path, 'width' rect and 'cx' ellipse
+    if ('cmd' in point) {
+        if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
+            const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
+            if (['Q', 'C', 'S'].includes(point.cmd)) {
+                const previousPoint = layer.points[pointId - 1];
+                const firstCP = ControlPoint(
+                    point.x1,
+                    point.y1,
+                    pointId,
+                    firstControlPoint,
+                    layerId,
+                );
+
+                addedElements.push(firstCP);
+
+                if (point.cmd !== 'S') {
+                    addedElements.push(mkSlope(
                         point.x1,
                         point.y1,
+                        previousPoint.x,
+                        previousPoint.y,
+                        firstCP,
+                        last(controlPoints),
+                    ));
+                }
+
+                if (point.cmd === 'C') {
+                    const secondCP = ControlPoint(
+                        point.x2,
+                        point.y2,
                         pointId,
-                        firstControlPoint,
+                        secondControlPoint,
                         layerId,
                     );
-
-                    addedElements.push(firstCP);
-
-                    if (point.cmd !== 'S') {
-                        addedElements.push(mkSlope(
-                            point.x1,
-                            point.y1,
-                            previousPoint.x,
-                            previousPoint.y,
-                            firstCP,
-                            last(controlPoints),
-                        ));
-                    }
-
-                    if (point.cmd === 'C') {
-                        const secondCP = ControlPoint(
-                            point.x2,
-                            point.y2,
-                            pointId,
-                            secondControlPoint,
-                            layerId,
-                        );
-                        addedElements.push(secondCP, mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP));
-                    }
-
-                    if (['Q', 'S'].includes(point.cmd)) {
-                        addedElements.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
-                    }
+                    addedElements.push(secondCP, mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP));
                 }
-                // NOTE: this cp is only pushed here to have it be last, which is important for the slopes
-                addedElements.push(mainCP);
-            } else if (point.cmd === 'H') {
-                addedElements.push(
-                    ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId),
-                );
-            } else if (point.cmd === 'V') {
-                addedElements.push(
-                    ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId),
-                );
+
+                if (['Q', 'S'].includes(point.cmd)) {
+                    addedElements.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
+                }
             }
-        } else if ('width' in point) {
+            // NOTE: this cp is only pushed here to have it be last, which is important for the slopes
+            addedElements.push(mainCP);
+        } else if (point.cmd === 'H') {
             addedElements.push(
-                ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
-                ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId),
+                ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId),
             );
-        } else if ('cx' in point) {
+        } else if (point.cmd === 'V') {
             addedElements.push(
-                ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
-                ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
-                ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId),
+                ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId),
             );
         }
+    } else if ('width' in point) {
+        addedElements.push(
+            ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
+            ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId),
+        );
+    } else if ('cx' in point) {
+        addedElements.push(
+            ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
+            ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
+            ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId),
+        );
+    }
 
-        // NOTE: we dont add these elements to the drawingContent to keep em out of the final markup
-        controlPointContainer.append(...addedElements);
-    };
+    // NOTE: we dont add these elements to the drawingContent to keep em out of the final markup
+    controlPointContainer.append(...addedElements);
 }
 
 /**

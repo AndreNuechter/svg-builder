@@ -1,5 +1,5 @@
 import { cmdTags, defaults } from './constants.js';
-import { remControlPoints, mkControlPoint } from './control-points/control-point-handling.js';
+import { remControlPoints, createControlPoints } from './control-points/control-point-handling.js';
 import {
     cmdSelect,
     drawingContent,
@@ -30,6 +30,7 @@ import {
 import drawing, { save } from './drawing/drawing.js';
 import { reorderLayerSelectors } from './layers/layer-handling.js';
 import layerTypes from './layers/layer-types.js';
+import { setActiveLayerConfig } from './layers/active-layer-config.js';
 
 const modes = Object.keys(layerTypes);
 const isBoolean = (val) => typeof val === 'boolean';
@@ -76,9 +77,10 @@ const session = {
 
             applyTransforms(drawing, session);
             remControlPoints();
-            createControlPoints();
+            createControlPoints(session);
             setCmdConfig(session);
             setArcCmdConfig(session);
+            setActiveLayerConfig();
             setFillAndStrokeConfig(drawing.layers[val].style);
             pathClosingToggle.checked = session.activeLayer.closePath;
 
@@ -138,12 +140,6 @@ function changeLayerLabel({ target }) {
     save('changeLabel');
 }
 
-// TODO move to controlPointHandling and take session as arg
-function createControlPoints() {
-    if (!session.activeLayer) return;
-    session.activeLayer.points.forEach(mkControlPoint(session.activeLayer, session.layerId));
-}
-
 // TODO LayerSelector Module
 function addLayerSelector(id = layerSelect.childElementCount) {
     const layerSelector = layerSelectorTemplate.cloneNode(true);
@@ -187,7 +183,7 @@ function deleteLayerSelectors() {
         applyTransforms(drawing, session);
         reorderLayerSelectors(session.layerId);
         setFillAndStrokeConfig(session.activeLayer.style);
-        createControlPoints();
+        createControlPoints(session);
         session.mode = session.activeLayer.mode;
     }
 
@@ -203,7 +199,7 @@ function initializeCanvas() {
     [...layers].forEach((layer) => layer.remove());
     deleteLayerSelectors();
     // populate canvas
-    createControlPoints();
+    createControlPoints(session);
     drawingContent.append(...drawing.layers.map((layer, i) => {
         const shape = svgTemplates[layer.mode];
         const geometryProps = (layer.mode === 'path')

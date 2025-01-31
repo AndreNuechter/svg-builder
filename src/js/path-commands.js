@@ -1,6 +1,4 @@
-const basicPathCmd = ({ x, y }) => `${x} ${y}`;
-// A collection of functions that take a path-point and
-// return a string tailored to the point's cmd that can be added to a path's d-attr
+/** A collection of functions that take a path-point and return a string tailored to the point's cmd that can be added to a path's d-attr. */
 const pathCmds = {
     H: ({ x }) => x,
     V: ({ y }) => y,
@@ -27,14 +25,19 @@ const pathCmds = {
     M: basicPathCmd,
     L: basicPathCmd,
 };
-const offset = 33;
-const calculateOffset = (distA, distB, prior, current) => {
-    if (distA < distB) {
-        return prior > current ? -offset : offset;
-    }
-    return 0;
+
+export {
+    arc,
+    cube,
+    pathCmds,
+    quad,
 };
-const cmdControlPointDefaults = (xEnd, yEnd, xPrev, yPrev) => {
+
+function basicPathCmd({ x, y }) {
+    return `${x} ${y}`;
+}
+
+function cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev) {
     const distX = Math.abs(xPrev - xEnd);
     const distY = Math.abs(yPrev - yEnd);
     const xMin = Math.min(xEnd, xPrev);
@@ -48,14 +51,16 @@ const cmdControlPointDefaults = (xEnd, yEnd, xPrev, yPrev) => {
         yOffset,
         xOffset,
     };
-};
+}
 
-export {
-    arc,
-    cube,
-    pathCmds,
-    quad,
-};
+function calculateOffset(distA, distB, prior, current) {
+    const offset = 33;
+
+    if (distA < distB) {
+        return prior > current ? -offset : offset;
+    }
+    return 0;
+}
 
 /**
  * Returns basic defaults for a point of the arc-cmd.
