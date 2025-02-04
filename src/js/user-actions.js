@@ -1,7 +1,6 @@
 import {
     drawLayer,
     Layer,
-    reorderLayerSelectors,
     styleLayer,
 } from './layers/layer-handling.js';
 import {
@@ -50,19 +49,12 @@ import drawing, {
     switchToOutputTab,
     undo,
 } from './drawing/drawing.js';
-import session, { addLayerSelector, deleteLayerSelectors, initializeCanvas } from './session.js';
+import session from './session.js';
 import layerTypes from './layers/layer-types.js';
+import { addLayerSelector, deleteLayerSelectors, reorderLayerSelectors } from './layers/layer-management.js';
 
 const steadyAttrs = ['data-layer-id', 'transform'];
 const ctx = canvas.getContext('2d');
-const download = (url) => {
-    Object.assign(downloadLink, {
-        download: `My_SVG.${drawing.outputConfig['file-format']}`,
-        href: url,
-    });
-    downloadLink.click();
-};
-const writeToClipboard = (text) => window.navigator.clipboard.writeText(text);
 const ctrlActions = {
     C: duplicateLayer,
     Z: undo,
@@ -188,7 +180,7 @@ function clearDrawing() {
         outputConfig: structuredClone(defaults.outputConfig),
         transforms: structuredClone(defaults.transforms),
     });
-    initializeCanvas();
+    document.dispatchEvent(new Event('initializeCanvas'));
     save('clear');
 }
 
@@ -263,6 +255,14 @@ function deleteLayer() {
     // before `deleteLayerSelectors` had a chance to correct the layerId,
     // would cause an invalid lookup
     session.mode = session.activeLayer.mode;
+}
+
+function download(url) {
+    Object.assign(downloadLink, {
+        download: `My_SVG.${drawing.outputConfig['file-format']}`,
+        href: url,
+    });
+    downloadLink.click();
 }
 
 // TODO mv to drawing?
@@ -526,4 +526,8 @@ function triggerDownload() {
             download(canvas.toDataURL());
         });
     }
+}
+
+function writeToClipboard(text) {
+    window.navigator.clipboard.writeText(text);
 }

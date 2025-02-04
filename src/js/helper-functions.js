@@ -15,6 +15,7 @@ export {
     configElement,
     configClone,
     drawShape,
+    isBoolean,
     last,
     lastId,
     getLastArcCmd,
@@ -126,6 +127,10 @@ function getSVGCoords({ x, y }) {
         .matrixTransform(svg.children[1].getScreenCTM().inverse());
 
     return [svgX, svgY];
+}
+
+function isBoolean(val) {
+    return typeof val === 'boolean';
 }
 
 function last(arr) {

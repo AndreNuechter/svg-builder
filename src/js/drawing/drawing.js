@@ -8,7 +8,7 @@ import timeTravel from './drawing-backups.js';
 const layerIdRe = / data-layer-id="\d+"/g;
 const multiSpaces = /\s{2,}/g;
 const drawingData = JSON.parse(window.localStorage.getItem('drawing')) || {};
-/** @type { layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
+/** @type { name: string, layers: Layer[], outputConfig: constants.outputConfig, transforms: constants.transforms } */
 const drawing = Object.assign(
     Object.create(null),
     {

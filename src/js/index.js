@@ -2,6 +2,7 @@ import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
 import './project-management.js';
+import './initialize-canvas.js';
 import {
     arcCmdConfig,
     cmdSelect,

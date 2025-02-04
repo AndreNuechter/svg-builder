@@ -227,7 +227,7 @@ function remLastControlPoint(cmd) {
 }
 
 function remControlPoints() {
-    [...controlPointContainer.children].forEach((c) => {
-        c.remove();
+    [...controlPointContainer.children].forEach((controlPoint) => {
+        controlPoint.remove();
     });
 }

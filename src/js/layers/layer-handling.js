@@ -1,15 +1,11 @@
 import { configElement } from '../helper-functions.js';
-import {
-    layers,
-    layerSelect,
-} from '../dom-shared-elements.js';
+import { layers } from '../dom-shared-elements.js';
 import drawing from '../drawing/drawing.js';
 import layerTypes from './layer-types.js';
 
 export {
     drawLayer,
     Layer,
-    reorderLayerSelectors,
     styleLayer,
 };
 
@@ -41,24 +37,6 @@ function Layer(mode, style, transforms) {
         style,
         transforms,
     });
-}
-
-/**
- * Adjusts layer-ids and labels of layers and selectors affected by re-ordering or deleting.
- * @param { number } startIndex The ordinal of the first affected item.
- * @param { number } endIndex The ordinal of the last affected item.
- */
-function reorderLayerSelectors(startIndex = 0, endIndex = layerSelect.childElementCount) {
-    for (let i = startIndex; i < endIndex; i += 1) {
-        const layerView = layers[i];
-        const layerSelector = layerSelect.children[i];
-        const [label, radio] = layerSelector.children;
-
-        layerView.dataset.layerId = i;
-        layerSelector.dataset.layerId = i;
-        label.textContent = drawing.layers[i].label || `Layer ${i + 1}`;
-        radio.value = i;
-    }
 }
 
 /**
