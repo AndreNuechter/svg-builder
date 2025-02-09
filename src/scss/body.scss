@@ -4,7 +4,8 @@ body {
     overflow: hidden;
 
     .for-path,
-    .for-rect {
+    .for-rect,
+    .for-ellipse {
         display: none;
     }
 
@@ -17,6 +18,13 @@ body {
     &[data-mode="rect"] {
         .for-rect {
             display: flex;
+        }
+    }
+
+    &[data-mode="ellipse"] {
+        .for-ellipse {
+            display: flex;
+            flex-direction: column;
         }
     }
 }

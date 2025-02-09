@@ -1,3 +1,16 @@
 form#active-layer-config
     fieldset.collapsable
         legend Active Layer
+        fieldset#ellipse-config.for-ellipse
+            label
+                span CX
+                input(type="number" name="cx" step=1)
+            label
+                span CY
+                input(type="number" name="cy" step=1)
+            label
+                span RX
+                input(type="number" name="rx" min=1 step=1)
+            label
+                span RY
+                input(type="number" name="ry" min=1 step=1)

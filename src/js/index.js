@@ -22,7 +22,6 @@ import {
     addLayer,
     addPoint,
     centerRotation,
-    centerViewBox,
     changeBackgroundGridSize,
     clearDrawing,
     configArcCmd,
@@ -42,12 +41,14 @@ import {
     setMode,
     setTransform,
     setTransformTarget,
-    switchToOutputTab,
     togglePathClosing,
     triggerDownload,
     undo,
     duplicateLayer,
 } from './user-actions.js';
+import { centerViewBox, switchToOutputTab } from './drawing/drawing-output-config.js';
+import { moves } from './constants.js';
+import { save } from './drawing/drawing.js';
 
 arcCmdConfig.addEventListener('input', configArcCmd);
 cmdSelect.addEventListener('change', setCmd);
@@ -78,3 +79,10 @@ transformsForm.addEventListener('input', setTransform);
 transformTargetSwitch.addEventListener('change', setTransformTarget);
 undoBtn.addEventListener('click', undo);
 window.addEventListener('keydown', pressKey);
+// NOTE: save when done translating/inputting transforms
+window.addEventListener('keyup', ({ key }) => {
+    if (moves[key]) {
+        save('keyup');
+    }
+});
+transformsForm.addEventListener('change', () => save('setTransform'));

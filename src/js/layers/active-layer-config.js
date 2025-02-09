@@ -1,12 +1,16 @@
 import { activeLayerConfigForm } from '../dom-shared-elements';
+import { save } from '../drawing/drawing';
+import { configElement } from '../helper-functions';
+import session from '../session';
 
 // TODO check again if we can get rid of .on eventHandlers
+// FIXME UI doesnt keep up when switching between projects (eg loading another mode when in path mode)
 
 /*
     this form should hold a set of inputs that model the sessions active layer.
 
     for a rect, there should be 4 inputs (x, y, width and height, w and h cant be negative; maybe rx too?)
-    for an ellipse, there should be 2 (rx and ry)
+    for an ellipse, there should be 4 (cx, cy, rx and ry)
     and for a path, there should be as much inputs as the path has cmds (
         cmds would have differing # of inputs:
         M 2 (x and y)
@@ -26,15 +30,40 @@ import { activeLayerConfigForm } from '../dom-shared-elements';
     the changes should become visible oninput but only saved onchange
 */
 
+const ellipseConfig = document.querySelector('#ellipse-config');
+const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
+const ellipseConfigCy = ellipseConfig.querySelector('[name=cy]');
+const ellipseConfigRx = ellipseConfig.querySelector('[name=rx]');
+const ellipseConfigRy = ellipseConfig.querySelector('[name=ry]');
+
+activeLayerConfigForm.addEventListener('change', () => save('changed via fieldset'));
+activeLayerConfigForm.addEventListener('input', updateActiveLayer);
+
 export {
     setActiveLayerConfig,
 };
 
-activeLayerConfigForm.addEventListener('change', () => {
+function setActiveLayerConfig(activeLayer) {
+    // TODO impl me (for now just finish the ellipse case)...is called when session.layerId changes. when else should it be called? when changing the activelayer, eg when dragging a cp
+    console.log('config layerConfig', activeLayer);
 
-});
+    if (activeLayer.mode === 'ellipse') {
+        const { cx = 0, cy = 0, rx = 0, ry = 0 } = activeLayer.points[0] || {};
 
-function setActiveLayerConfig() {
+        ellipseConfigCx.value = cx;
+        ellipseConfigCy.value = cy;
+        ellipseConfigRx.value = rx;
+        ellipseConfigRy.value = ry;
+    }
+}
+
+function updateActiveLayer({ target }) {
     // TODO impl me
-    console.log('config layerConfig');
+    console.log('update', target);
+
+    if (session.activeLayer.mode === 'ellipse') {
+        session.activeLayer.points[0][target.name] = Number(target.value);
+        configElement(session.activeSVGElement, { [target.name]: Number(target.value) });
+        // TODO update the cps...changing cx or cy affects all 3 cps (center, rx and ry); rx or cy affect only the center...
+    }
 }

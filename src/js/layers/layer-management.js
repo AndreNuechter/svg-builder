@@ -15,6 +15,7 @@ export {
 function addLayerSelector(id = layerSelect.childElementCount) {
     const layerSelector = layerSelectorTemplate.cloneNode(true);
     const [label, selector] = layerSelector.children;
+
     layerSelector.dataset.layerId = id;
     layerSelector.ondragstart = dragLayerSelector;
     label.oninput = changeLayerLabel;

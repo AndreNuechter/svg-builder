@@ -34,24 +34,19 @@ import {
     layers,
     layerSelectors,
     svg,
-    transformsForm,
     transformTargetSwitch,
 } from './dom-shared-elements.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-points/control-point-handling.js';
 import { arc } from './path-commands.js';
 import drawing, {
-    centerViewBox,
-    generateDataURI,
-    generateMarkUp,
-    updateViewBox,
     redo,
     save,
-    switchToOutputTab,
     undo,
 } from './drawing/drawing.js';
 import session from './session.js';
 import layerTypes from './layers/layer-types.js';
 import { addLayerSelector, deleteLayerSelectors, reorderLayerSelectors } from './layers/layer-management.js';
+import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 
 const steadyAttrs = ['data-layer-id', 'transform'];
 const ctx = canvas.getContext('2d');
@@ -61,19 +56,10 @@ const ctrlActions = {
     Y: redo,
 };
 
-// NOTE: save when done translating/inputting transforms
-window.addEventListener('keyup', ({ key }) => {
-    if (moves[key]) {
-        save('keyup');
-    }
-});
-transformsForm.addEventListener('change', () => save('setTransform'));
-
 export {
     addLayer,
     addPoint,
     centerRotation,
-    centerViewBox,
     changeBackgroundGridSize,
     clearDrawing,
     configArcCmd,
@@ -95,7 +81,6 @@ export {
     setMode,
     setTransform,
     setTransformTarget,
-    switchToOutputTab,
     togglePathClosing,
     triggerDownload,
     undo,

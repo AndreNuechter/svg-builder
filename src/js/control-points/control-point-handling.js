@@ -41,11 +41,12 @@ function stopDragging() {
     save('dragging');
 }
 
-// pointerdown-event-handler-factory for cps
+/** A factory creating pointerdown event-handlers enabling dragging a controlpoint. */
 function startDragging(layer, pointId, controlPointType) {
     return (event) => {
-        // NOTE: prevent triggering svg.onpointerdown
+        // NOTE: prevent triggering svg.onpointerdown which would create a new point
         event.stopPropagation();
+        // the actual dragging happens via pointermove on the canvas
         Object.assign(svg, {
             onpointermove: dragging(layer, pointId, controlPointType, event.target),
             onpointerleave: stopDragging,
@@ -80,20 +81,21 @@ function mkSlope(x1, y1, x2, y2, startPoint, endPoint) {
  * @param { number } layerId The ordinal of the layer the controlled point belongs to.
  * @returns { SVGCircleElement } A preconfigured cp.
  */
-function ControlPoint(x, y, pointId, controlPointType, layerId) {
+function ControlPoint(cx, cy, pointId, controlPointType, layerId) {
     return configClone(circleTemplate)({
         class: `control-point ${controlPointType.CSSClass}`,
-        cx: x,
-        cy: y,
+        cx,
+        cy,
         onpointerdown: startDragging(layerId, pointId, controlPointType),
     });
 }
 
 /**
- * The drag-event-handler-factory for a draggable control point (cp). The canvas will use the returned function to change the position of the cp on pointermove and adjust the drawing accordingly.
+ * A factory for creating pointermove-handlers enabling dragging a controlpoint.
+ * The canvas will use the returned function to change the position of the cp and adjust the drawing.
  * @param { number } layerId The ordinal of the layer-data the dragged cp affects.
- * @param { number } pointId The ordinal number of the point within layer the dragged cp belongs to.
- * @param { Object } controlPointType The "type" of cp we're dealing with.
+ * @param { number } pointId The ordinal of the point within the layer the dragged cp belongs to.
+ * @param { Object } controlPointType The type of cp we're dealing with.
  * @param { SVGCircleElement } controlPoint The cp to be dragged.
  * @returns { Function } The event-handler to be executed when dragging the cp.
  */
@@ -105,9 +107,11 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
 
     return (event) => {
         const [x, y] = getSVGCoords(event);
-        // change point-data, update layer and move affected cps
+        // change the point-data
         Object.assign(point, changeData({ x, y }, point));
+        // draw the updated layer
         drawLayer(layerId);
+        // mv affected cps
         affectedControlPoints.forEach(({ ref, fx }) => configElement(ref, fx(x, y)));
     };
 }
@@ -131,10 +135,10 @@ function createControlPoints({ activeLayer, layerId }) {
  * @param { number } pointId The index of that point.
  */
 function mkControlPoint(layer, layerId, point, pointId) {
-    const addedElements = [];
+    const addedControlPoints = [];
 
     // we branch based on the mode, which we tell by duck-typing:
-    // cmd-prop implies it's path, 'width' rect and 'cx' ellipse
+    // cmd-prop implies path, 'width' rect and 'cx' ellipse
     if ('cmd' in point) {
         if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
             const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
@@ -148,10 +152,10 @@ function mkControlPoint(layer, layerId, point, pointId) {
                     layerId,
                 );
 
-                addedElements.push(firstCP);
+                addedControlPoints.push(firstCP);
 
                 if (point.cmd !== 'S') {
-                    addedElements.push(mkSlope(
+                    addedControlPoints.push(mkSlope(
                         point.x1,
                         point.y1,
                         previousPoint.x,
@@ -169,31 +173,31 @@ function mkControlPoint(layer, layerId, point, pointId) {
                         secondControlPoint,
                         layerId,
                     );
-                    addedElements.push(secondCP, mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP));
+                    addedControlPoints.push(secondCP, mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP));
                 }
 
                 if (['Q', 'S'].includes(point.cmd)) {
-                    addedElements.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
+                    addedControlPoints.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
                 }
             }
-            // NOTE: this cp is only pushed here to have it be last, which is important for the slopes
-            addedElements.push(mainCP);
+            // NOTE: this cp is only pushed now to have it be last, which is important for the slopes
+            addedControlPoints.push(mainCP);
         } else if (point.cmd === 'H') {
-            addedElements.push(
+            addedControlPoints.push(
                 ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId),
             );
         } else if (point.cmd === 'V') {
-            addedElements.push(
+            addedControlPoints.push(
                 ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId),
             );
         }
     } else if ('width' in point) {
-        addedElements.push(
+        addedControlPoints.push(
             ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
             ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId),
         );
     } else if ('cx' in point) {
-        addedElements.push(
+        addedControlPoints.push(
             ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
             ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
             ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId),
@@ -201,7 +205,7 @@ function mkControlPoint(layer, layerId, point, pointId) {
     }
 
     // NOTE: we dont add these elements to the drawingContent to keep em out of the final markup
-    controlPointContainer.append(...addedElements);
+    controlPointContainer.append(...addedControlPoints);
 }
 
 /**
@@ -227,7 +231,5 @@ function remLastControlPoint(cmd) {
 }
 
 function remControlPoints() {
-    [...controlPointContainer.children].forEach((controlPoint) => {
-        controlPoint.remove();
-    });
+    controlPointContainer.replaceChildren();
 }

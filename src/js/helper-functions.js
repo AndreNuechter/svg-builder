@@ -11,6 +11,7 @@ const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointe
 const svgPoint = svg.createSVGPoint();
 
 export {
+    areObjectsEqual,
     applyTransforms,
     configElement,
     configClone,
@@ -44,6 +45,16 @@ function applyTransforms(drawing, session) {
     }
 
     applicants.forEach((a, i) => a.setAttribute('transform', transformations[i]));
+}
+
+/**
+ * Compares two objects by stringifying them.
+ * @param { Object } a
+ * @param { Object } b
+ * @returns Boolean
+ */
+function areObjectsEqual(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
 }
 
 /**

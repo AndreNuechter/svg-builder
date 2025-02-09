@@ -8,21 +8,6 @@ import { complexTransforms } from './constants.js';
 import { last, getLastArcCmd } from './helper-functions.js';
 
 const { elements: outputConfigFields } = outputConfig;
-// display the value of range inputs behind their labels
-const configRangeInputLabel = (target, value) => {
-    target.previousElementSibling.dataset.value = ` (${value})`;
-};
-const configInput = (input, value) => {
-    input.value = value;
-    if (input.type === 'range') {
-        configRangeInputLabel(input, value);
-    }
-};
-const configForm = (formElements, conf) => {
-    Object.entries(conf).forEach(([key, val]) => {
-        configInput(formElements[key], val);
-    });
-};
 
 document.querySelectorAll('input[type="range"]').forEach((slider) => {
     slider.addEventListener('input', ({ target }) => {
@@ -38,6 +23,25 @@ export {
     setOutputConfig,
     setTransformsConfig,
 };
+
+function configInput(input, value) {
+    input.value = value;
+
+    if (input.type === 'range') {
+        configRangeInputLabel(input, value);
+    }
+}
+
+function configForm(formElements, conf) {
+    Object.entries(conf).forEach(([key, val]) => {
+        configInput(formElements[key], val);
+    });
+}
+
+/** Display the value of range inputs behind their labels. */
+function configRangeInputLabel(target, value) {
+    target.previousElementSibling.dataset.value = ` (${value})`;
+}
 
 /**
  * Sets the fields of the arc-cmd-config-form and possibly assigns the active layer's last a-cmd's config to session-arc-cmd-config.
