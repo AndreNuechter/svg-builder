@@ -10,6 +10,7 @@ import {
 import { drawLayer } from '../layers/layer-handling.js';
 import drawing, { save } from '../drawing/drawing.js';
 import controlPointTypes from './control-point-types.js';
+import { setActiveLayerConfig } from '../layers/active-layer-config.js';
 
 const {
     regularPoint,
@@ -39,6 +40,7 @@ function stopDragging() {
         onpointerup: null,
     });
     save('dragging');
+    setActiveLayerConfig();
 }
 
 /** A factory creating pointerdown event-handlers enabling dragging a controlpoint. */
@@ -103,6 +105,7 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
     const layer = drawing.layers[layerId];
     const point = layer.points[pointId];
     const { changeData } = controlPointType;
+    // TODO cant this be calculated once when the point is created in ControlPoint() instead of on ea pointerdown?
     const affectedControlPoints = controlPointType.getAffectedPoints(controlPoint, layer, pointId);
 
     return (event) => {
@@ -119,11 +122,13 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
 /** Draws all controlpoints of to the active layer. */
 function createControlPoints({ activeLayer, layerId }) {
     activeLayer?.points
-        .forEach((point, pointId) => mkControlPoint(
-            activeLayer,
-            layerId,
-            point,
-            pointId)
+        .forEach((point, pointId) =>
+            mkControlPoint(
+                activeLayer,
+                layerId,
+                point,
+                pointId
+            )
         );
 }
 
@@ -135,13 +140,14 @@ function createControlPoints({ activeLayer, layerId }) {
  * @param { number } pointId The index of that point.
  */
 function mkControlPoint(layer, layerId, point, pointId) {
-    const addedControlPoints = [];
+    const addedControlPointsAndSlopes = [];
 
     // we branch based on the mode, which we tell by duck-typing:
     // cmd-prop implies path, 'width' rect and 'cx' ellipse
     if ('cmd' in point) {
         if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
             const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
+
             if (['Q', 'C', 'S'].includes(point.cmd)) {
                 const previousPoint = layer.points[pointId - 1];
                 const firstCP = ControlPoint(
@@ -152,10 +158,10 @@ function mkControlPoint(layer, layerId, point, pointId) {
                     layerId,
                 );
 
-                addedControlPoints.push(firstCP);
+                addedControlPointsAndSlopes.push(firstCP);
 
                 if (point.cmd !== 'S') {
-                    addedControlPoints.push(mkSlope(
+                    addedControlPointsAndSlopes.push(mkSlope(
                         point.x1,
                         point.y1,
                         previousPoint.x,
@@ -173,31 +179,34 @@ function mkControlPoint(layer, layerId, point, pointId) {
                         secondControlPoint,
                         layerId,
                     );
-                    addedControlPoints.push(secondCP, mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP));
+                    addedControlPointsAndSlopes.push(
+                        secondCP,
+                        mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP)
+                    );
                 }
 
                 if (['Q', 'S'].includes(point.cmd)) {
-                    addedControlPoints.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
+                    addedControlPointsAndSlopes.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
                 }
             }
             // NOTE: this cp is only pushed now to have it be last, which is important for the slopes
-            addedControlPoints.push(mainCP);
+            addedControlPointsAndSlopes.push(mainCP);
         } else if (point.cmd === 'H') {
-            addedControlPoints.push(
+            addedControlPointsAndSlopes.push(
                 ControlPoint(point.x, layer.points[pointId - 1].y, pointId, hCmd, layerId),
             );
         } else if (point.cmd === 'V') {
-            addedControlPoints.push(
+            addedControlPointsAndSlopes.push(
                 ControlPoint(layer.points[pointId - 1].x, point.y, pointId, vCmd, layerId),
             );
         }
     } else if ('width' in point) {
-        addedControlPoints.push(
+        addedControlPointsAndSlopes.push(
             ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
             ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId),
         );
     } else if ('cx' in point) {
-        addedControlPoints.push(
+        addedControlPointsAndSlopes.push(
             ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
             ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
             ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId),
@@ -205,7 +214,7 @@ function mkControlPoint(layer, layerId, point, pointId) {
     }
 
     // NOTE: we dont add these elements to the drawingContent to keep em out of the final markup
-    controlPointContainer.append(...addedControlPoints);
+    controlPointContainer.append(...addedControlPointsAndSlopes);
 }
 
 /**

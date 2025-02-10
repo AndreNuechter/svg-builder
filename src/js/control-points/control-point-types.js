@@ -19,8 +19,7 @@ const controlPointTypes = {
         (controlPoint, layer, pointId) => {
             return [
                 AffectedControlPoint(controlPoint, updateCxAndCyComponents),
-                ...getAffectedVAndHCmds(layer, pointId
-                )
+                ...getAffectedVAndHCmds(layer, pointId)
             ];
         },
     ),
@@ -62,8 +61,10 @@ const controlPointTypes = {
 
             return [
                 AffectedControlPoint(controlPoint, updateCxAndCyComponents),
-                AffectedControlPoint(controlPoints[1],
-                    (x, y) => ({ cx: x + point.width, cy: y + point.height })),
+                AffectedControlPoint(
+                    controlPoints[1],
+                    (x, y) => ({ cx: x + point.width, cy: y + point.height })
+                ),
             ];
         },
     ),
@@ -119,7 +120,6 @@ function AffectedControlPoint(ref, fx) {
     return { ref, fx };
 }
 
-// TODO cant affectedPoints be calculated once when the point is created? rn it's done on ea pointerdown in dragging()...
 /**
  * @param { String } CSSClass The CSS-class applied to an instance of this type.
  * @param { Function } changeData A function changing the related point-data when a cp of this type is dragged.
@@ -127,12 +127,6 @@ function AffectedControlPoint(ref, fx) {
  */
 function ControlPointType(CSSClass, changeData, getAffectedPoints) {
     return { CSSClass, changeData, getAffectedPoints };
-}
-
-function getIdOfControlPoint(layer, id) {
-    return layer.points
-        .slice(0, id)
-        .reduce((cps, point) => cps + cpCountPerCmd[point.cmd], 0);
 }
 
 function getAffectedVAndHCmds(layer, pointId) {
@@ -155,6 +149,12 @@ function getAffectedVAndHCmds(layer, pointId) {
     }
 
     return affectedCmds;
+}
+
+function getIdOfControlPoint(layer, id) {
+    return layer.points
+        .slice(0, id)
+        .reduce((cps, point) => cps + cpCountPerCmd[point.cmd], 0);
 }
 
 function updateCxComponent(cx) {

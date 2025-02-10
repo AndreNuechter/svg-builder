@@ -19,6 +19,7 @@ import { applyTransforms, configClone, pointToMarkup, stringifyTransforms } from
 import { addLayerSelector, deleteLayerSelectors } from './layers/layer-management';
 import drawing from './drawing/drawing';
 import session from './session';
+import { setActiveLayerConfig } from './layers/active-layer-config';
 
 window.addEventListener('DOMContentLoaded', initializeCanvas, { once: true });
 document.addEventListener('initializeCanvas', initializeCanvas);
@@ -52,6 +53,7 @@ function initializeCanvas() {
     pathClosingToggle.checked = session.activeLayer && session.activeLayer.closePath;
     setCmdConfig(session);
     applyTransforms(drawing, session);
+    setActiveLayerConfig();
     setTransformsConfig(session.transformTarget);
     transformTargetSwitch.checked = session.transformLayerNotDrawing;
     setFillAndStrokeConfig(session.activeLayer?.style || defaults.style);

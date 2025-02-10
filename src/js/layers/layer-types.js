@@ -44,8 +44,10 @@ const layerTypes = {
             if (points[0]) return;
 
             const ellipse = session.activeSVGElement;
-            points.push({ cx: x, cy: y });
-            configElement(ellipse, points[0]);
+            const newPoint = { cx: x, cy: y };
+
+            points.push(newPoint);
+            configElement(ellipse, newPoint);
             session.drawingShape = true;
             Object.assign(session.shapeStart, { x, y });
             svg.onpointermove = drawShape(ellipse, shaperFuncs.ellipse(x, y));

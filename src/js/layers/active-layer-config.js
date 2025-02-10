@@ -1,6 +1,5 @@
-import { activeLayerConfigForm } from '../dom-shared-elements';
+import { activeLayerConfigForm, controlPoints } from '../dom-shared-elements';
 import { save } from '../drawing/drawing';
-import { configElement } from '../helper-functions';
 import session from '../session';
 
 // TODO check again if we can get rid of .on eventHandlers
@@ -35,35 +34,79 @@ const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
 const ellipseConfigCy = ellipseConfig.querySelector('[name=cy]');
 const ellipseConfigRx = ellipseConfig.querySelector('[name=rx]');
 const ellipseConfigRy = ellipseConfig.querySelector('[name=ry]');
+const rectConfig = document.querySelector('#ellipse-config');
+const rectConfigCx = rectConfig.querySelector('[name=x]');
+const rectConfigCy = rectConfig.querySelector('[name=y]');
+const rectConfigWidth = rectConfig.querySelector('[name=width]');
+const rectConfigHeight = rectConfig.querySelector('[name=height]');
 
 activeLayerConfigForm.addEventListener('change', () => save('changed via fieldset'));
-activeLayerConfigForm.addEventListener('input', updateActiveLayer);
+activeLayerConfigForm.addEventListener('input', configActiveLayer);
 
 export {
     setActiveLayerConfig,
 };
 
-function setActiveLayerConfig(activeLayer) {
-    // TODO impl me (for now just finish the ellipse case)...is called when session.layerId changes. when else should it be called? when changing the activelayer, eg when dragging a cp
-    console.log('config layerConfig', activeLayer);
+function setActiveLayerConfig(activeLayer = session.activeLayer) {
+    const firstPoint = activeLayer?.points[0] || {};
 
-    if (activeLayer.mode === 'ellipse') {
-        const { cx = 0, cy = 0, rx = 0, ry = 0 } = activeLayer.points[0] || {};
-
-        ellipseConfigCx.value = cx;
-        ellipseConfigCy.value = cy;
-        ellipseConfigRx.value = rx;
-        ellipseConfigRy.value = ry;
+    switch (activeLayer?.mode) {
+        case 'ellipse':
+            ellipseConfigCx.value = firstPoint.cx || 0;
+            ellipseConfigCy.value = firstPoint.cy || 0;
+            ellipseConfigRx.value = firstPoint.rx || 0;
+            ellipseConfigRy.value = firstPoint.ry || 0;
+            break;
+        case 'rect':
+            rectConfigCx.value = firstPoint.x || 0;
+            rectConfigCy.value = firstPoint.y || 0;
+            rectConfigWidth.value = firstPoint.width || 0;
+            rectConfigHeight.value = firstPoint.height || 0;
+            break;
+        case 'path':
+            // TODO impl me
+            break;
     }
 }
 
-function updateActiveLayer({ target }) {
-    // TODO impl me
-    console.log('update', target);
+function configActiveLayer({ target }) {
+    const firstPoint = session.activeLayer.points[0];
 
-    if (session.activeLayer.mode === 'ellipse') {
-        session.activeLayer.points[0][target.name] = Number(target.value);
-        configElement(session.activeSVGElement, { [target.name]: Number(target.value) });
-        // TODO update the cps...changing cx or cy affects all 3 cps (center, rx and ry); rx or cy affect only the center...
+    switch (session.activeLayer.mode) {
+        case 'ellipse':
+            // update the data
+            firstPoint[target.name] = Number(target.value);
+            // update the svg element
+            session.activeSVGElement.setAttribute(target.name, target.value);
+            // update the cps
+            // NOTE: control-point-handling/mkControlPoint tells us that 3 cps are added for an ellipse, center first, then rx and then ry
+            // NOTE: changing cx or cy affects all 3 cps (center, rx and ry); changing rx or ry affect only rx or ry
+            switch (target.name) {
+                case 'rx':
+                    controlPoints[1].setAttribute('cx', firstPoint.cx - firstPoint.rx);
+                    break;
+                case 'ry':
+                    controlPoints[2].setAttribute('cy', firstPoint.cy - firstPoint.ry);
+                    break;
+                case 'cx':
+                    // move all controlPoints horizontally
+                    controlPoints[0].setAttribute('cx', firstPoint.cx);
+                    controlPoints[1].setAttribute('cx', firstPoint.cx - firstPoint.rx);
+                    controlPoints[2].setAttribute('cx', firstPoint.cx);
+                    break;
+                case 'cy':
+                    // move all controlPoints vertically
+                    controlPoints[0].setAttribute('cy', firstPoint.cy);
+                    controlPoints[1].setAttribute('cy', firstPoint.cy);
+                    controlPoints[2].setAttribute('cy', firstPoint.cy - firstPoint.ry);
+                    break;
+            }
+            break;
+        case 'rect':
+            // TODO impl me
+            break;
+        case 'path':
+            // TODO impl me
+            break;
     }
 }

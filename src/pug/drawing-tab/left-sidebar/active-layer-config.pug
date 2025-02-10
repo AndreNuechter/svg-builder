@@ -10,7 +10,20 @@ form#active-layer-config
                 input(type="number" name="cy" step=1)
             label
                 span RX
-                input(type="number" name="rx" min=1 step=1)
+                input(type="number" name="rx" min=0 step=1)
             label
                 span RY
-                input(type="number" name="ry" min=1 step=1)
+                input(type="number" name="ry" min=0 step=1)
+        fieldset#rect-config.for-rect
+            label
+                span X
+                input(type="number" name="x" step=1)
+            label
+                span Y
+                input(type="number" name="y" step=1)
+            label
+                span Width
+                input(type="number" name="width" min=0 step=1)
+            label
+                span Height
+                input(type="number" name="height" min=0 step=1)

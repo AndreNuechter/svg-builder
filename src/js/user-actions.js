@@ -47,6 +47,7 @@ import session from './session.js';
 import layerTypes from './layers/layer-types.js';
 import { addLayerSelector, deleteLayerSelectors, reorderLayerSelectors } from './layers/layer-management.js';
 import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
+import { setActiveLayerConfig } from './layers/active-layer-config.js';
 
 const steadyAttrs = ['data-layer-id', 'transform'];
 const ctx = canvas.getContext('2d');
@@ -165,8 +166,8 @@ function clearDrawing() {
         outputConfig: structuredClone(defaults.outputConfig),
         transforms: structuredClone(defaults.transforms),
     });
-    document.dispatchEvent(new Event('initializeCanvas'));
     save('clear');
+    document.dispatchEvent(new Event('initializeCanvas'));
 }
 
 // TODO mv to formhandling
@@ -230,12 +231,14 @@ function deleteLastPoint() {
 function deleteLayer() {
     if (!layers.length) return;
     drawing.layers.splice(session.layerId, 1);
+    save('deleteLayer');
     session.activeSVGElement.remove();
     // NOTE: `remControlPoints` might be called more than once,
     // as `deleteLayerSelectors` might change the layerId
     remControlPoints();
     deleteLayerSelectors();
-    save('deleteLayer');
+    // NOTE: might be called again if the layerId is changed by this
+    setActiveLayerConfig();
     // NOTE: this needs to happen now because deleting the last layer,
     // before `deleteLayerSelectors` had a chance to correct the layerId,
     // would cause an invalid lookup
@@ -283,6 +286,7 @@ function finalizeShape(event) {
             ry: size.vert,
         });
     save('drawShape');
+    setActiveLayerConfig();
     mkControlPoint(
         session.activeLayer,
         session.layerId,
