@@ -10,30 +10,4 @@ header
 #output.tab-content(data-tab-name="output")
     include output.pug
 
-dialog#project-management-overlay
-    form#save-drawing-form
-        fieldset
-            legend Save the current Project?
-            button(data-btn-role="save-drawing") Save it
-            button(data-btn-role="discard-drawing") Discard it
-            button(data-btn-role="cancel") Cancel
-    form#name-drawing-form
-        fieldset
-            legend How do you want to call this one?
-            input(placeholder="Enter a name..." name="name" required)
-            button Save
-    form#select-type-of-new-project-form
-        fieldset
-            legend Start fresh?
-            button(data-btn-role="select-fresh-start") Start fresh
-            button(data-btn-role="select-a-base") Base the new project on another one
-    form#select-drawing-form
-        fieldset
-            legend Which project do you want to load or delete?
-            select
-            button Confirm choice
-    form#update-drawing-form
-        fieldset
-            legend Update existing project by that name?
-            button(data-btn-role="select-update") Update existing project
-            button(data-btn-role="change-name") Pick another name
+include project-management-overlay.pug
