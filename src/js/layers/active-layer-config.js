@@ -34,7 +34,7 @@ const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
 const ellipseConfigCy = ellipseConfig.querySelector('[name=cy]');
 const ellipseConfigRx = ellipseConfig.querySelector('[name=rx]');
 const ellipseConfigRy = ellipseConfig.querySelector('[name=ry]');
-const rectConfig = document.querySelector('#ellipse-config');
+const rectConfig = document.querySelector('#rect-config');
 const rectConfigCx = rectConfig.querySelector('[name=x]');
 const rectConfigCy = rectConfig.querySelector('[name=y]');
 const rectConfigWidth = rectConfig.querySelector('[name=width]');
@@ -80,7 +80,7 @@ function configActiveLayer({ target }) {
             session.activeSVGElement.setAttribute(target.name, target.value);
             // update the cps
             // NOTE: control-point-handling/mkControlPoint tells us that 3 cps are added for an ellipse, center first, then rx and then ry
-            // NOTE: changing cx or cy affects all 3 cps (center, rx and ry); changing rx or ry affect only rx or ry
+            // changing cx or cy via the form affects all 3 cps (center, rx and ry); changing rx or ry affect only rx or ry
             switch (target.name) {
                 case 'rx':
                     controlPoints[1].setAttribute('cx', firstPoint.cx - firstPoint.rx);
@@ -101,9 +101,33 @@ function configActiveLayer({ target }) {
                     controlPoints[2].setAttribute('cy', firstPoint.cy - firstPoint.ry);
                     break;
             }
+
             break;
         case 'rect':
-            // TODO impl me
+            // update the data
+            firstPoint[target.name] = Number(target.value);
+            // update the svg element
+            session.activeSVGElement.setAttribute(target.name, target.value);
+            // update the cps
+            // NOTE: control-point-handling/mkControlPoint tells us that 2 cps are added for a rect, first top-left (which changes position) and then bottom-right (which changes width and/or height)
+            // changing x or y via the form affects both cps; changing width or height affects only the bottom-right one
+            switch (target.name) {
+                case 'x':
+                    controlPoints[0].setAttribute('cx', firstPoint.x);
+                    controlPoints[1].setAttribute('cx', firstPoint.x + firstPoint.width);
+                    break;
+                case 'y':
+                    controlPoints[0].setAttribute('cy', firstPoint.y);
+                    controlPoints[1].setAttribute('cy', firstPoint.y + firstPoint.height);
+                    break;
+                case 'width':
+                    controlPoints[1].setAttribute('cx', firstPoint.x + firstPoint.width);
+                    break;
+                case 'height':
+                    controlPoints[1].setAttribute('cy', firstPoint.y + firstPoint.height);
+                    break;
+            }
+
             break;
         case 'path':
             // TODO impl me
