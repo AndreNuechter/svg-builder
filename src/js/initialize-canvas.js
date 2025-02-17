@@ -9,7 +9,6 @@ import {
     transformTargetSwitch
 } from './dom-shared-elements';
 import {
-    setArcCmdConfig,
     setCmdConfig,
     setFillAndStrokeConfig,
     setOutputConfig,
@@ -57,7 +56,6 @@ function initializeCanvas() {
     setTransformsConfig(session.transformTarget);
     transformTargetSwitch.checked = session.transformLayerNotDrawing;
     setFillAndStrokeConfig(session.activeLayer?.style || defaults.style);
-    setArcCmdConfig(session);
     setOutputConfig(drawing);
     drawingTitle.textContent = drawing.name || 'Unnamed drawing';
 }

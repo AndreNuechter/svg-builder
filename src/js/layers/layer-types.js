@@ -1,3 +1,4 @@
+import { defaults } from '../constants.js';
 import { svg } from '../dom-shared-elements.js';
 import {
     configElement,
@@ -84,7 +85,7 @@ const layerTypes = {
                         case 'C':
                             return cube(x, y, points[points.length - 2]);
                         case 'A':
-                            return arc(session.arcCmdConfig);
+                            return arc(defaults.arcCmdConfig);
                         default:
                             return {};
                     }

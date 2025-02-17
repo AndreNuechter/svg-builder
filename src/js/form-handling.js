@@ -1,11 +1,10 @@
 import {
-    arcCmdConfig,
     fillAndStrokeFields,
     outputConfig,
     transformFields,
 } from './dom-shared-elements.js';
 import { complexTransforms } from './constants.js';
-import { last, getLastArcCmd } from './helper-functions.js';
+import { last } from './helper-functions.js';
 
 const { elements: outputConfigFields } = outputConfig;
 
@@ -17,7 +16,6 @@ document.querySelectorAll('input[type="range"]').forEach((slider) => {
 window.addEventListener('submit', (event) => event.preventDefault());
 
 export {
-    setArcCmdConfig,
     setCmdConfig,
     setFillAndStrokeConfig,
     setOutputConfig,
@@ -41,31 +39,6 @@ function configForm(formElements, conf) {
 /** Display the value of range inputs behind their labels. */
 function configRangeInputLabel(target, value) {
     target.previousElementSibling.dataset.value = ` (${value})`;
-}
-
-/**
- * Sets the fields of the arc-cmd-config-form and possibly assigns the active layer's last a-cmd's config to session-arc-cmd-config.
- * @param { Object } session The session object.
- */
-function setArcCmdConfig(session) {
-    if (session.mode !== 'path') return;
-
-    const conf = (session.activeLayer && getLastArcCmd(session.activeLayer.points)) || session.arcCmdConfig;
-
-    Object.assign(session.arcCmdConfig, conf);
-    Object.entries(conf)
-        // NOTE: the data might be coming from a point,
-        // so we filter out props not shared between a point and the form
-        .filter(([key]) => !['cmd', 'x', 'y'].includes(key))
-        .forEach(([key, val]) => {
-            const field = arcCmdConfig.elements[key];
-
-            if (field.type === 'checkbox') {
-                field.checked = val;
-            } else {
-                configInput(field, val);
-            }
-        });
 }
 
 function setCmdConfig(session) {

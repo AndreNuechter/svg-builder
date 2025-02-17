@@ -19,10 +19,6 @@ body {
         .for-rect {
             display: flex;
         }
-
-        #active-layer-config .for-rect {
-            flex-direction: column;
-        }
     }
 
     &[data-mode="ellipse"] {

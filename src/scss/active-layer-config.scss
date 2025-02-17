@@ -1,0 +1,11 @@
+#active-layer-config {
+
+    fieldset:not(:last-child) {
+        margin-bottom: 0;
+    }
+
+    .for-path,
+    .for-rect {
+        flex-direction: column;
+    }
+}

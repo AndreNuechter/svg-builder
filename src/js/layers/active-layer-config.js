@@ -1,56 +1,110 @@
+import { cpCountPerCmd } from '../control-points/control-point-types';
 import { activeLayerConfigForm, controlPoints } from '../dom-shared-elements';
 import { save } from '../drawing/drawing';
 import session from '../session';
+import { drawLayer } from './layer-handling';
 
-// TODO check again if we can get rid of .on eventHandlers
-// FIXME UI doesnt keep up when switching between projects (eg loading another mode when in path mode)
+// TODO impl moving a point up/down
+// TODO impl adding/rm a point...then rm #del-last-point
 
-/*
-    this form should hold a set of inputs that model the sessions active layer.
-
-    for a rect, there should be 4 inputs (x, y, width and height, w and h cant be negative; maybe rx too?)
-    for an ellipse, there should be 4 (cx, cy, rx and ry)
-    and for a path, there should be as much inputs as the path has cmds (
-        cmds would have differing # of inputs:
-        M 2 (x and y)
-        L 2 (x and y)
-        Q 4 (x, x1, y and y1)
-        C 6 (x, x1, x2, y, y1 and y2)
-        S 4 (x, x1, y and y1)
-        T 2 (x and y)
-        V 1 (y)
-        H 1 (x)
-        A 7 (x, xRad, xRot, y, yRad, large and sweep; the last two are flags [0, 1])
-    ) the form should have a max-height and scroll when it gets too large
-
-    for pathes, there should be a way to add a point to a path at any position (not before the first M tho)
-    and there should be a way to delete any point (except the first M) (for example an x-btn after the line)
-
-    the changes should become visible oninput but only saved onchange
-*/
-
-const ellipseConfig = document.querySelector('#ellipse-config');
+const ellipseConfig = document.getElementById('ellipse-config');
 const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
 const ellipseConfigCy = ellipseConfig.querySelector('[name=cy]');
 const ellipseConfigRx = ellipseConfig.querySelector('[name=rx]');
 const ellipseConfigRy = ellipseConfig.querySelector('[name=ry]');
-const rectConfig = document.querySelector('#rect-config');
+const rectConfig = document.getElementById('rect-config');
 const rectConfigCx = rectConfig.querySelector('[name=x]');
 const rectConfigCy = rectConfig.querySelector('[name=y]');
 const rectConfigWidth = rectConfig.querySelector('[name=width]');
 const rectConfigHeight = rectConfig.querySelector('[name=height]');
-
-activeLayerConfigForm.addEventListener('change', () => save('changed via fieldset'));
-activeLayerConfigForm.addEventListener('input', configActiveLayer);
-
-export {
-    setActiveLayerConfig,
+const pathConfig = document.getElementById('path-config');
+const pathCmdTmpls = {
+    L: document.getElementById('l-cmd-config-tmpl').content,
+    Q: document.getElementById('q-cmd-config-tmpl').content,
+    M: document.getElementById('m-cmd-config-tmpl').content,
+    C: document.getElementById('c-cmd-config-tmpl').content,
+    S: document.getElementById('s-cmd-config-tmpl').content,
+    T: document.getElementById('t-cmd-config-tmpl').content,
+    V: document.getElementById('v-cmd-config-tmpl').content,
+    H: document.getElementById('h-cmd-config-tmpl').content,
+    A: document.getElementById('a-cmd-config-tmpl').content,
 };
 
-function setActiveLayerConfig(activeLayer = session.activeLayer) {
-    const firstPoint = activeLayer?.points[0] || {};
+activeLayerConfigForm.addEventListener('change', () => save('changed active layer via fieldset'));
+activeLayerConfigForm.addEventListener('input', configActiveLayer);
 
-    switch (activeLayer?.mode) {
+export { setActiveLayerConfig };
+
+// TODO is called twice on start...why?
+function setActiveLayerConfig(activeLayer = session.activeLayer) {
+    if (!activeLayer) return;
+
+    if (activeLayer.mode === 'path') {
+        let indexOfFirstCP = 0;
+        // TODO this could be optimized to not thrash the dom as frequently (update instead of create anew...)
+        // add the relevant config for ea cmd in this path
+        pathConfig.replaceChildren(
+            ...activeLayer.points.map((point, pointId) => {
+                // create the relevant config
+                // NOTE: we use the firstElementChild, to get out the document fragment
+                const newConfig = pathCmdTmpls[point.cmd].cloneNode(true).firstElementChild;
+
+                // remember the cmd's position within the path
+                newConfig.dataset.pointId = pointId;
+                // note at which index the first cp related to this "point"/cmd is
+                newConfig.dataset.firstCpAt = indexOfFirstCP;
+                // increase the index of the first cp of the following cmd by the amount of cps this cmd has
+                indexOfFirstCP += cpCountPerCmd[point.cmd];
+
+                // sync the config
+                switch (point.cmd) {
+                    case 'M':
+                    case 'L':
+                    case 'T':
+                        newConfig.querySelector('[name=x]').value = point.x;
+                        newConfig.querySelector('[name=y]').value = point.y;
+                        break;
+                    case 'Q':
+                    case 'S':
+                        newConfig.querySelector('[name=x]').value = point.x;
+                        newConfig.querySelector('[name=y]').value = point.y;
+                        newConfig.querySelector('[name=x1]').value = point.x1;
+                        newConfig.querySelector('[name=y1]').value = point.y1;
+                        break;
+                    case 'C':
+                        newConfig.querySelector('[name=x]').value = point.x;
+                        newConfig.querySelector('[name=y]').value = point.y;
+                        newConfig.querySelector('[name=x1]').value = point.x1;
+                        newConfig.querySelector('[name=y1]').value = point.y1;
+                        newConfig.querySelector('[name=x2]').value = point.x2;
+                        newConfig.querySelector('[name=y2]').value = point.y2;
+                        break;
+                    case 'V':
+                        newConfig.querySelector('[name=y]').value = point.y;
+                        break;
+                    case 'H':
+                        newConfig.querySelector('[name=x]').value = point.x;
+                        break;
+                    case 'A':
+                        newConfig.querySelector('[name=x]').value = point.x;
+                        newConfig.querySelector('[name=y]').value = point.y;
+                        newConfig.querySelector('[name=xR]').value = point.xR;
+                        newConfig.querySelector('[name=yR]').value = point.yR;
+                        newConfig.querySelector('[name=large]').checked = point.large;
+                        newConfig.querySelector('[name=sweep]').checked = point.sweep;
+                        newConfig.querySelector('[name=xRot]').value = point.xRot;
+                }
+
+                return newConfig;
+            })
+        );
+
+        return;
+    }
+
+    const firstPoint = activeLayer.points[0] || {};
+
+    switch (activeLayer.mode) {
         case 'ellipse':
             ellipseConfigCx.value = firstPoint.cx || 0;
             ellipseConfigCy.value = firstPoint.cy || 0;
@@ -63,13 +117,61 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
             rectConfigWidth.value = firstPoint.width || 0;
             rectConfigHeight.value = firstPoint.height || 0;
             break;
-        case 'path':
-            // TODO impl me
-            break;
     }
 }
 
 function configActiveLayer({ target }) {
+    if (session.activeLayer.mode === 'path') {
+        let { pointId, firstCpAt } = target.closest('fieldset').dataset;
+        pointId = Number(pointId);
+        firstCpAt = Number(firstCpAt);
+        const point = session.activeLayer.points[pointId];
+
+        // update the data
+        point[target.name] = target.type === 'checkbox'
+            ? Number(target.checked)
+            : Number(target.value);
+        // update the svg element
+        drawLayer(session.layerId);
+        // update the cps (up to 3 depending on the cmd)
+        // NOTE: we calculated the position of the first cp in setActiveLayerConfig
+        // furthermore, we know from mkControlPoint that a cmd's mainCp is always the last to be added to the dom
+        switch (target.name) {
+            case 'x':
+                controlPoints[firstCpAt + cpCountPerCmd[point.cmd] - 1].setAttribute('cx', point.x);
+
+                // if the next cmd exists and is a V cmd we need to also update its cp
+                if (session.activeLayer.points[pointId + 1]?.cmd === 'V') {
+                    controlPoints[firstCpAt + cpCountPerCmd[point.cmd]].setAttribute('cx', point.x);
+                }
+
+                break;
+            case 'y':
+                controlPoints[firstCpAt + cpCountPerCmd[point.cmd] - 1].setAttribute('cy', point.y);
+
+                // if the next cmd exists and is a H cmd we need to also update its cp
+                if (session.activeLayer.points[pointId + 1]?.cmd === 'H') {
+                    controlPoints[firstCpAt + cpCountPerCmd[point.cmd]].setAttribute('cy', point.y);
+                }
+
+                break;
+            case 'x1':
+                controlPoints[firstCpAt].setAttribute('cx', point.x1);
+                break;
+            case 'y1':
+                controlPoints[firstCpAt].setAttribute('cy', point.y1);
+                break;
+            case 'x2':
+                controlPoints[firstCpAt + 1].setAttribute('cx', point.x2);
+                break;
+            case 'y2':
+                controlPoints[firstCpAt + 1].setAttribute('cy', point.y2);
+                break;
+        }
+
+        return;
+    }
+
     const firstPoint = session.activeLayer.points[0];
 
     switch (session.activeLayer.mode) {
@@ -128,9 +230,6 @@ function configActiveLayer({ target }) {
                     break;
             }
 
-            break;
-        case 'path':
-            // TODO impl me
             break;
     }
 }

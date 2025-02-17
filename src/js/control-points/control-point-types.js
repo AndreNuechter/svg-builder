@@ -111,6 +111,7 @@ const controlPointTypes = {
 };
 
 export default controlPointTypes;
+export { cpCountPerCmd };
 
 /**
  * @param { SVGCircleElement } ref The affected cp element.

@@ -19,7 +19,6 @@ export {
     isBoolean,
     last,
     lastId,
-    getLastArcCmd,
     getRelevantConfiguredStyles,
     getRelevantDefaultStyles,
     getSVGCoords,
@@ -95,13 +94,6 @@ function drawShape(shape, getAttrs) {
         const [x1, y1] = getSVGCoords(event);
         configElement(shape, getAttrs(x1, y1));
     };
-}
-
-function getLastArcCmd(points) {
-    return points
-        .slice()
-        .reverse()
-        .find((point) => point.cmd === 'A');
 }
 
 function getRelevantConfiguredStyles(mode) {

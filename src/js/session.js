@@ -12,7 +12,6 @@ import {
     isBoolean,
 } from './helper-functions.js';
 import {
-    setArcCmdConfig,
     setCmdConfig,
     setFillAndStrokeConfig,
     setTransformsConfig,
@@ -28,7 +27,6 @@ let mode;
 let transformLayerNotDrawing = false;
 const modes = Object.keys(layerTypes);
 const session = {
-    arcCmdConfig: { ...defaults.arcCmdConfig },
     get activeLayer() {
         return drawing.layers[session.layerId];
     },
@@ -67,7 +65,6 @@ const session = {
             remControlPoints();
             createControlPoints(session);
             setCmdConfig(session);
-            setArcCmdConfig(session);
             setActiveLayerConfig(session.activeLayer);
             setFillAndStrokeConfig(drawing.layers[val].style);
             pathClosingToggle.checked = session.activeLayer.closePath;

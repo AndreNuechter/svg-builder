@@ -13,7 +13,6 @@ import {
 import {
     applyTransforms,
     configClone,
-    getLastArcCmd,
     getRelevantConfiguredStyles,
     getRelevantDefaultStyles,
     getSVGCoords,
@@ -37,7 +36,6 @@ import {
     transformTargetSwitch,
 } from './dom-shared-elements.js';
 import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-points/control-point-handling.js';
-import { arc } from './path-commands.js';
 import drawing, {
     redo,
     save,
@@ -63,7 +61,6 @@ export {
     centerRotation,
     changeBackgroundGridSize,
     clearDrawing,
-    configArcCmd,
     configOutput,
     copyDataURIToClipboard,
     copyMarkupToClipboard,
@@ -168,25 +165,6 @@ function clearDrawing() {
     });
     save('clear');
     document.dispatchEvent(new Event('initializeCanvas'));
-}
-
-// TODO mv to formhandling
-function configArcCmd({ target }) {
-    session.arcCmdConfig[target.name] = target[
-        target.type === 'checkbox'
-            ? 'checked'
-            : 'value'
-    ];
-
-    if (!session.activeLayer) return;
-
-    const lastArcCmd = getLastArcCmd(session.activeLayer.points);
-
-    if (!lastArcCmd) return;
-
-    Object.assign(lastArcCmd, arc(session.arcCmdConfig));
-    drawLayer(session.layerId);
-    save('configArcCmd');
 }
 
 // TODO mv to formhandling

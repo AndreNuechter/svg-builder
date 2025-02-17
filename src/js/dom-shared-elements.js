@@ -1,5 +1,3 @@
-/** @type { HTMLFormElement } */
-const arcCmdConfig = document.getElementById('arc-cmd-config');
 const cmdSelect = document.getElementById('commands');
 const controlPoints = document.getElementsByClassName('control-point');
 const controlPointContainer = document.getElementById('control-point-container');
@@ -37,7 +35,6 @@ const activeLayerConfigForm = document.getElementById('active-layer-config');
 
 export {
     activeLayerConfigForm,
-    arcCmdConfig,
     cmdSelect,
     controlPoints,
     controlPointContainer,

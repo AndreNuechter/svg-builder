@@ -4,7 +4,6 @@ import './components/tabs.js';
 import './project-management.js';
 import './initialize-canvas.js';
 import {
-    arcCmdConfig,
     cmdSelect,
     downloadBtn,
     layerSelect,
@@ -24,7 +23,6 @@ import {
     centerRotation,
     changeBackgroundGridSize,
     clearDrawing,
-    configArcCmd,
     configOutput,
     copyDataURIToClipboard,
     deleteLastPoint,
@@ -50,7 +48,8 @@ import { centerViewBox, switchToOutputTab } from './drawing/drawing-output-confi
 import { moves } from './constants.js';
 import { save } from './drawing/drawing.js';
 
-arcCmdConfig.addEventListener('input', configArcCmd);
+// TODO check again if we can get rid of .on eventHandlers
+
 cmdSelect.addEventListener('change', setCmd);
 document.getElementById('reset-transforms').addEventListener('click', resetTransforms);
 document.getElementById('get-markup').addEventListener('click', copyMarkupToClipboard);

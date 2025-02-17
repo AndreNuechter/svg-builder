@@ -143,7 +143,7 @@ function mkControlPoint(layer, layerId, point, pointId) {
     const addedControlPointsAndSlopes = [];
 
     // we branch based on the mode, which we tell by duck-typing:
-    // cmd-prop implies path, 'width' rect and 'cx' ellipse
+    // the cmd-prop implies path, 'width' rect and 'cx' ellipse
     if ('cmd' in point) {
         if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
             const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
@@ -189,7 +189,8 @@ function mkControlPoint(layer, layerId, point, pointId) {
                     addedControlPointsAndSlopes.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
                 }
             }
-            // NOTE: this cp is only pushed now to have it be last, which is important for the slopes
+
+            // NOTE: we only push this cp now so it's the last one, which is important for the slopes
             addedControlPointsAndSlopes.push(mainCP);
         } else if (point.cmd === 'H') {
             addedControlPointsAndSlopes.push(

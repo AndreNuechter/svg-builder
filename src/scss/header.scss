@@ -23,6 +23,7 @@ header {
 .tab-link {
     display: inline-block;
     color: var(--sub-bg-color);
+    // TODO rework this...it kinda looks like the inactive tab is active
     background: var(--sub-highlight-color);
     border-right: var(--tab-border);
     height: var(--tab-links-height);

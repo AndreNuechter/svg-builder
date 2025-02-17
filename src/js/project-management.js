@@ -10,6 +10,7 @@ import drawing, { commitDrawingToStorage, isDrawingUntouched } from './drawing/d
 import session from './session';
 import { clearDrawing } from './user-actions';
 
+// FIXME mode selection doesnt keep up when switching between projects (eg loading another mode when in path mode)
 // TODO improve error handling (add a toast element and briefly show a relevant message!?)
 
 const openDbRequest = window.indexedDB.open('savedDrawings');
