@@ -161,9 +161,13 @@ function pointToMarkup(point) {
 function stringifyTransforms(transformData) {
     return Object
         .entries(transformData)
-        .reduce((str, [key, val]) => `${str}${key}(${
+        .reduce(
+            (str, [key, val]) => `${str}${key}(${
             // NOTE: scale and rotate take more than 1 param, of which some may be ''
-            typeof val === 'object'
-                ? val.filter((v) => v !== '')
-                : val})`, '');
+                typeof val === 'object'
+                    ? val.filter((v) => v !== '')
+                    : val
+            })`,
+            ''
+        );
 }

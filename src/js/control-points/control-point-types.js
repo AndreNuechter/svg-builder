@@ -132,20 +132,25 @@ function ControlPointType(CSSClass, changeData, getAffectedPoints) {
 
 function getAffectedVAndHCmds(layer, pointId) {
     const affectedCmds = [];
+    const idOfNextPoint = pointId + 1;
 
-    if (layer.points[pointId + 1]) {
-        const { cmd } = layer.points[pointId + 1];
+    if (layer.points[idOfNextPoint]) {
+        const { cmd } = layer.points[idOfNextPoint];
 
         if (cmd === 'V') {
-            affectedCmds.push(AffectedControlPoint(
-                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                updateCxComponent,
-            ));
+            affectedCmds.push(
+                AffectedControlPoint(
+                    controlPoints[getIdOfControlPoint(layer, idOfNextPoint)],
+                    updateCxComponent,
+                )
+            );
         } else if (cmd === 'H') {
-            affectedCmds.push(AffectedControlPoint(
-                controlPoints[getIdOfControlPoint(layer, pointId + 1)],
-                updateCyComponent,
-            ));
+            affectedCmds.push(
+                AffectedControlPoint(
+                    controlPoints[getIdOfControlPoint(layer, idOfNextPoint)],
+                    updateCyComponent,
+                )
+            );
         }
     }
 

@@ -35,7 +35,7 @@ activeLayerConfigForm.addEventListener('input', configActiveLayer);
 
 export { setActiveLayerConfig };
 
-// TODO is called twice on start...why?
+// TODO is called twice on start...why? once when setting the current layer and again when canvas is initialized...can we change that?
 function setActiveLayerConfig(activeLayer = session.activeLayer) {
     if (!activeLayer) return;
 

@@ -5,7 +5,6 @@ import {
     configElement,
     getSVGCoords,
     last,
-    lastId,
 } from '../helper-functions.js';
 import { drawLayer } from '../layers/layer-handling.js';
 import drawing, { save } from '../drawing/drawing.js';
@@ -57,8 +56,15 @@ function startDragging(layer, pointId, controlPointType) {
     };
 }
 
-function mkSlope(x1, y1, x2, y2, startPoint, endPoint) {
-    const slope = configClone(lineTemplate)({ x1, y1, x2, y2 });
+function mkSlope(startPoint, endPoint) {
+    const slope = configClone(lineTemplate)(
+        {
+            x1: startPoint.getAttribute('cx'),
+            y1: startPoint.getAttribute('cy'),
+            x2: endPoint.getAttribute('cx'),
+            y2: endPoint.getAttribute('cy')
+        }
+    );
     const startPointObserver = new MutationObserver(() => {
         slope.setAttribute('x1', startPoint.getAttribute('cx'));
         slope.setAttribute('y1', startPoint.getAttribute('cy'));
@@ -149,7 +155,6 @@ function mkControlPoint(layer, layerId, point, pointId) {
             const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
 
             if (['Q', 'C', 'S'].includes(point.cmd)) {
-                const previousPoint = layer.points[pointId - 1];
                 const firstCP = ControlPoint(
                     point.x1,
                     point.y1,
@@ -161,14 +166,7 @@ function mkControlPoint(layer, layerId, point, pointId) {
                 addedControlPointsAndSlopes.push(firstCP);
 
                 if (point.cmd !== 'S') {
-                    addedControlPointsAndSlopes.push(mkSlope(
-                        point.x1,
-                        point.y1,
-                        previousPoint.x,
-                        previousPoint.y,
-                        firstCP,
-                        last(controlPoints),
-                    ));
+                    addedControlPointsAndSlopes.push(mkSlope(firstCP, last(controlPoints)));
                 }
 
                 if (point.cmd === 'C') {
@@ -179,14 +177,12 @@ function mkControlPoint(layer, layerId, point, pointId) {
                         secondControlPoint,
                         layerId,
                     );
-                    addedControlPointsAndSlopes.push(
-                        secondCP,
-                        mkSlope(point.x, point.y, point.x2, point.y2, mainCP, secondCP)
-                    );
+
+                    addedControlPointsAndSlopes.push(secondCP, mkSlope(mainCP, secondCP));
                 }
 
                 if (['Q', 'S'].includes(point.cmd)) {
-                    addedControlPointsAndSlopes.push(mkSlope(point.x, point.y, point.x1, point.y1, mainCP, firstCP));
+                    addedControlPointsAndSlopes.push(mkSlope(mainCP, firstCP));
                 }
             }
 
@@ -223,19 +219,19 @@ function mkControlPoint(layer, layerId, point, pointId) {
  * @param { string } cmd The command of the removed point.
  */
 function remLastControlPoint(cmd) {
-    controlPoints[lastId(controlPoints)].remove();
+    last(controlPoints).remove();
 
     if (['Q', 'C', 'S'].includes(cmd)) {
         const slopeCount = cmd === 'S' ? 1 : 2;
 
         for (let i = 0; i < slopeCount; i += 1) {
-            slopes[lastId(slopes)].remove();
+            last(slopes).remove();
         }
 
-        controlPoints[lastId(controlPoints)].remove();
+        last(controlPoints).remove();
 
         if (cmd === 'C') {
-            controlPoints[lastId(controlPoints)].remove();
+            last(controlPoints).remove();
         }
     }
 }

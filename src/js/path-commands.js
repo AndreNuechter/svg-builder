@@ -27,7 +27,6 @@ const pathCmds = {
 };
 
 export {
-    arc,
     cube,
     pathCmds,
     quad,
@@ -59,29 +58,15 @@ function calculateOffset(distA, distB, prior, current) {
     if (distA < distB) {
         return prior > current ? -offset : offset;
     }
-    return 0;
-}
 
-/**
- * Returns basic defaults for a point of the arc-cmd.
- * @param { Object } config The current configuration of the arc-cmd-config fieldset.
- * @returns { Object }
- */
-function arc(config) {
-    return {
-        xR: config.xR,
-        yR: config.yR,
-        xRot: config.xRot,
-        large: +config.large,
-        sweep: +config.sweep,
-    };
+    return 0;
 }
 
 /**
  * Returns a set of somewhat ok default coords for the cps of a cube cmd.
  * @param { number } xEnd The x-coordinate of the cmd.
  * @param { number } yEnd The y-coordinate of the cmd.
- * @param { Object } { x: xPrev, y: yPrev } X- and y-ccordinates of the previous point.
+ * @param { Object } { x: xPrev, y: yPrev } X- and y-coordinates of the previous point.
  * @returns { Object }
  */
 function cube(xEnd, yEnd, { x: xPrev, y: yPrev }) {
@@ -104,7 +89,7 @@ function cube(xEnd, yEnd, { x: xPrev, y: yPrev }) {
  * Returns a set of somewhat ok default coords for the cps of a quad cmd.
  * @param { number } xEnd The x-coordinate of the cmd.
  * @param { number } yEnd The y-coordinate of the cmd.
- * @param { Object } { x: xPrev, y: yPrev } X- and y-ccordinates of the previous point.
+ * @param { Object } { x: xPrev, y: yPrev } X- and y-coordinates of the previous point.
  * @returns { Object }
  */
 function quad(xEnd, yEnd, { x: xPrev, y: yPrev }) {

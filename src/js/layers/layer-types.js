@@ -7,7 +7,7 @@ import {
     lastId,
     pointToMarkup,
 } from '../helper-functions.js';
-import { arc, cube, quad } from '../path-commands.js';
+import { cube, quad } from '../path-commands.js';
 
 const shaperFuncs = {
     rect: (x, y) => (x1, y1) => ({
@@ -63,31 +63,54 @@ const layerTypes = {
     path: LayerType(
         (session, points, x, y, mkControlPoint, remLastControlPoint) => {
             const lastPoint = last(points);
+            let lastPointData;
 
             // prevent using the same point multiple times in a row
-            if (lastPoint && x === lastPoint.x && y === lastPoint.y) return;
+            if (lastPoint?.x === x && lastPoint?.y === y) return;
 
             // ensure first command of a path is a moveTo
             if (!points.length) session.cmd = 'M';
 
             // prevent consecutive M, V or H commands
-            if (lastPoint && lastPoint.cmd === session.cmd && ['M', 'V', 'H'].includes(session.cmd)) {
+            // TODO can we do this wo the passed in function?
+            if (lastPoint?.cmd === session.cmd && ['M', 'V', 'H'].includes(session.cmd)) {
                 remLastControlPoint(points.pop().cmd);
             }
 
+            // NOTE: because V and H dont have both x and y components, one may be undefined causing invalid values
+            // which is why we then look at the point before that
+            if (['Q', 'S', 'C'].includes(session.cmd)) {
+                lastPointData = ((cmd) => {
+                    switch (cmd) {
+                        case 'V':
+                            return { y: lastPoint.y, x: points[lastId(points) - 1].x };
+                        case 'H':
+                            return { x: lastPoint.x, y: points[lastId(points) - 1].y };
+                        default:
+                            return lastPoint;
+                    }
+                })(lastPoint.cmd);
+            }
+
             const newPoint = Object.assign(
-                { cmd: session.cmd, x, y },
+                { cmd: session.cmd },
                 ((cmd) => {
                     switch (cmd) {
+                        case 'M':
+                        case 'L':
+                        case 'T':
+                            return { x, y };
+                        case 'V':
+                            return { y };
+                        case 'H':
+                            return { x };
                         case 'Q':
                         case 'S':
-                            return quad(x, y, points[points.length - 2]);
+                            return { x, y, ...quad(x, y, lastPointData) };
                         case 'C':
-                            return cube(x, y, points[points.length - 2]);
+                            return { x, y, ...cube(x, y, lastPointData) };
                         case 'A':
-                            return arc(defaults.arcCmdConfig);
-                        default:
-                            return {};
+                            return { x, y, ...defaults.arcCmdConfig };
                     }
                 })(session.cmd)
             );
@@ -96,7 +119,7 @@ const layerTypes = {
             mkControlPoint(session.activeLayer, session.layerId, newPoint, lastId(points));
         },
         ({ points, closePath }) => ({
-            d: `${points.map(pointToMarkup).join('')} ${closePath ? 'Z' : ''}`,
+            d: `${points.map(pointToMarkup).join('')}${closePath ? ' Z' : ''}`,
         }),
     ),
 };
