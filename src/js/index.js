@@ -1,8 +1,7 @@
 import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
-import './project-management.js';
-import './initialize-canvas.js';
+import './drawing/project-management.js';
 import {
     cmdSelect,
     downloadBtn,
@@ -18,20 +17,16 @@ import {
     redoBtn,
 } from './dom-shared-elements.js';
 import {
-    addLayer,
     addPoint,
     centerRotation,
     changeBackgroundGridSize,
-    clearDrawing,
     configOutput,
     copyDataURIToClipboard,
     deleteLastPoint,
-    deleteLayer,
     finalizeShape,
     copyMarkupToClipboard,
     pressKey,
     redo,
-    reorderLayers,
     resetTransforms,
     setCmd,
     setFillOrStroke,
@@ -41,17 +36,23 @@ import {
     setTransformTarget,
     togglePathClosing,
     triggerDownload,
-    undo,
-    duplicateLayer,
+    arrowKeyup,
 } from './user-actions.js';
 import { centerViewBox, switchToOutputTab } from './drawing/drawing-output-config.js';
-import { moves } from './constants.js';
-import { save } from './drawing/drawing.js';
+import { clearDrawing, save, undo } from './drawing/drawing.js';
 import { initializeSession } from './session.js';
-
-// TODO check again if we can get rid of .on eventHandlers
+import {
+    addLayer,
+    changeLayerLabel,
+    deleteLayer,
+    dragLayerSelector,
+    duplicateLayer,
+    reorderLayers
+} from './layers/layer-management.js';
+import initializeCanvas from './drawing/initialize-canvas.js';
 
 cmdSelect.addEventListener('change', setCmd);
+document.addEventListener('initializeCanvas', initializeCanvas);
 document.getElementById('reset-transforms').addEventListener('click', resetTransforms);
 document.getElementById('get-markup').addEventListener('click', copyMarkupToClipboard);
 document.getElementById('get-data-uri').addEventListener('click', copyDataURIToClipboard);
@@ -65,7 +66,10 @@ document.getElementById('duplicate-layer').addEventListener('click', duplicateLa
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
 downloadBtn.addEventListener('click', triggerDownload);
 fillAndStrokeForm.addEventListener('input', setFillOrStroke);
+fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));
+layerSelect.addEventListener('input', changeLayerLabel);
 layerSelect.addEventListener('change', setLayer);
+layerSelect.addEventListener('dragstart', dragLayerSelector);
 layerSelect.addEventListener('drop', reorderLayers);
 modesForm.addEventListener('change', setMode);
 outputConfig.addEventListener('input', configOutput);
@@ -76,14 +80,10 @@ svg.addEventListener('pointerdown', addPoint);
 svg.addEventListener('pointerleave', finalizeShape);
 svg.addEventListener('pointerup', finalizeShape);
 transformsForm.addEventListener('input', setTransform);
+transformsForm.addEventListener('change', () => save('setTransform'));
 transformTargetSwitch.addEventListener('change', setTransformTarget);
 undoBtn.addEventListener('click', undo);
 window.addEventListener('keydown', pressKey);
-// NOTE: save when done translating/inputting transforms
-window.addEventListener('keyup', ({ key }) => {
-    if (moves[key]) {
-        save('keyup');
-    }
-});
-transformsForm.addEventListener('change', () => save('setTransform'));
+window.addEventListener('keyup', arrowKeyup);
 window.addEventListener('DOMContentLoaded', initializeSession, { once: true });
+window.addEventListener('DOMContentLoaded', initializeCanvas, { once: true });

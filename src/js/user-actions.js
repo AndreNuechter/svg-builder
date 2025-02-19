@@ -1,6 +1,5 @@
 import {
     drawLayer,
-    Layer,
     styleLayer,
 } from './layers/layer-handling.js';
 import {
@@ -14,7 +13,6 @@ import {
     applyTransforms,
     configClone,
     getRelevantConfiguredStyles,
-    getRelevantDefaultStyles,
     getSVGCoords,
     last,
     lastId,
@@ -28,10 +26,6 @@ import {
 } from './dom-created-elements.js';
 import {
     controlPointContainer,
-    drawingContent,
-    fillAndStrokeForm,
-    layers,
-    layerSelectors,
     svg,
     transformTargetSwitch,
 } from './dom-shared-elements.js';
@@ -43,7 +37,7 @@ import drawing, {
 } from './drawing/drawing.js';
 import session from './session.js';
 import layerTypes from './layers/layer-types.js';
-import { addLayerSelector, deleteLayerSelectors, reorderLayerSelectors } from './layers/layer-management.js';
+import { addLayer, duplicateLayer } from './layers/layer-management.js';
 import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
 
@@ -54,23 +48,20 @@ const ctrlActions = {
     Z: undo,
     Y: redo,
 };
+let dummyImageIsSetUp = false;
 
 export {
-    addLayer,
     addPoint,
+    arrowKeyup,
     centerRotation,
     changeBackgroundGridSize,
-    clearDrawing,
     configOutput,
     copyDataURIToClipboard,
     copyMarkupToClipboard,
     deleteLastPoint,
-    deleteLayer,
-    duplicateLayer,
     finalizeShape,
     pressKey,
     redo,
-    reorderLayers,
     resetTransforms,
     setCenterOfRotation,
     setCmd,
@@ -81,25 +72,7 @@ export {
     setTransformTarget,
     togglePathClosing,
     triggerDownload,
-    undo,
 };
-
-// TODO mv to drawing? layer-handling?
-function addLayer() {
-    drawing.layers.push(Layer(
-        session.mode,
-        (!session.activeLayer
-            ? getRelevantConfiguredStyles
-            : getRelevantDefaultStyles)(session.mode),
-        // TODO see above for styles. Should we take the configured transform values on a blank canvas?
-        structuredClone(defaults.transforms),
-    ));
-    session.layerId = lastId(drawing.layers);
-    drawingContent.append(configClone(svgTemplates[session.mode])({
-        'data-layer-id': session.layerId,
-    }));
-    addLayerSelector(session.layerId);
-}
 
 // TODO mv to drawing?
 function addPoint(event) {
@@ -125,6 +98,12 @@ function addPoint(event) {
 
     styleLayer(session.layerId);
     drawLayer(session.layerId);
+}
+
+function arrowKeyup({ key }) {
+    if (key in moves) {
+        save('keyup');
+    }
 }
 
 function centerRotation() {
@@ -153,18 +132,6 @@ function changeBackgroundGridSize({ deltaY }) {
     document.documentElement.style.setProperty(
         '--bg-grid-size', `${currentValue + backgroundGridStepsize * scalingDirection}px`,
     );
-}
-
-// TODO mv to drawing
-function clearDrawing() {
-    Object.assign(drawing, {
-        name: '',
-        layers: [],
-        outputConfig: structuredClone(defaults.outputConfig),
-        transforms: structuredClone(defaults.transforms),
-    });
-    save('clear');
-    document.dispatchEvent(new Event('initializeCanvas'));
 }
 
 // TODO mv to formhandling
@@ -205,39 +172,12 @@ function deleteLastPoint() {
     }
 }
 
-// TODO mv to drawing?
-function deleteLayer() {
-    if (!layers.length) return;
-    drawing.layers.splice(session.layerId, 1);
-    save('deleteLayer');
-    session.activeSVGElement.remove();
-    // NOTE: `remControlPoints` might be called more than once,
-    // as `deleteLayerSelectors` might change the layerId
-    remControlPoints();
-    deleteLayerSelectors();
-    // NOTE: might be called again if the layerId is changed by this
-    setActiveLayerConfig();
-    // NOTE: this needs to happen now because deleting the last layer,
-    // before `deleteLayerSelectors` had a chance to correct the layerId,
-    // would cause an invalid lookup
-    session.mode = session.activeLayer.mode;
-}
-
 function download(url) {
     Object.assign(downloadLink, {
         download: `My_SVG.${drawing.outputConfig['file-format']}`,
         href: url,
     });
     downloadLink.click();
-}
-
-// TODO mv to drawing?
-function duplicateLayer() {
-    drawing.layers.splice(session.layerId, 0, structuredClone(session.activeLayer));
-    session.activeSVGElement.after(session.activeSVGElement.cloneNode(true));
-    session.layerId += 1;
-    addLayerSelector(session.layerId);
-    save('ctrl+c');
 }
 
 function finalizeShape(event) {
@@ -275,9 +215,9 @@ function finalizeShape(event) {
 }
 
 function pressKey(event) {
-    // TODO find another way to prevent this when not in the drawing tab
     const { key } = event;
 
+    // prevent interference w opening dev tools
     if (key === 'F12') return;
 
     // exit label editing by pressing enter
@@ -286,7 +226,7 @@ function pressKey(event) {
     // prevent interference w eg custom labeling
     if (document.activeElement !== document.body) return;
 
-    if (event.ctrlKey && ctrlActions[key.toUpperCase()]) {
+    if (key.toUpperCase() in ctrlActions && event.ctrlKey) {
         ctrlActions[key.toUpperCase()]();
     } else if (key in moves) {
         if (!session.activeLayer && !event.ctrlKey) return;
@@ -297,7 +237,7 @@ function pressKey(event) {
             : session.activeLayer;
         const { cb, prop } = moves[key];
 
-        transformTarget[prop] = cb(+transformTarget[prop]);
+        transformTarget[prop] = cb(Number(transformTarget[prop]));
         applyTransforms(drawing, session);
     } else if (key === 'Backspace') {
         deleteLastPoint();
@@ -305,44 +245,6 @@ function pressKey(event) {
         session.cmd = key.toUpperCase();
     }
 
-    event.preventDefault();
-}
-
-// TODO mv to layer-handling?
-function reorderLayers(event) {
-    const droppedOnSelector = event.target.closest('label');
-    const droppedOnId = +droppedOnSelector.dataset.layerId;
-    const droppedOnLayer = layers[droppedOnId];
-    const draggedId = +event.dataTransfer.getData('text');
-    const draggedLayer = layers[draggedId];
-
-    // re-order the layer data
-    const [draggedLayerData] = drawing.layers.splice(draggedId, 1);
-    drawing.layers.splice(droppedOnId, 0, draggedLayerData);
-    save('reorderLayer');
-
-    // insert dragged before or after the one dropped on depending on its origin
-    if (draggedId < droppedOnId) {
-        droppedOnLayer.after(draggedLayer);
-    } else {
-        drawingContent.insertBefore(draggedLayer, droppedOnLayer);
-    }
-
-    // we want the active layer to remain active,
-    // so we may have to add or subtract 1 to/from session.layerId or
-    // set the id to the one dropped on
-    if (draggedId !== session.layerId) {
-        if (draggedId > session.layerId && droppedOnId <= session.layerId) {
-            session.layerId += 1;
-        } else if (draggedId < session.layerId && droppedOnId > session.layerId) {
-            session.layerId -= 1;
-        }
-    } else {
-        session.layerId = droppedOnId;
-    }
-
-    reorderLayerSelectors(Math.min(draggedId, droppedOnId), Math.max(draggedId, droppedOnId) + 1);
-    layerSelectors[session.layerId].checked = true;
     event.preventDefault();
 }
 
@@ -394,11 +296,11 @@ function setFillOrStroke({ target: { name, value } }) {
 
     styleLayer(session.layerId);
 }
-fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));
 
-// TODO mv to formhandling
+// TODO mv to formhandling or layerhandling
 function setLayer({ target: { value } }) {
-    const layerId = +value;
+    const layerId = Number(value);
+
     session.mode = drawing.layers[layerId].mode;
     session.layerId = layerId;
 }
@@ -483,6 +385,11 @@ function triggerDownload() {
         download(svgDataURI);
     } else {
         dummyImg.src = svgDataURI;
+
+        if (dummyImageIsSetUp) return;
+
+        dummyImageIsSetUp = true;
+
         dummyImg.addEventListener('load', () => {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             Object.assign(ctx.canvas, {

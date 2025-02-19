@@ -1,5 +1,5 @@
 import { rotateInputs, scaleInputs } from './dom-shared-elements.js';
-import { pathCmds } from './path-commands.js';
+import { pathCmds } from './layers/path-commands.js';
 
 const cmdTags = new Set(Object.keys(pathCmds));
 const complexTransforms = Object.freeze({
@@ -21,7 +21,7 @@ const defaults = Object.freeze({
         'file-format': 'svg',
     }),
     transforms: Object.freeze({
-        translate: Object.freeze([0, 0]),
+        translate: Object.freeze(['0', '0']),
         scale: Object.freeze(['1', '1']),
         rotate: Object.freeze(['0', '0', '0']),
         skewX: '0',

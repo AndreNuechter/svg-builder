@@ -2,7 +2,7 @@ import { configElement } from './helper-functions.js';
 
 const ns = 'http://www.w3.org/2000/svg';
 export const layerSelectorTemplate = (() => {
-    const label = configElement(document.createElement('label'), { draggable: true });
+    const label = configElement(document.createElement('label'), { draggable: true, class: 'layer-selector' });
     const labelTextContainer = configElement(document.createElement('span'), {
         contenteditable: true,
     });

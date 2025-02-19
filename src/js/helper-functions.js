@@ -1,4 +1,4 @@
-import { pathCmds } from './path-commands.js';
+import { pathCmds } from './layers/path-commands.js';
 import {
     controlPointContainer,
     drawingContent,
@@ -163,9 +163,9 @@ function stringifyTransforms(transformData) {
         .entries(transformData)
         .reduce(
             (str, [key, val]) => `${str}${key}(${
-            // NOTE: scale and rotate take more than 1 param, of which some may be ''
+                // NOTE: scale and rotate take more than 1 param, of which some may be ''
                 typeof val === 'object'
-                    ? val.filter((v) => v !== '')
+                    ? val.filter(Boolean)
                     : val
             })`,
             ''

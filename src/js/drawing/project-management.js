@@ -5,10 +5,9 @@ import {
     drawingSelection,
     layerSelectors,
     deleteDrawingBtn
-} from './dom-shared-elements';
-import drawing, { commitDrawingToStorage, isDrawingUntouched } from './drawing/drawing';
-import session from './session';
-import { clearDrawing } from './user-actions';
+} from '../dom-shared-elements';
+import drawing, { clearDrawing, commitDrawingToStorage, isDrawingUntouched } from './drawing';
+import session from '../session';
 
 // TODO improve error handling (add a toast element and briefly show a relevant message!?)
 

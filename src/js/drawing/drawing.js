@@ -17,12 +17,24 @@ const { createBackup, redo, undo } = timeTravel(drawing, commitDrawingToStorage)
 
 export default drawing;
 export {
+    clearDrawing,
     commitDrawingToStorage,
     isDrawingUntouched,
     redo,
     save,
     undo,
 };
+
+function clearDrawing() {
+    Object.assign(drawing, {
+        name: '',
+        layers: [],
+        outputConfig: structuredClone(defaults.outputConfig),
+        transforms: structuredClone(defaults.transforms),
+    });
+    save('clear');
+    document.dispatchEvent(new Event('initializeCanvas'));
+}
 
 function commitDrawingToStorage() {
     window.localStorage.setItem('drawing', JSON.stringify(drawing));

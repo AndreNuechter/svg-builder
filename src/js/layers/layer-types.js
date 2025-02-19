@@ -7,7 +7,7 @@ import {
     lastId,
     pointToMarkup,
 } from '../helper-functions.js';
-import { cube, quad } from '../path-commands.js';
+import { cube, quad } from './path-commands.js';
 
 const shaperFuncs = {
     rect: (x, y) => (x1, y1) => ({
