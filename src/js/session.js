@@ -25,7 +25,7 @@ let drawingShape = false;
 let layerId;
 let mode;
 let transformLayerNotDrawing = false;
-const modes = Object.keys(layerTypes);
+const modes = new Set(Object.keys(layerTypes));
 const session = {
     get activeLayer() {
         return drawing.layers[session.layerId];
@@ -37,25 +37,24 @@ const session = {
         return cmd;
     },
     set cmd(val) {
-        const value = cmdTags.includes(val) ? val : cmdTags[0];
-        cmd = value;
-        cmdSelect.value = value;
+        val = cmdTags.has(val) ? val : 'M';
+        cmd = val;
+        cmdSelect.value = val;
     },
     get drawingShape() {
         return drawingShape;
     },
     set drawingShape(val) {
-        if (isBoolean(val)) {
-            drawingShape = val;
-        }
+        if (!isBoolean(val)) return;
+        drawingShape = val;
     },
     get layerId() {
         return layerId;
     },
     set layerId(val) {
         if (
-            (val === undefined && drawing.layers.length === 0)
-            || (!Number.isNaN(Number(val)) && val >= 0 && val < drawing.layers.length)
+            (val === undefined && drawing.layers.length === 0) ||
+            (!Number.isNaN(Number(val)) && val >= 0 && val < drawing.layers.length)
         ) {
             layerId = Number(val);
 
@@ -78,20 +77,19 @@ const session = {
         return mode;
     },
     set mode(val) {
-        if (modes.includes(val)) {
-            mode = val;
-            modesForm.modes.value = val;
-            document.body.dataset.mode = val;
-        }
+        if (!modes.has(val)) return;
+
+        mode = val;
+        modesForm.modes.value = val;
+        document.body.dataset.mode = val;
     },
     shapeStart: {},
     get transformLayerNotDrawing() {
         return transformLayerNotDrawing;
     },
     set transformLayerNotDrawing(val) {
-        if (isBoolean(val)) {
-            transformLayerNotDrawing = val;
-        }
+        if (!isBoolean(val)) return;
+        transformLayerNotDrawing = val;
     },
     get transformTarget() {
         return (session.transformLayerNotDrawing
@@ -100,12 +98,13 @@ const session = {
     },
 };
 
-window.addEventListener('DOMContentLoaded', () => {
+export default session;
+export { initializeSession };
+
+function initializeSession() {
     Object.assign(session, {
         cmd: 'M',
         layerId: drawing.layers.length ? 0 : undefined,
         mode: drawing.layers[0]?.mode || defaults.mode,
     });
-}, { once: true });
-
-export default session;
+}

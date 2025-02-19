@@ -4,7 +4,6 @@ import { svgTemplates } from './dom-created-elements';
 import {
     drawingContent,
     drawingTitle,
-    layers,
     pathClosingToggle,
     transformTargetSwitch
 } from './dom-shared-elements';
@@ -25,37 +24,40 @@ document.addEventListener('initializeCanvas', initializeCanvas);
 
 /** Completely set up the contents of the drawing tab. */
 function initializeCanvas() {
-    // clear canvas
+    // clear and re-populate the svg canvas
+    drawingContent.replaceChildren(
+        ...drawing.layers.map((layer, i) => {
+            const shape = svgTemplates[layer.mode];
+            const geometryProps = layer.mode === 'path'
+                ? {
+                    d: `${layer.points.map(pointToMarkup).join(' ')}${layer.closePath
+                        ? 'Z'
+                        : ''}`,
+                }
+                : layer.points[0] || {};
+
+            return configClone(shape)({
+                'data-layer-id': i,
+                ...layer.style,
+                ...geometryProps,
+                transform: stringifyTransforms(layer.transforms),
+            });
+        })
+    );
+    // rm and create cps
     remControlPoints();
-    [...layers].forEach((layer) => layer.remove());
-    deleteLayerSelectors();
-    // populate canvas
     createControlPoints(session);
-    drawingContent.append(...drawing.layers.map((layer, i) => {
-        const shape = svgTemplates[layer.mode];
-        const geometryProps = (layer.mode === 'path')
-            ? {
-                d: `${layer.points.map(pointToMarkup).join(' ')}${layer.closePath
-                    ? 'Z'
-                    : ''}`,
-            }
-            : layer.points[0] || {};
-        return configClone(shape)({
-            'data-layer-id': i,
-            ...layer.style,
-            ...geometryProps,
-            transform: stringifyTransforms(layer.transforms),
-        });
-    }));
-    // adjust ui-elements
+    // rm and create layerselectors
+    deleteLayerSelectors();
     drawing.layers.forEach((_, index) => addLayerSelector(index));
+    // config the rest of the ui
     pathClosingToggle.checked = session.activeLayer && session.activeLayer.closePath;
+    drawingTitle.textContent = drawing.name || 'Unnamed drawing';
+    transformTargetSwitch.checked = session.transformLayerNotDrawing;
     setCmdConfig(session);
     applyTransforms(drawing, session);
     setActiveLayerConfig();
     setTransformsConfig(session.transformTarget);
-    transformTargetSwitch.checked = session.transformLayerNotDrawing;
     setFillAndStrokeConfig(session.activeLayer?.style || defaults.style);
     setOutputConfig(drawing);
-    drawingTitle.textContent = drawing.name || 'Unnamed drawing';
 }

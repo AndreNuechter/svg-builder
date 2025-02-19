@@ -47,6 +47,7 @@ import {
 import { centerViewBox, switchToOutputTab } from './drawing/drawing-output-config.js';
 import { moves } from './constants.js';
 import { save } from './drawing/drawing.js';
+import { initializeSession } from './session.js';
 
 // TODO check again if we can get rid of .on eventHandlers
 
@@ -85,3 +86,4 @@ window.addEventListener('keyup', ({ key }) => {
     }
 });
 transformsForm.addEventListener('change', () => save('setTransform'));
+window.addEventListener('DOMContentLoaded', initializeSession, { once: true });

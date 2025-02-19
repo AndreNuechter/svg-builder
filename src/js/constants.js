@@ -1,7 +1,7 @@
 import { rotateInputs, scaleInputs } from './dom-shared-elements.js';
 import { pathCmds } from './path-commands.js';
 
-const cmdTags = Object.freeze(Object.keys(pathCmds));
+const cmdTags = new Set(Object.keys(pathCmds));
 const complexTransforms = Object.freeze({
     scale: scaleInputs,
     rotate: rotateInputs,

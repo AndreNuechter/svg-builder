@@ -1,4 +1,4 @@
-import { createControlPoints } from '../control-points/control-point-handling';
+import { createControlPoints, remControlPoints } from '../control-points/control-point-handling';
 import { layerSelectorTemplate } from '../dom-created-elements';
 import { layers, layerSelect, layerSelectors, vacancyMsgStyle } from '../dom-shared-elements';
 import drawing, { save } from '../drawing/drawing';
@@ -44,7 +44,7 @@ function deleteLayerSelectors() {
 
     vacancyMsgStyle.display = layersCount ? 'none' : 'initial';
 
-    while (layerSelect.childElementCount !== layersCount) {
+    while (layerSelect.childElementCount > layersCount) {
         layerSelect.lastChild.remove();
     }
 
@@ -62,6 +62,7 @@ function deleteLayerSelectors() {
         applyTransforms(drawing, session);
         reorderLayerSelectors(session.layerId);
         setFillAndStrokeConfig(session.activeLayer.style);
+        remControlPoints();
         createControlPoints(session);
         session.mode = session.activeLayer.mode;
     }

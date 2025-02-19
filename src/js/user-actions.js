@@ -301,7 +301,7 @@ function pressKey(event) {
         applyTransforms(drawing, session);
     } else if (key === 'Backspace') {
         deleteLastPoint();
-    } else if (cmdTags.includes(key.toUpperCase())) {
+    } else if (cmdTags.has(key.toUpperCase())) {
         session.cmd = key.toUpperCase();
     }
 

@@ -10,7 +10,6 @@ import drawing, { commitDrawingToStorage, isDrawingUntouched } from './drawing/d
 import session from './session';
 import { clearDrawing } from './user-actions';
 
-// FIXME mode selection doesnt keep up when switching between projects (eg loading another mode when in path mode)
 // TODO improve error handling (add a toast element and briefly show a relevant message!?)
 
 const openDbRequest = window.indexedDB.open('savedDrawings');
@@ -187,17 +186,24 @@ function loadAndApplyDrawing(name) {
     getRequest.addEventListener('success', () => {
         const { layers: layersData, transforms, name } = getRequest.result;
 
+        // update the data
         Object.assign(drawing, {
             name: userIntent === 'start-new-drawing' ? '' : name,
             layers: structuredClone(layersData),
             transforms: structuredClone(transforms)
         });
+        Object.assign(session, {
+            layerId: 0,
+            mode: layersData[0].mode
+        });
+        // store the loaded drawing in localStorage
         commitDrawingToStorage();
-        document.dispatchEvent(new Event('initializeCanvas'));
-        // select the 1st layer of the loaded drawing
-        session.layerId = 0;
-        layerSelectors[session.layerId].checked = true;
+        // update btn state
         toggleButtons();
+        // trigger update of the workspace
+        document.dispatchEvent(new Event('initializeCanvas'));
+        // select the active layer
+        layerSelectors[session.layerId].checked = true;
     });
     getRequest.addEventListener('error', console.log);
 }
