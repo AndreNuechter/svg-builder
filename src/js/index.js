@@ -22,7 +22,6 @@ import {
     changeBackgroundGridSize,
     configOutput,
     copyDataURIToClipboard,
-    deleteLastPoint,
     finalizeShape,
     copyMarkupToClipboard,
     pressKey,
@@ -61,7 +60,6 @@ document.getElementById('center-vb').addEventListener('click', centerViewBox);
 document.getElementById('add-layer').addEventListener('click', addLayer);
 document.getElementById('del-layer').addEventListener('click', deleteLayer);
 document.getElementById('clear-all').addEventListener('click', clearDrawing);
-document.getElementById('del-last-point').addEventListener('click', deleteLastPoint);
 document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
 downloadBtn.addEventListener('click', triggerDownload);

@@ -29,7 +29,7 @@ import {
     svg,
     transformTargetSwitch,
 } from './dom-shared-elements.js';
-import { mkControlPoint, remControlPoints, remLastControlPoint } from './control-points/control-point-handling.js';
+import { mkControlPoint } from './control-points/control-point-handling.js';
 import drawing, {
     redo,
     save,
@@ -41,7 +41,6 @@ import { addLayer, duplicateLayer } from './layers/layer-management.js';
 import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
 
-const steadyAttrs = ['data-layer-id', 'transform'];
 const ctx = canvas.getContext('2d');
 const ctrlActions = {
     C: duplicateLayer,
@@ -58,7 +57,6 @@ export {
     configOutput,
     copyDataURIToClipboard,
     copyMarkupToClipboard,
-    deleteLastPoint,
     finalizeShape,
     pressKey,
     redo,
@@ -87,8 +85,7 @@ function addPoint(event) {
             points,
             x,
             y,
-            mkControlPoint,
-            remLastControlPoint
+            mkControlPoint
         );
 
     // start dragging newly created path-point
@@ -147,29 +144,6 @@ function copyDataURIToClipboard() {
 
 function copyMarkupToClipboard() {
     writeToClipboard(generateMarkUp());
-}
-
-// TODO mv to drawing?
-// TODO is there still a need for this?...it works even after refreshing...
-function deleteLastPoint() {
-    if (!session.activeLayer?.points.length) return;
-
-    const deletedPoint = session.activeLayer.points.pop();
-
-    save('deleteLastPoint');
-
-    // NOTE: if the latest point has no cmd-prop it's either a rect or a circle
-    if (deletedPoint.cmd) {
-        remLastControlPoint(deletedPoint.cmd);
-        drawLayer(session.layerId);
-    } else {
-        const layer = session.activeSVGElement;
-
-        remControlPoints();
-        layer.getAttributeNames()
-            .filter((n) => !steadyAttrs.includes(n))
-            .forEach((n) => layer.removeAttribute(n));
-    }
 }
 
 function download(url) {
@@ -239,8 +213,6 @@ function pressKey(event) {
 
         transformTarget[prop] = cb(Number(transformTarget[prop]));
         applyTransforms(drawing, session);
-    } else if (key === 'Backspace') {
-        deleteLastPoint();
     } else if (cmdTags.has(key.toUpperCase())) {
         session.cmd = key.toUpperCase();
     }

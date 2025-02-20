@@ -1,4 +1,5 @@
 import { defaults } from '../constants.js';
+import { remLastControlPoint } from '../control-points/control-point-handling.js';
 import { svg } from '../dom-shared-elements.js';
 import {
     configElement,
@@ -61,7 +62,7 @@ const layerTypes = {
         }),
     ),
     path: LayerType(
-        (session, points, x, y, mkControlPoint, remLastControlPoint) => {
+        (session, points, x, y, mkControlPoint) => {
             const lastPoint = last(points);
             let lastPointData;
 

@@ -4,8 +4,8 @@ import { save } from '../drawing/drawing';
 import session from '../session';
 import { drawLayer } from './layer-handling';
 
+// TODO impl adding a point (between earlier ones)
 // TODO impl moving a point up/down
-// TODO impl adding/rm a point...then rm #del-last-point
 
 const ellipseConfig = document.getElementById('ellipse-config');
 const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
@@ -32,8 +32,42 @@ const pathCmdTmpls = {
 
 activeLayerConfigForm.addEventListener('change', () => save('changed active layer via fieldset'));
 activeLayerConfigForm.addEventListener('input', configActiveLayer);
+activeLayerConfigForm.addEventListener('submit', deletePathPoint);
 
 export { setActiveLayerConfig };
+
+function deletePathPoint({ submitter }) {
+    if (!submitter.classList.contains('path-cmd-config__delete-point-btn')) return;
+
+    const pointId = Number(submitter.parentElement.dataset.pointId);
+    const firstCpAt = Number(submitter.parentElement.dataset.firstCpAt);
+    const cpCount = cpCountPerCmd[session.activeLayer.points[pointId].cmd];
+
+    // splice out point-data
+    session.activeLayer.points.splice(pointId, 1);
+    save('deleted point');
+
+    // rm the related config fieldset
+    submitter.parentElement.remove();
+
+    // update the dataset on the following configs
+    [...pathConfig.children].slice(pointId).forEach((configFieldset, index) => {
+        configFieldset.dataset.pointId = pointId + index;
+        configFieldset.dataset.firstCpAt = Number(configFieldset.dataset.firstCpAt) - cpCount;
+    });
+
+    // rm related cps
+    for (
+        let index = firstCpAt, end = firstCpAt + cpCount;
+        index < end;
+        index += 1
+    ) {
+        controlPoints[firstCpAt].remove();
+    }
+
+    // redraw the path
+    drawLayer(session.layerId);
+}
 
 // TODO is called twice on start...why? once when setting the current layer and again when canvas is initialized...can we change that?
 function setActiveLayerConfig(activeLayer = session.activeLayer) {
