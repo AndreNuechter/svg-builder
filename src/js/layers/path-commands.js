@@ -19,7 +19,7 @@ const pathCmds = {
         yR,
         large,
         sweep,
-    }) => `${xR} ${yR} ${xRot} ${large} ${sweep} ${x} ${y}`,
+    }) => `${xR} ${yR} ${xRot} ${Number(large)} ${Number(sweep)} ${x} ${y}`,
     S: ({ x, x1, y, y1 }) => `${x1} ${y1} ${x} ${y}`,
     T: basicPathCmd,
     M: basicPathCmd,
