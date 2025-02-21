@@ -10,18 +10,23 @@
     }
 }
 
-.path-cmd-config {
+#path-config__misc select {
+    max-width: 144px;
+    margin-bottom: 8px;
+}
+
+.cmd-config {
     position: relative;
 
     // the first point of a path shouldnt be deleted
     &:nth-of-type(1) {
-        .path-cmd-config__delete-point-btn {
+        .cmd-config__delete-point-btn {
             display: none;
         }
     }
 }
 
-.path-cmd-config__delete-point-btn {
+.cmd-config__delete-point-btn {
     background-color: var(--main-bg-color);
     color: var(--main-heading-color);
     position: absolute;

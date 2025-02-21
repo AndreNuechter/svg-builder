@@ -341,13 +341,12 @@ function setTransformTarget({ target: { checked } }) {
     session.transformLayerNotDrawing = checked;
 }
 
-// TODO mv to formhandling
+// TODO mv to formhandling? activeLayerConfig?
 function togglePathClosing({ target }) {
     if (!session.activeLayer) return;
 
     session.activeLayer.closePath = target.checked;
     drawLayer(session.layerId);
-    save('togglePathClosing');
 }
 
 function triggerDownload() {

@@ -4,7 +4,7 @@ import { save } from '../drawing/drawing';
 import session from '../session';
 import { drawLayer } from './layer-handling';
 
-// TODO impl adding a point (between earlier ones)
+// TODO impl adding a point (between earlier ones)...by click between two configs? plus btn on bottom outline?...
 // TODO impl moving a point up/down
 
 const ellipseConfig = document.getElementById('ellipse-config');
@@ -17,7 +17,7 @@ const rectConfigCx = rectConfig.querySelector('[name=x]');
 const rectConfigCy = rectConfig.querySelector('[name=y]');
 const rectConfigWidth = rectConfig.querySelector('[name=width]');
 const rectConfigHeight = rectConfig.querySelector('[name=height]');
-const pathConfig = document.getElementById('path-config');
+const pathCmdConfigsContainer = document.getElementById('path-config__cmds');
 const pathCmdTmpls = {
     L: document.getElementById('l-cmd-config-tmpl').content,
     Q: document.getElementById('q-cmd-config-tmpl').content,
@@ -32,15 +32,15 @@ const pathCmdTmpls = {
 
 activeLayerConfigForm.addEventListener('change', () => save('changed active layer via fieldset'));
 activeLayerConfigForm.addEventListener('input', configActiveLayer);
-activeLayerConfigForm.addEventListener('submit', deletePathPoint);
+activeLayerConfigForm.addEventListener('click', deletePathPoint);
 
 export { setActiveLayerConfig };
 
-function deletePathPoint({ submitter }) {
-    if (!submitter.classList.contains('path-cmd-config__delete-point-btn')) return;
+function deletePathPoint({ target }) {
+    if (!target.classList.contains('cmd-config__delete-point-btn')) return;
 
-    const pointId = Number(submitter.parentElement.dataset.pointId);
-    const firstCpAt = Number(submitter.parentElement.dataset.firstCpAt);
+    const pointId = Number(target.parentElement.dataset.pointId);
+    const firstCpAt = Number(target.parentElement.dataset.firstCpAt);
     const cpCount = cpCountPerCmd[session.activeLayer.points[pointId].cmd];
 
     // splice out point-data
@@ -48,10 +48,10 @@ function deletePathPoint({ submitter }) {
     save('deleted point');
 
     // rm the related config fieldset
-    submitter.parentElement.remove();
+    target.parentElement.remove();
 
     // update the dataset on the following configs
-    [...pathConfig.children].slice(pointId).forEach((configFieldset, index) => {
+    [...pathCmdConfigsContainer.children].slice(pointId).forEach((configFieldset, index) => {
         configFieldset.dataset.pointId = pointId + index;
         configFieldset.dataset.firstCpAt = Number(configFieldset.dataset.firstCpAt) - cpCount;
     });
@@ -65,6 +65,8 @@ function deletePathPoint({ submitter }) {
         controlPoints[firstCpAt].remove();
     }
 
+    // TODO possibly rm the slopes
+
     // redraw the path
     drawLayer(session.layerId);
 }
@@ -77,7 +79,7 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
         let indexOfFirstCP = 0;
         // TODO this could be optimized to not thrash the dom as frequently (update instead of create anew...)
         // add the relevant config for ea cmd in this path
-        pathConfig.replaceChildren(
+        pathCmdConfigsContainer.replaceChildren(
             ...activeLayer.points.map((point, pointId) => {
                 // create the relevant config
                 // NOTE: we use the firstElementChild, to get out the document fragment
@@ -156,9 +158,14 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
 
 function configActiveLayer({ target }) {
     if (session.activeLayer.mode === 'path') {
-        let { pointId, firstCpAt } = target.closest('fieldset').dataset;
+        const cmdConfig = target.closest('.cmd-config');
+
+        if (cmdConfig === null) return;
+
+        let { pointId, firstCpAt } = cmdConfig.dataset;
         pointId = Number(pointId);
         firstCpAt = Number(firstCpAt);
+
         const point = session.activeLayer.points[pointId];
 
         // update the data
