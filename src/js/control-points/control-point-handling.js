@@ -27,9 +27,10 @@ const slopeObserverOptions = { attributes: true, attributeFilter: ['cx', 'cy'] }
 
 export {
     createControlPoints,
-    remLastControlPoint,
+    mkControlPoints,
     remControlPoints,
-    mkControlPoint,
+    remLastControlPoint,
+    updateControlPoints
 };
 
 function stopDragging() {
@@ -130,7 +131,7 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
 function createControlPoints({ activeLayer, layerId }) {
     activeLayer?.points
         .forEach((point, pointId) =>
-            mkControlPoint(
+            mkControlPoints(
                 activeLayer,
                 layerId,
                 point,
@@ -140,13 +141,13 @@ function createControlPoints({ activeLayer, layerId }) {
 }
 
 /**
- * Adds all the controlpoints associated with an addition to a layer.
+ * Adds all the controlpoints associated with a layers point.
  * @param { object } layer The layer the new controlpoint belongs to.
  * @param { number } layerId The index of that layer.
  * @param { object } point The point being added to the layer.
  * @param { number } pointId The index of that point.
  */
-function mkControlPoint(layer, layerId, point, pointId) {
+function mkControlPoints(layer, layerId, point, pointId) {
     const addedControlPointsAndSlopes = [];
 
     // we branch based on the mode, which we tell by duck-typing:
@@ -167,6 +168,7 @@ function mkControlPoint(layer, layerId, point, pointId) {
                 addedControlPointsAndSlopes.push(firstCP);
 
                 if (point.cmd !== 'S') {
+                    // TODO should S have two slopes as well?
                     addedControlPointsAndSlopes.push(mkSlope(firstCP, last(controlPoints)));
                 }
 
@@ -239,4 +241,9 @@ function remLastControlPoint(cmd) {
 
 function remControlPoints() {
     controlPointContainer.replaceChildren();
+}
+
+function updateControlPoints(session) {
+    remControlPoints();
+    createControlPoints(session);
 }

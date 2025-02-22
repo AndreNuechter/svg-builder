@@ -1,5 +1,5 @@
 import { defaults } from '../constants.js';
-import { remLastControlPoint } from '../control-points/control-point-handling.js';
+import { mkControlPoints, remLastControlPoint } from '../control-points/control-point-handling.js';
 import { svg } from '../dom-shared-elements.js';
 import {
     configElement,
@@ -62,7 +62,7 @@ const layerTypes = {
         }),
     ),
     path: LayerType(
-        (session, points, x, y, mkControlPoint) => {
+        (session, points, x, y) => {
             const lastPoint = last(points);
             let lastPointData;
 
@@ -117,7 +117,7 @@ const layerTypes = {
             );
 
             points.push(newPoint);
-            mkControlPoint(session.activeLayer, session.layerId, newPoint, lastId(points));
+            mkControlPoints(session.activeLayer, session.layerId, newPoint, lastId(points));
         },
         ({ points, closePath }) => ({
             d: `${points.map(pointToMarkup).join('')}${closePath ? ' Z' : ''}`,

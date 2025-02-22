@@ -1,9 +1,11 @@
+import { updateControlPoints } from '../control-points/control-point-handling';
 import { cpCountPerCmd } from '../control-points/control-point-types';
 import { activeLayerConfigForm, controlPoints } from '../dom-shared-elements';
 import { save } from '../drawing/drawing';
 import session from '../session';
 import { drawLayer } from './layer-handling';
 
+// FIXME undo/redo doesnt work well with this
 // TODO impl adding a point (between earlier ones)...by click between two configs? plus btn on bottom outline?...
 // TODO impl moving a point up/down
 
@@ -39,12 +41,13 @@ export { setActiveLayerConfig };
 function deletePathPoint({ target }) {
     if (!target.classList.contains('cmd-config__delete-point-btn')) return;
 
+    const points = session.activeLayer.points;
     const pointId = Number(target.parentElement.dataset.pointId);
-    const firstCpAt = Number(target.parentElement.dataset.firstCpAt);
-    const cpCount = cpCountPerCmd[session.activeLayer.points[pointId].cmd];
+    const cmd = points[pointId].cmd;
+    const cpCount = cpCountPerCmd[cmd];
 
     // splice out point-data
-    session.activeLayer.points.splice(pointId, 1);
+    points.splice(pointId, 1);
     save('deleted point');
 
     // rm the related config fieldset
@@ -56,16 +59,8 @@ function deletePathPoint({ target }) {
         configFieldset.dataset.firstCpAt = Number(configFieldset.dataset.firstCpAt) - cpCount;
     });
 
-    // rm related cps
-    for (
-        let index = firstCpAt, end = firstCpAt + cpCount;
-        index < end;
-        index += 1
-    ) {
-        controlPoints[firstCpAt].remove();
-    }
-
-    // TODO possibly rm the slopes
+    // redraw cps and slopes
+    updateControlPoints(session);
 
     // redraw the path
     drawLayer(session.layerId);
@@ -176,7 +171,7 @@ function configActiveLayer({ target }) {
         drawLayer(session.layerId);
         // update the cps (up to 3 depending on the cmd)
         // NOTE: we calculated the position of the first cp in setActiveLayerConfig
-        // furthermore, we know from mkControlPoint that a cmd's mainCp is always the last to be added to the dom
+        // furthermore, we know from mkControlPoints that a cmd's mainCp is always the last to be added to the dom
         switch (target.name) {
             case 'x':
                 controlPoints[firstCpAt + cpCountPerCmd[point.cmd] - 1].setAttribute('cx', point.x);
@@ -222,7 +217,7 @@ function configActiveLayer({ target }) {
             // update the svg element
             session.activeSVGElement.setAttribute(target.name, target.value);
             // update the cps
-            // NOTE: control-point-handling/mkControlPoint tells us that 3 cps are added for an ellipse, center first, then rx and then ry
+            // NOTE: control-point-handling/mkControlPoints tells us that 3 cps are added for an ellipse, center first, then rx and then ry
             // changing cx or cy via the form affects all 3 cps (center, rx and ry); changing rx or ry affect only rx or ry
             switch (target.name) {
                 case 'rx':
@@ -252,7 +247,7 @@ function configActiveLayer({ target }) {
             // update the svg element
             session.activeSVGElement.setAttribute(target.name, target.value);
             // update the cps
-            // NOTE: control-point-handling/mkControlPoint tells us that 2 cps are added for a rect, first top-left (which changes position) and then bottom-right (which changes width and/or height)
+            // NOTE: control-point-handling/mkControlPoints tells us that 2 cps are added for a rect, first top-left (which changes position) and then bottom-right (which changes width and/or height)
             // changing x or y via the form affects both cps; changing width or height affects only the bottom-right one
             switch (target.name) {
                 case 'x':

@@ -1,5 +1,5 @@
 import { cmdTags, defaults } from './constants.js';
-import { remControlPoints, createControlPoints } from './control-points/control-point-handling.js';
+import { updateControlPoints } from './control-points/control-point-handling.js';
 import {
     cmdSelect,
     layers,
@@ -61,8 +61,7 @@ const session = {
             if (val === undefined) return;
 
             applyTransforms(drawing, session);
-            remControlPoints();
-            createControlPoints(session);
+            updateControlPoints(session);
             setCmdConfig(session);
             setActiveLayerConfig(session.activeLayer);
             setFillAndStrokeConfig(drawing.layers[val].style);

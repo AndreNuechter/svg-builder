@@ -1,4 +1,4 @@
-import { createControlPoints, remControlPoints } from '../control-points/control-point-handling';
+import { remControlPoints, updateControlPoints } from '../control-points/control-point-handling';
 import { layerSelectorTemplate, svgTemplates } from '../dom-created-elements';
 import {
     drawingContent,
@@ -112,8 +112,7 @@ function deleteLayerSelectors() {
         applyTransforms(drawing, session);
         reorderLayerSelectors(session.layerId);
         setFillAndStrokeConfig(session.activeLayer.style);
-        remControlPoints();
-        createControlPoints(session);
+        updateControlPoints(session);
         session.mode = session.activeLayer.mode;
     }
 

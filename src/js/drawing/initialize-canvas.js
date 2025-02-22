@@ -1,5 +1,5 @@
 import { defaults } from '../constants';
-import { createControlPoints, remControlPoints } from '../control-points/control-point-handling';
+import { updateControlPoints } from '../control-points/control-point-handling';
 import { svgTemplates } from '../dom-created-elements';
 import {
     drawingContent,
@@ -47,8 +47,7 @@ function initializeCanvas() {
         })
     );
     // rm and create cps
-    remControlPoints();
-    createControlPoints(session);
+    updateControlPoints(session);
     // rm and create layerselectors
     deleteLayerSelectors();
     drawing.layers.forEach((_, index) => addLayerSelector(index));

@@ -29,7 +29,7 @@ import {
     svg,
     transformTargetSwitch,
 } from './dom-shared-elements.js';
-import { mkControlPoint } from './control-points/control-point-handling.js';
+import { mkControlPoints } from './control-points/control-point-handling.js';
 import drawing, {
     redo,
     save,
@@ -84,8 +84,7 @@ function addPoint(event) {
             session,
             points,
             x,
-            y,
-            mkControlPoint
+            y
         );
 
     // start dragging newly created path-point
@@ -154,6 +153,7 @@ function download(url) {
     downloadLink.click();
 }
 
+/** Finalize drawing a rect or ellipse, which started by adding a point to the active layer. */
 function finalizeShape(event) {
     if (!session.drawingShape) return;
 
@@ -162,24 +162,24 @@ function finalizeShape(event) {
     const [x, y] = getSVGCoords(event);
     const { points = [] } = session.activeLayer;
     const size = {
-        hor: Math.abs(session.shapeStart.x - x),
-        vert: Math.abs(session.shapeStart.y - y),
+        width: Math.abs(session.shapeStart.x - x),
+        height: Math.abs(session.shapeStart.y - y),
     };
 
     Object.assign(points[0], session.mode === 'rect'
         ? {
             x: Math.min(session.shapeStart.x, x),
             y: Math.min(session.shapeStart.y, y),
-            width: size.hor,
-            height: size.vert,
+            width: size.width,
+            height: size.height,
         }
         : {
-            rx: size.hor,
-            ry: size.vert,
+            rx: size.width,
+            ry: size.height,
         });
     save('drawShape');
     setActiveLayerConfig();
-    mkControlPoint(
+    mkControlPoints(
         session.activeLayer,
         session.layerId,
         last(points),
