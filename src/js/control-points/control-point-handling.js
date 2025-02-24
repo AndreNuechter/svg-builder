@@ -18,7 +18,7 @@ const {
     firstControlPoint,
     secondControlPoint,
     rectTopLeft,
-    rectLowerRight,
+    rectBottomRight,
     ellipseCenter,
     rx,
     ry,
@@ -203,7 +203,7 @@ function mkControlPoints(layer, layerId, point, pointId) {
     } else if ('width' in point) {
         addedControlPointsAndSlopes.push(
             ControlPoint(point.x, point.y, pointId, rectTopLeft, layerId),
-            ControlPoint(point.x + point.width, point.y + point.height, pointId, rectLowerRight, layerId),
+            ControlPoint(point.x + point.width, point.y + point.height, pointId, rectBottomRight, layerId),
         );
     } else if ('cx' in point) {
         addedControlPointsAndSlopes.push(

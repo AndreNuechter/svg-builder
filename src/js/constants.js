@@ -1,7 +1,5 @@
 import { rotateInputs, scaleInputs } from './dom-shared-elements.js';
-import { pathCmds } from './layers/path-commands.js';
 
-const cmdTags = new Set(Object.keys(pathCmds));
 const complexTransforms = Object.freeze({
     scale: scaleInputs,
     rotate: rotateInputs,
@@ -64,7 +62,6 @@ const backgroundGridStepsize = 5;
 
 export {
     backgroundGridStepsize,
-    cmdTags,
     complexTransforms,
     defaults,
     moves,

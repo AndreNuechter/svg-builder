@@ -1,3 +1,5 @@
+import { defaults } from '../constants';
+
 /** A collection of functions that take a path-point and return a string tailored to the point's cmd that can be added to a path's d-attr. */
 const pathCmds = {
     H: ({ x }) => x,
@@ -25,15 +27,25 @@ const pathCmds = {
     M: basicPathCmd,
     L: basicPathCmd,
 };
+const cmdTags = new Set(Object.keys(pathCmds));
+const cmdsThatShouldNotRepeat = new Set(['M', 'V', 'H']);
+const cmdsWithCpsDependingOnThePreviousCmd = new Set(['Q', 'S', 'C']);
 
-export {
-    cube,
-    pathCmds,
-    quad,
-};
+export default pathCmds;
+export { mkDefaultPoint, cmdTags, cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd };
 
 function basicPathCmd({ x, y }) {
     return `${x} ${y}`;
+}
+
+function calculateOffset(distA, distB, prior, current) {
+    const offset = 33;
+
+    if (distA < distB) {
+        return prior > current ? -offset : offset;
+    }
+
+    return 0;
 }
 
 function cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev) {
@@ -50,16 +62,6 @@ function cmdControlPointDefaults(xEnd, yEnd, xPrev, yPrev) {
         yOffset,
         xOffset,
     };
-}
-
-function calculateOffset(distA, distB, prior, current) {
-    const offset = 33;
-
-    if (distA < distB) {
-        return prior > current ? -offset : offset;
-    }
-
-    return 0;
 }
 
 /**
@@ -83,6 +85,26 @@ function cube(xEnd, yEnd, { x: xPrev, y: yPrev }) {
         x2: xMin - xOffset + (Math.max(xEnd, xPrev) - xMin) * 0.75,
         y2: yMin - yOffset + (Math.max(yEnd, yPrev) - yMin) * 0.75,
     };
+}
+
+function mkDefaultPoint(cmd, x, y, previousPointData) {
+    switch (cmd) {
+        case 'M':
+        case 'L':
+        case 'T':
+            return { x, y };
+        case 'V':
+            return { y };
+        case 'H':
+            return { x };
+        case 'Q':
+        case 'S':
+            return { x, y, ...quad(x, y, previousPointData) };
+        case 'C':
+            return { x, y, ...cube(x, y, previousPointData) };
+        case 'A':
+            return { x, y, ...defaults.arcCmdConfig };
+    }
 }
 
 /**

@@ -1,4 +1,3 @@
-import { defaults } from '../constants.js';
 import { mkControlPoints, remLastControlPoint } from '../control-points/control-point-handling.js';
 import { svg } from '../dom-shared-elements.js';
 import {
@@ -8,7 +7,7 @@ import {
     lastId,
     pointToMarkup,
 } from '../helper-functions.js';
-import { cube, quad } from './path-commands.js';
+import { cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd, mkDefaultPoint } from './path-commands.js';
 
 const shaperFuncs = {
     rect: (x, y) => (x1, y1) => ({
@@ -73,15 +72,16 @@ const layerTypes = {
             if (!points.length) session.cmd = 'M';
 
             // prevent consecutive M, V or H commands
-            // TODO can we do this wo the passed in function?
-            if (lastPoint?.cmd === session.cmd && ['M', 'V', 'H'].includes(session.cmd)) {
-                remLastControlPoint(points.pop().cmd);
+            if (lastPoint?.cmd === session.cmd && cmdsThatShouldNotRepeat.has(session.cmd)) {
+                points.pop();
+                remLastControlPoint(lastPoint.cmd);
             }
 
-            // NOTE: because V and H dont have both x and y components, one may be undefined causing invalid values
+            // NOTE: because V and H dont have both x and y components,
+            // one may be undefined causing invalid values for the cps of the next cmd
             // which is why we then look at the point before that
-            if (['Q', 'S', 'C'].includes(session.cmd)) {
-                lastPointData = ((cmd) => {
+            if (cmdsWithCpsDependingOnThePreviousCmd.has(session.cmd)) {
+                lastPointData = (({ cmd }) => {
                     switch (cmd) {
                         case 'V':
                             return { y: lastPoint.y, x: points[lastId(points) - 1].x };
@@ -90,31 +90,10 @@ const layerTypes = {
                         default:
                             return lastPoint;
                     }
-                })(lastPoint.cmd);
+                })(lastPoint);
             }
 
-            const newPoint = Object.assign(
-                { cmd: session.cmd },
-                ((cmd) => {
-                    switch (cmd) {
-                        case 'M':
-                        case 'L':
-                        case 'T':
-                            return { x, y };
-                        case 'V':
-                            return { y };
-                        case 'H':
-                            return { x };
-                        case 'Q':
-                        case 'S':
-                            return { x, y, ...quad(x, y, lastPointData) };
-                        case 'C':
-                            return { x, y, ...cube(x, y, lastPointData) };
-                        case 'A':
-                            return { x, y, ...defaults.arcCmdConfig };
-                    }
-                })(session.cmd)
-            );
+            const newPoint = Object.assign({ cmd: session.cmd }, mkDefaultPoint(session.cmd, x, y, lastPointData));
 
             points.push(newPoint);
             mkControlPoints(session.activeLayer, session.layerId, newPoint, lastId(points));

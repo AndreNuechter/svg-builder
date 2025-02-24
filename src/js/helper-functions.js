@@ -1,4 +1,4 @@
-import { pathCmds } from './layers/path-commands.js';
+import pathCmds from './layers/path-commands.js';
 import {
     controlPointContainer,
     drawingContent,

@@ -68,7 +68,7 @@ const controlPointTypes = {
             ];
         },
     ),
-    rectLowerRight: ControlPointType(
+    rectBottomRight: ControlPointType(
         'control-point__rect-bottom-right',
         ({ x, y }, point) => ({
             width: x > point.x ? x - point.x : point.width,

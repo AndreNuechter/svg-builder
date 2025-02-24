@@ -4,7 +4,6 @@ import {
 } from './layers/layer-handling.js';
 import {
     backgroundGridStepsize,
-    cmdTags,
     complexTransforms,
     defaults,
     moves,
@@ -40,6 +39,7 @@ import layerTypes from './layers/layer-types.js';
 import { addLayer, duplicateLayer } from './layers/layer-management.js';
 import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
+import { cmdTags } from './layers/path-commands.js';
 
 const ctx = canvas.getContext('2d');
 const ctrlActions = {

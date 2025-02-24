@@ -1,4 +1,4 @@
-import { cmdTags, defaults } from './constants.js';
+import { defaults } from './constants.js';
 import { updateControlPoints } from './control-points/control-point-handling.js';
 import {
     cmdSelect,
@@ -19,6 +19,7 @@ import {
 import drawing from './drawing/drawing.js';
 import layerTypes from './layers/layer-types.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
+import { cmdTags } from './layers/path-commands.js';
 
 let cmd;
 let drawingShape = false;
