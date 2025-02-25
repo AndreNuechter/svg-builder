@@ -6,7 +6,7 @@ import {
     modesForm,
     pathClosingToggle,
     transformTargetSwitch,
-} from './dom-shared-elements.js';
+} from './dom-selections.js';
 import {
     applyTransforms,
     isBoolean,

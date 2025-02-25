@@ -1,4 +1,4 @@
-import { controlPoints } from '../dom-shared-elements.js';
+import { controlPoints } from '../dom-selections.js';
 
 // NOTE: ea cmd has the given number of cps, so the id of any given cp can be derived by summing the ones before it
 const cpCountPerCmd = {

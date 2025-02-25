@@ -4,7 +4,7 @@ import {
     drawingContent,
     fillAndStrokeFields,
     svg,
-} from './dom-shared-elements.js';
+} from './dom-selections.js';
 import { defaults } from './constants.js';
 
 const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
@@ -37,8 +37,12 @@ function applyTransforms(drawing, session) {
 
     if (session.activeSVGElement) {
         const layerTransforms = stringifyTransforms(session.activeLayer.transforms);
+
         applicants.push(session.activeSVGElement);
-        transformations.push(drawingTransforms + layerTransforms, layerTransforms);
+        transformations.push(
+            drawingTransforms + layerTransforms,
+            layerTransforms
+        );
     } else {
         transformations.push(drawingTransforms);
     }
@@ -165,7 +169,7 @@ function stringifyTransforms(transformData) {
             (str, [key, val]) => `${str}${key}(${
                 // NOTE: scale and rotate take more than 1 param, of which some may be ''
                 typeof val === 'object'
-                    ? val.filter(Boolean)
+                    ? val.filter((val) => val !== '')
                     : val
             })`,
             ''

@@ -1,5 +1,5 @@
 import { configElement } from '../helper-functions.js';
-import { layers } from '../dom-shared-elements.js';
+import { layers } from '../dom-selections.js';
 import drawing from '../drawing/drawing.js';
 import layerTypes from './layer-types.js';
 

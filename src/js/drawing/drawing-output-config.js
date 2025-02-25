@@ -1,5 +1,5 @@
 import { optimize } from 'svgo';
-import { drawingContent, preview } from '../dom-shared-elements';
+import { drawingContent, preview } from '../dom-selections';
 import { setOutputConfig } from '../form-handling';
 import drawing, { save } from './drawing';
 import { configElement, stringifyTransforms } from '../helper-functions';

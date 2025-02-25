@@ -1,7 +1,7 @@
 import {
     redoBtn,
     undoBtn,
-} from '../dom-shared-elements.js';
+} from '../dom-selections.js';
 import { lastId } from '../helper-functions.js';
 
 export default (drawing, commitDrawingToStorage) => {
@@ -45,6 +45,7 @@ export default (drawing, commitDrawingToStorage) => {
 
     function resetCanvas() {
         const { layers: layersData, transforms } = currentItem();
+
         Object.assign(drawing, {
             layers: structuredClone(layersData),
             transforms: structuredClone(transforms)

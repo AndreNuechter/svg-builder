@@ -1,5 +1,3 @@
-import { defaults } from '../constants';
-
 /** A collection of functions that take a path-point and return a string tailored to the point's cmd that can be added to a path's d-attr. */
 const pathCmds = {
     H: ({ x }) => x,
@@ -32,7 +30,12 @@ const cmdsThatShouldNotRepeat = new Set(['M', 'V', 'H']);
 const cmdsWithCpsDependingOnThePreviousCmd = new Set(['Q', 'S', 'C']);
 
 export default pathCmds;
-export { mkDefaultPoint, cmdTags, cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd };
+export {
+    cmdTags,
+    cmdsThatShouldNotRepeat,
+    cmdsWithCpsDependingOnThePreviousCmd,
+    mkDefaultPoint,
+};
 
 function basicPathCmd({ x, y }) {
     return `${x} ${y}`;
@@ -103,7 +106,15 @@ function mkDefaultPoint(cmd, x, y, previousPointData) {
         case 'C':
             return { x, y, ...cube(x, y, previousPointData) };
         case 'A':
-            return { x, y, ...defaults.arcCmdConfig };
+            return {
+                x,
+                y,
+                xR: '50',
+                yR: '50',
+                xRot: '0',
+                large: false,
+                sweep: false
+            };
     }
 }
 

@@ -5,7 +5,7 @@ import {
     drawingSelection,
     layerSelectors,
     deleteDrawingBtn
-} from '../dom-shared-elements';
+} from '../dom-selections';
 import drawing, { clearDrawing, commitDrawingToStorage, isDrawingUntouched } from './drawing';
 import session from '../session';
 

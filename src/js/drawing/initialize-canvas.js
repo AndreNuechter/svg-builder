@@ -1,12 +1,12 @@
 import { defaults } from '../constants';
 import { updateControlPoints } from '../control-points/control-point-handling';
-import { svgTemplates } from '../dom-created-elements';
+import { svgTemplates } from '../dom-creations';
 import {
     drawingContent,
     drawingTitle,
     pathClosingToggle,
     transformTargetSwitch
-} from '../dom-shared-elements';
+} from '../dom-selections';
 import {
     setCmdConfig,
     setFillAndStrokeConfig,
@@ -21,7 +21,7 @@ import { setActiveLayerConfig } from '../layers/active-layer-config';
 
 export default initializeCanvas;
 
-/** Completely set up the contents of the drawing tab. */
+/** Set up the contents of the drawing tab. */
 function initializeCanvas() {
     // clear and re-populate the svg canvas
     drawingContent.replaceChildren(
@@ -37,7 +37,7 @@ function initializeCanvas() {
                 }
                 : layer.points[0] || {};
 
-            // return a configured svg element for this layer
+            // return a configured svg element representing this layer
             return configClone(shape)({
                 'data-layer-id': index,
                 ...layer.style,

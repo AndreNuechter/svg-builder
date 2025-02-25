@@ -1,4 +1,4 @@
-import { rotateInputs, scaleInputs } from './dom-shared-elements.js';
+import { rotateInputs, scaleInputs } from './dom-selections.js';
 
 const complexTransforms = Object.freeze({
     scale: scaleInputs,
@@ -19,7 +19,8 @@ const defaults = Object.freeze({
         'file-format': 'svg',
     }),
     transforms: Object.freeze({
-        translate: Object.freeze(['0', '0']),
+        // NOTE: translate is made up of numbers instead of strs like the other transforms as these values are changed via the `moves` obj from below
+        translate: Object.freeze([0, 0]),
         scale: Object.freeze(['1', '1']),
         rotate: Object.freeze(['0', '0', '0']),
         skewX: '0',
@@ -41,22 +42,15 @@ const defaults = Object.freeze({
         'stroke-linejoin': 'path,rect',
         'stroke-miterlimit': 'path,rect',
         'fill-rule': 'path',
-    }),
-    arcCmdConfig: Object.freeze({
-        xR: '50',
-        yR: '50',
-        xRot: '0',
-        large: false,
-        sweep: false,
-    }),
+    })
 });
 const inc = (num) => num + 1;
 const dec = (num) => num - 1;
 const moves = Object.freeze({
-    ArrowUp: Object.freeze({ prop: 1, cb: dec }),
-    ArrowDown: Object.freeze({ prop: 1, cb: inc }),
-    ArrowLeft: Object.freeze({ prop: 0, cb: dec }),
-    ArrowRight: Object.freeze({ prop: 0, cb: inc }),
+    ARROWUP: Object.freeze({ affectedAxis: 1, translation: dec }),
+    ARROWDOWN: Object.freeze({ affectedAxis: 1, translation: inc }),
+    ARROWLEFT: Object.freeze({ affectedAxis: 0, translation: dec }),
+    ARROWRIGHT: Object.freeze({ affectedAxis: 0, translation: inc }),
 });
 const backgroundGridStepsize = 5;
 

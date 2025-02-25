@@ -2,7 +2,7 @@ import {
     fillAndStrokeFields,
     outputConfig,
     transformFields,
-} from './dom-shared-elements.js';
+} from './dom-selections.js';
 import { complexTransforms } from './constants.js';
 import { last } from './helper-functions.js';
 

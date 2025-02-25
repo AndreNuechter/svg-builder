@@ -22,12 +22,12 @@ import {
     downloadLink,
     dummyImg,
     svgTemplates,
-} from './dom-created-elements.js';
+} from './dom-creations.js';
 import {
     controlPointContainer,
     svg,
     transformTargetSwitch,
-} from './dom-shared-elements.js';
+} from './dom-selections.js';
 import { mkControlPoints } from './control-points/control-point-handling.js';
 import drawing, {
     redo,
@@ -189,32 +189,35 @@ function finalizeShape(event) {
 }
 
 function pressKey(event) {
-    const { key } = event;
+    let { key } = event;
+    key = key.toUpperCase();
 
     // prevent interference w opening dev tools
     if (key === 'F12') return;
 
     // exit label editing by pressing enter
-    if (key === 'Enter' && event.target.contentEditable) event.target.blur();
+    if (key === 'ENTER' && event.target.contentEditable) {
+        event.target.blur();
+    }
 
     // prevent interference w eg custom labeling
     if (document.activeElement !== document.body) return;
 
-    if (key.toUpperCase() in ctrlActions && event.ctrlKey) {
-        ctrlActions[key.toUpperCase()]();
+    if (key in ctrlActions && event.ctrlKey) {
+        ctrlActions[key]();
     } else if (key in moves) {
         if (!session.activeLayer && !event.ctrlKey) return;
 
         // move the entire drawing when ctrl is pressed, otherwise only the active layer
-        const { transforms: { translate: transformTarget } } = event.ctrlKey
+        const { transforms: { translate: targetedTranslationObject } } = event.ctrlKey
             ? drawing
             : session.activeLayer;
-        const { cb, prop } = moves[key];
+        const { translation, affectedAxis } = moves[key];
 
-        transformTarget[prop] = cb(Number(transformTarget[prop]));
+        targetedTranslationObject[affectedAxis] = translation(targetedTranslationObject[affectedAxis]);
         applyTransforms(drawing, session);
-    } else if (cmdTags.has(key.toUpperCase())) {
-        session.cmd = key.toUpperCase();
+    } else if (cmdTags.has(key)) {
+        session.cmd = key;
     }
 
     event.preventDefault();

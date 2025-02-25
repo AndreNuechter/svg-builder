@@ -1,12 +1,10 @@
 import { updateControlPoints } from '../control-points/control-point-handling';
 import { cpCountPerCmd } from '../control-points/control-point-types';
-import { activeLayerConfigForm, controlPoints } from '../dom-shared-elements';
+import { activeLayerConfigForm, controlPoints } from '../dom-selections';
 import { save } from '../drawing/drawing';
 import session from '../session';
 import { drawLayer } from './layer-handling';
 import { cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd, mkDefaultPoint } from './path-commands';
-
-// FIXME undo/redo doesnt work well with this...configs arent restored or removed
 
 const ellipseConfig = document.getElementById('ellipse-config');
 const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
@@ -79,7 +77,7 @@ function addPathPoint(previousConfig) {
     }
 
     // create a new point
-    // TODO use sensible defaults for x and y instead of 0, 0 (avg between this point and the next?)
+    // TODO use sensible defaults for x and y instead of 0, 0 (avg between the previous point and the next?)
     const newPoint = Object.assign({ cmd: session.cmd }, mkDefaultPoint(session.cmd, 0, 0, prevPointData));
 
     // add the new point to this layer after the one belonging to the config clicked on
@@ -252,13 +250,13 @@ function mkPathCmdConfig(cmd) {
     return pathCmdTmpls[cmd].cloneNode(true).firstElementChild;
 }
 
-// TODO is called twice on start...why? once when setting the current layer and again when canvas is initialized...can we change that?
+// TODO is called twice on start, once when setting the current layer and again when the canvas is initialized...can we change that?
 /** Represent the active layer in the fieldset. */
 function setActiveLayerConfig(activeLayer = session.activeLayer) {
     if (!activeLayer) return;
 
     if (activeLayer.mode === 'path') {
-        let indexOfFirstCP = 0;
+        let indexOfFirstCp = 0;
         // TODO this could be optimized to not thrash the dom as frequently (update instead of create anew...)
         // add a config for ea cmd in this path, replacing existing ones
         pathCmdConfigsContainer.replaceChildren(
@@ -268,9 +266,9 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
 
                 // sync the config w this point
                 // NOTE: we remember the cmd's position within the path and at which index the first cp related to this "point"/cmd is
-                setPathCmdConfig(newConfig, point, { pointId, firstCpAt: indexOfFirstCP });
+                setPathCmdConfig(newConfig, point, { pointId, firstCpAt: indexOfFirstCp });
                 // increase the index of the first cp of the following cmd by the amount of cps this cmd has
-                indexOfFirstCP += cpCountPerCmd[point.cmd];
+                indexOfFirstCp += cpCountPerCmd[point.cmd];
 
                 return newConfig;
             })

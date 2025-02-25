@@ -1,5 +1,5 @@
 import { getSVGCoords } from '../helper-functions.js';
-import { svg } from '../dom-shared-elements.js';
+import { svg } from '../dom-selections.js';
 
 const coords = document.getElementById('coords');
 

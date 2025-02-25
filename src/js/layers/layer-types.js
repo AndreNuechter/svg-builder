@@ -1,5 +1,5 @@
 import { mkControlPoints, remLastControlPoint } from '../control-points/control-point-handling.js';
-import { svg } from '../dom-shared-elements.js';
+import { svg } from '../dom-selections.js';
 import {
     configElement,
     drawShape,

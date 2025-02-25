@@ -1,12 +1,12 @@
 import { remControlPoints, updateControlPoints } from '../control-points/control-point-handling';
-import { layerSelectorTemplate, svgTemplates } from '../dom-created-elements';
+import { layerSelectorTemplate, svgTemplates } from '../dom-creations';
 import {
     drawingContent,
     layers,
     layerSelect,
     layerSelectors,
     vacancyMsgStyle
-} from '../dom-shared-elements';
+} from '../dom-selections';
 import { setFillAndStrokeConfig } from '../form-handling';
 import {
     applyTransforms,
@@ -31,7 +31,6 @@ export {
     dragLayerSelector,
     duplicateLayer,
     reorderLayers,
-    reorderLayerSelectors,
 };
 
 function addLayer() {
@@ -51,6 +50,8 @@ function addLayer() {
 }
 
 function addLayerSelector(id = layerSelect.childElementCount) {
+    if (layerSelect.childElementCount >= drawing.layers.length) return;
+
     const layerSelector = layerSelectorTemplate.cloneNode(true);
     const [label, selector] = layerSelector.children;
 

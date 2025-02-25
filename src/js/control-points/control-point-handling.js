@@ -1,5 +1,5 @@
-import { circleTemplate, lineTemplate } from '../dom-created-elements.js';
-import { controlPoints, controlPointContainer, slopes, svg } from '../dom-shared-elements.js';
+import { circleTemplate, lineTemplate } from '../dom-creations.js';
+import { controlPoints, controlPointContainer, slopes, svg } from '../dom-selections.js';
 import {
     configClone,
     configElement,

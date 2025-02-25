@@ -15,7 +15,7 @@ import {
     fillAndStrokeForm,
     undoBtn,
     redoBtn,
-} from './dom-shared-elements.js';
+} from './dom-selections.js';
 import {
     addPoint,
     centerRotation,
