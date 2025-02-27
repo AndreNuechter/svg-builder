@@ -34,12 +34,13 @@ export {
 };
 
 function stopDragging() {
+    save('dragging');
     Object.assign(svg, {
         onpointermove: null,
         onpointerleave: null,
         onpointerup: null,
     });
-    save('dragging');
+    svg.classList.remove('dragging-a-cp');
     setActiveLayerConfig();
 }
 
@@ -54,6 +55,7 @@ function startDragging(layer, pointId, controlPointType) {
             onpointerleave: stopDragging,
             onpointerup: stopDragging,
         });
+        svg.classList.add('dragging-a-cp');
     };
 }
 

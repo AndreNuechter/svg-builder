@@ -12,4 +12,8 @@
     &:last-of-type {
         fill: var(--main-alert-color);
     }
+
+    .dragging-a-cp & {
+        cursor: grabbing;
+    }
 }
