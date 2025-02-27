@@ -5,7 +5,7 @@
 }
 
 #center-top {
-    height: 66px;
+    height: var(--center-top-height);
     display: flex;
     gap: 4px;
 

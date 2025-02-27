@@ -39,9 +39,10 @@ header {
 
 .tab-content {
     position: absolute;
+    top: var(--tab-links-total-height);
     opacity: 0;
     overflow: hidden;
-    height: calc(100% - var(--tab-links-height));
+    height: calc(100% - var(--tab-links-total-height));
     width: 100%;
     display: grid;
     grid-template-columns: 12rem auto;

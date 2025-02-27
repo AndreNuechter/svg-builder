@@ -114,7 +114,6 @@ function dragging(layerId, pointId, controlPointType, controlPoint) {
     const { changeData } = controlPointType;
     // TODO cant this be calculated once when the point is created in ControlPoint() instead of on ea pointerdown?
     const affectedControlPoints = controlPointType.getAffectedPoints(controlPoint, layer, pointId);
-    // TODO change cursor over controlpoint to grabbing (and back to grab again when finished)
 
     return (event) => {
         const [x, y] = getSVGCoords(event);

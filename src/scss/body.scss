@@ -2,6 +2,8 @@ body {
     background: var(--main-bg-color);
     color: var(--main-text-color);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 
     .for-path,
     .for-rect,

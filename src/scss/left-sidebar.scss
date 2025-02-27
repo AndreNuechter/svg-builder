@@ -3,8 +3,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin: 0 4px;
-    // TODO add visible padding to bottom (padding-bottom doesnt really work!)
+    margin: 0 4px 4px;
     overflow-y: auto;
 }
 
