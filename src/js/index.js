@@ -24,7 +24,6 @@ import {
     copyDataURIToClipboard,
     finalizeShape,
     copyMarkupToClipboard,
-    pressKey,
     redo,
     resetTransforms,
     setCmd,
@@ -35,7 +34,6 @@ import {
     setTransformTarget,
     togglePathClosing,
     triggerDownload,
-    arrowKeyup,
 } from './user-actions.js';
 import { centerViewBox, switchToOutputTab } from './drawing/drawing-output-config.js';
 import { clearDrawing, save, undo } from './drawing/drawing.js';
@@ -49,6 +47,7 @@ import {
     reorderLayers
 } from './layers/layer-management.js';
 import initializeCanvas from './drawing/initialize-canvas.js';
+import { arrowKeyup, pressKey } from './keyboard-interaction.js';
 
 cmdSelect.addEventListener('change', setCmd);
 document.addEventListener('initializeCanvas', initializeCanvas);

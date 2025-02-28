@@ -6,7 +6,6 @@ import {
     backgroundGridStepsize,
     complexTransforms,
     defaults,
-    moves,
 } from './constants.js';
 import {
     applyTransforms,
@@ -32,33 +31,24 @@ import { mkControlPoints } from './control-points/control-point-handling.js';
 import drawing, {
     redo,
     save,
-    undo,
 } from './drawing/drawing.js';
 import session from './session.js';
 import layerTypes from './layers/layer-types.js';
-import { addLayer, duplicateLayer } from './layers/layer-management.js';
+import { addLayer } from './layers/layer-management.js';
 import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
-import { cmdTags } from './layers/path-commands.js';
 
 const ctx = canvas.getContext('2d');
-const ctrlActions = {
-    C: duplicateLayer,
-    Z: undo,
-    Y: redo,
-};
 let dummyImageIsSetUp = false;
 
 export {
     addPoint,
-    arrowKeyup,
     centerRotation,
     changeBackgroundGridSize,
     configOutput,
     copyDataURIToClipboard,
     copyMarkupToClipboard,
     finalizeShape,
-    pressKey,
     redo,
     resetTransforms,
     setCenterOfRotation,
@@ -87,19 +77,13 @@ function addPoint(event) {
             y
         );
 
-    // start dragging newly created path-point
+    // enable dragging the newly created path-point wo having to release the pointer
     if (session.mode === 'path') {
         controlPointContainer.lastElementChild.dispatchEvent(new Event('pointerdown'));
     }
 
     styleLayer(session.layerId);
     drawLayer(session.layerId);
-}
-
-function arrowKeyup({ key }) {
-    if (key in moves) {
-        save('keyup');
-    }
 }
 
 function centerRotation() {
@@ -147,6 +131,7 @@ function copyMarkupToClipboard() {
 
 function download(url) {
     Object.assign(downloadLink, {
+        // TODO use drawing title if it is set
         download: `My_SVG.${drawing.outputConfig['file-format']}`,
         href: url,
     });
@@ -186,41 +171,6 @@ function finalizeShape(event) {
         lastId(points)
     );
     svg.onpointermove = null;
-}
-
-function pressKey(event) {
-    let { key } = event;
-    key = key.toUpperCase();
-
-    // prevent interference w opening dev tools
-    if (key === 'F12') return;
-
-    // exit label editing by pressing enter
-    if (key === 'ENTER' && event.target.contentEditable) {
-        event.target.blur();
-    }
-
-    // prevent interference w eg custom labeling
-    if (document.activeElement !== document.body) return;
-
-    if (key in ctrlActions && event.ctrlKey) {
-        ctrlActions[key]();
-    } else if (key in moves) {
-        if (!session.activeLayer && !event.ctrlKey) return;
-
-        // move the entire drawing when ctrl is pressed, otherwise only the active layer
-        const { transforms: { translate: targetedTranslationObject } } = event.ctrlKey
-            ? drawing
-            : session.activeLayer;
-        const { translation, affectedAxis } = moves[key];
-
-        targetedTranslationObject[affectedAxis] = translation(targetedTranslationObject[affectedAxis]);
-        applyTransforms(drawing, session);
-    } else if (cmdTags.has(key)) {
-        session.cmd = key;
-    }
-
-    event.preventDefault();
 }
 
 // TODO mv to formhandling
@@ -272,7 +222,7 @@ function setFillOrStroke({ target: { name, value } }) {
     styleLayer(session.layerId);
 }
 
-// TODO mv to formhandling or layerhandling
+// TODO mv to layer-management
 function setLayer({ target: { value } }) {
     const layerId = Number(value);
 

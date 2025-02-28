@@ -44,19 +44,10 @@ const defaults = Object.freeze({
         'fill-rule': 'path',
     })
 });
-const inc = (num) => num + 1;
-const dec = (num) => num - 1;
-const moves = Object.freeze({
-    ARROWUP: Object.freeze({ affectedAxis: 1, translation: dec }),
-    ARROWDOWN: Object.freeze({ affectedAxis: 1, translation: inc }),
-    ARROWLEFT: Object.freeze({ affectedAxis: 0, translation: dec }),
-    ARROWRIGHT: Object.freeze({ affectedAxis: 0, translation: inc }),
-});
 const backgroundGridStepsize = 5;
 
 export {
     backgroundGridStepsize,
     complexTransforms,
     defaults,
-    moves,
 };
