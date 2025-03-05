@@ -28,7 +28,6 @@ import {
     resetTransforms,
     setCmd,
     setFillOrStroke,
-    setLayer,
     setMode,
     setTransform,
     setTransformTarget,
@@ -41,13 +40,17 @@ import { initializeSession } from './session.js';
 import {
     addLayer,
     changeLayerLabel,
-    deleteLayer,
     dragLayerSelector,
+    dragLayerSelectorOver,
     duplicateLayer,
-    reorderLayers
+    reorderLayers,
+    selectOrDeleteLayer,
+    startDraggingLayerSelector
 } from './layers/layer-management.js';
 import initializeCanvas from './drawing/initialize-canvas.js';
 import { arrowKeyup, pressKey } from './keyboard-interaction.js';
+
+// FIXME clearing canvas doesnt clear activelayer config
 
 cmdSelect.addEventListener('change', setCmd);
 document.addEventListener('initializeCanvas', initializeCanvas);
@@ -57,7 +60,6 @@ document.getElementById('get-data-uri').addEventListener('click', copyDataURIToC
 document.getElementById('center-rotation-btn').addEventListener('click', centerRotation);
 document.getElementById('center-vb').addEventListener('click', centerViewBox);
 document.getElementById('add-layer').addEventListener('click', addLayer);
-document.getElementById('del-layer').addEventListener('click', deleteLayer);
 document.getElementById('clear-all').addEventListener('click', clearDrawing);
 document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
@@ -65,8 +67,10 @@ downloadBtn.addEventListener('click', triggerDownload);
 fillAndStrokeForm.addEventListener('input', setFillOrStroke);
 fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));
 layerSelect.addEventListener('input', changeLayerLabel);
-layerSelect.addEventListener('change', setLayer);
+layerSelect.addEventListener('pointerdown', startDraggingLayerSelector);
 layerSelect.addEventListener('dragstart', dragLayerSelector);
+layerSelect.addEventListener('dragover', dragLayerSelectorOver);
+layerSelect.addEventListener('click', selectOrDeleteLayer);
 layerSelect.addEventListener('drop', reorderLayers);
 modesForm.addEventListener('change', setMode);
 outputConfig.addEventListener('input', configOutput);

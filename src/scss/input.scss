@@ -8,7 +8,7 @@ input {
     }
 
     &[type="range"] {
-        -webkit-appearance: none;
+        appearance: none;
         height: 5px;
         width: 100%;
         border-radius: 5px;
@@ -21,9 +21,25 @@ input {
 
     &[type="checkbox"] {
         margin: 0 4px 0 8px;
+
+        &:checked {
+            box-shadow: 0 0 0 2px var(--main-highlight-color);
+        }
     }
 
-    &:checked {
-        box-shadow: 0 0 0 2px var(--main-highlight-color);
+    &[type="radio"] {
+        display: none;
+
+        label:has(&) {
+            cursor: pointer;
+            width: 100%;
+            padding: 2px 4px;
+            color: var(--main-text-color);
+        }
+
+        label:has(&:checked) {
+            background-color: white;
+            color: var(--sub-text-color);
+        }
     }
 }

@@ -48,8 +48,9 @@ function initializeCanvas() {
     );
     // rm and create cps
     updateControlPoints(session);
-    // rm and create layerselectors
+    // rm layerselectors
     deleteLayerSelectors();
+    // create layerselectors
     drawing.layers.forEach((_, index) => addLayerSelector(index));
     // config the rest of the ui
     pathClosingToggle.checked = session.activeLayer && session.activeLayer.closePath;

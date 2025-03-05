@@ -38,6 +38,8 @@ import { addLayer } from './layers/layer-management.js';
 import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
 
+// TODO split this module up
+
 const ctx = canvas.getContext('2d');
 let dummyImageIsSetUp = false;
 
@@ -54,7 +56,6 @@ export {
     setCenterOfRotation,
     setCmd,
     setFillOrStroke,
-    setLayer,
     setMode,
     setTransform,
     setTransformTarget,
@@ -220,14 +221,6 @@ function setFillOrStroke({ target: { name, value } }) {
     }
 
     styleLayer(session.layerId);
-}
-
-// TODO mv to layer-management
-function setLayer({ target: { value } }) {
-    const layerId = Number(value);
-
-    session.mode = drawing.layers[layerId].mode;
-    session.layerId = layerId;
 }
 
 // TODO mv to formhandling

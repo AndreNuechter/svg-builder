@@ -17,7 +17,46 @@
 #layer-select {
     label {
         flex-wrap: initial;
+    }
+
+    input {
+        background-color: var(--main-bg-color);
+        border: 0;
+        outline: 0;
+        color: var(--main-text-color);
+    }
+
+    .layer-selector {
+        * {
+            color: var(--main-text-color);
+        }
+
+        &:has(input:checked) * {
+            background-color: white;
+            color: var(--sub-text-color);
+        }
+    }
+
+    .layer-selector__handle {
+        width: 16%;
+        height: 100%;
         cursor: grab;
+
+        &::after {
+            // TODO use better icon
+            content: '#';
+            line-height: 32px;
+        }
+    }
+
+    .layer-selector__label {
+        width: 90%;
+    }
+
+    button {
+        background-color: transparent;
+        width: 24px;
+        margin-top: 0;
     }
 }
 
