@@ -4,18 +4,15 @@ import {
 } from './layers/layer-handling.js';
 import {
     backgroundGridStepsize,
-    complexTransforms,
     defaults,
 } from './constants.js';
 import {
-    applyTransforms,
     configClone,
     getRelevantConfiguredStyles,
     getSVGCoords,
     last,
     lastId,
 } from './helper-functions.js';
-import { setTransformsConfig } from './form-handling.js';
 import {
     canvas,
     downloadLink,
@@ -25,7 +22,6 @@ import {
 import {
     controlPointContainer,
     svg,
-    transformTargetSwitch,
 } from './dom-selections.js';
 import { mkControlPoints } from './control-points/control-point-handling.js';
 import drawing, {
@@ -45,20 +41,15 @@ let dummyImageIsSetUp = false;
 
 export {
     addPoint,
-    centerRotation,
     changeBackgroundGridSize,
     configOutput,
     copyDataURIToClipboard,
     copyMarkupToClipboard,
     finalizeShape,
     redo,
-    resetTransforms,
-    setCenterOfRotation,
     setCmd,
     setFillOrStroke,
     setMode,
-    setTransform,
-    setTransformTarget,
     togglePathClosing,
     triggerDownload,
 };
@@ -85,15 +76,6 @@ function addPoint(event) {
 
     styleLayer(session.layerId);
     drawLayer(session.layerId);
-}
-
-function centerRotation() {
-    const args = session.transformLayerNotDrawing
-        ? [session.activeSVGElement, session.activeLayer.transforms]
-        : [svg.firstElementChild, drawing.transforms];
-
-    setCenterOfRotation(...args);
-    applyTransforms(drawing, session);
 }
 
 function changeBackgroundGridSize({ deltaY }) {
@@ -175,36 +157,6 @@ function finalizeShape(event) {
 }
 
 // TODO mv to formhandling
-function resetTransforms() {
-    const { transforms } = defaults;
-
-    if (transformTargetSwitch.checked && session.activeLayer) {
-        session.activeLayer.transforms = structuredClone(transforms);
-    } else {
-        drawing.transforms = structuredClone(transforms);
-    }
-
-    applyTransforms(drawing, session);
-    setTransformsConfig(transforms);
-    save('resetTransforms');
-}
-
-// TODO mv to formhandling
-function setCenterOfRotation(element, transformTarget) {
-    const {
-        x,
-        y,
-        width,
-        height,
-    } = element.getBBox();
-    const coords = [Math.trunc(x + width * 0.5), Math.trunc(y + height * 0.5)];
-
-    [complexTransforms.rotate[1].value, complexTransforms.rotate[2].value] = coords;
-    [transformTarget.rotate[1], transformTarget.rotate[2]] = coords;
-    save('setCenterofRotation');
-}
-
-// TODO mv to formhandling
 function setCmd({ target: { value } }) {
     session.cmd = value;
 }
@@ -259,32 +211,6 @@ function setMode({ target: { value }, currentTarget }) {
         Object.assign(session.activeLayer.style, getRelevantConfiguredStyles(session.mode));
         save('setMode');
     }
-}
-
-// TODO mv to formhandling
-function setTransform({ target: { classList, dataset, name, value } }) {
-    // NOTE: 'rotate' and 'scale' have more than one param
-    if (classList.contains('transform-config')) {
-        const { transform, id } = dataset;
-        session.transformTarget[transform][+id] = value;
-    } else {
-        session.transformTarget[name] = value;
-    }
-
-    applyTransforms(drawing, session);
-}
-
-// TODO mv to formhandling
-function setTransformTarget({ target: { checked } }) {
-    if (checked) {
-        setTransformsConfig(session.activeLayer
-            ? session.activeLayer.transforms
-            : defaults.transforms);
-    } else {
-        setTransformsConfig(drawing.transforms);
-    }
-
-    session.transformLayerNotDrawing = checked;
 }
 
 // TODO mv to formhandling? activeLayerConfig?

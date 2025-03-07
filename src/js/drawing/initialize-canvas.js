@@ -11,13 +11,13 @@ import {
     setCmdConfig,
     setFillAndStrokeConfig,
     setOutputConfig,
-    setTransformsConfig
 } from '../form-handling';
-import { applyTransforms, configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
+import { configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
 import { addLayerSelector, deleteLayerSelectors } from '../layers/layer-management';
 import drawing from './drawing';
 import session from '../session';
 import { setActiveLayerConfig } from '../layers/active-layer-config';
+import { applyTransforms, setTransformsConfig } from '../transform-handling';
 
 export default initializeCanvas;
 

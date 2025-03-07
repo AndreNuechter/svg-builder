@@ -8,22 +8,18 @@ import {
     transformTargetSwitch,
 } from './dom-selections.js';
 import {
-    applyTransforms,
-    isBoolean,
-} from './helper-functions.js';
-import {
     setCmdConfig,
     setFillAndStrokeConfig,
-    setTransformsConfig,
 } from './form-handling.js';
 import drawing from './drawing/drawing.js';
 import layerTypes from './layers/layer-types.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
 import { cmdTags } from './layers/path-commands.js';
+import { applyTransforms, setTransformsConfig } from './transform-handling.js';
 
 let cmd;
 let drawingShape = false;
-let layerId;
+let layerId = -1;
 let mode;
 let transformLayerNotDrawing = false;
 const modes = new Set(Object.keys(layerTypes));
@@ -46,31 +42,25 @@ const session = {
         return drawingShape;
     },
     set drawingShape(val) {
-        if (!isBoolean(val)) return;
         drawingShape = val;
     },
     get layerId() {
         return layerId;
     },
     set layerId(val) {
-        if (
-            (val === undefined && drawing.layers.length === 0) ||
-            (!Number.isNaN(Number(val)) && val >= 0 && val < drawing.layers.length)
-        ) {
-            layerId = Number(val);
+        layerId = val;
 
-            if (val === undefined) return;
+        if (val < 0 || val >= drawing.layers.length) return;
 
-            applyTransforms(drawing, session);
-            updateControlPoints(session);
-            setCmdConfig(session);
-            setActiveLayerConfig(session.activeLayer);
-            setFillAndStrokeConfig(drawing.layers[val].style);
-            pathClosingToggle.checked = session.activeLayer.closePath;
+        applyTransforms(drawing, session);
+        updateControlPoints(session);
+        setCmdConfig(session);
+        setActiveLayerConfig(session.activeLayer);
+        setFillAndStrokeConfig(drawing.layers[val].style);
+        pathClosingToggle.checked = session.activeLayer.closePath;
 
-            if (transformTargetSwitch.checked) {
-                setTransformsConfig(drawing.layers[val].transforms);
-            }
+        if (transformTargetSwitch.checked) {
+            setTransformsConfig(drawing.layers[val].transforms);
         }
     },
     get mode() {
@@ -88,7 +78,6 @@ const session = {
         return transformLayerNotDrawing;
     },
     set transformLayerNotDrawing(val) {
-        if (!isBoolean(val)) return;
         transformLayerNotDrawing = val;
     },
     get transformTarget() {
@@ -104,7 +93,7 @@ export { initializeSession };
 function initializeSession() {
     Object.assign(session, {
         cmd: 'M',
-        layerId: drawing.layers.length ? 0 : undefined,
+        layerId: drawing.layers.length ? 0 : -1,
         mode: drawing.layers[0]?.mode || defaults.mode,
     });
 }

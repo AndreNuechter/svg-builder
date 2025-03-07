@@ -1,20 +1,17 @@
 import pathCmds from './layers/path-commands.js';
-import {
-    controlPointContainer,
-    drawingContent,
-    fillAndStrokeFields,
-    svg,
-} from './dom-selections.js';
+import { fillAndStrokeFields, svg } from './dom-selections.js';
 import { defaults } from './constants.js';
 
-const exceptions = ['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup'];
+const exceptions = new Set(['checked', 'textContent', 'data', 'onpointerdown', 'onpointerup']);
 const svgPoint = svg.createSVGPoint();
 
 export {
     areObjectsEqual,
-    applyTransforms,
-    configElement,
     configClone,
+    configElement,
+    configForm,
+    configInput,
+    configRangeInputLabel,
     drawShape,
     isBoolean,
     last,
@@ -25,30 +22,6 @@ export {
     pointToMarkup,
     stringifyTransforms,
 };
-
-/**
- * Applies transforms to the layer-container,
- * the currently active layer and its control points.
- */
-function applyTransforms(drawing, session) {
-    const drawingTransforms = stringifyTransforms(drawing.transforms);
-    const applicants = [drawingContent, controlPointContainer];
-    const transformations = [drawingTransforms];
-
-    if (session.activeSVGElement) {
-        const layerTransforms = stringifyTransforms(session.activeLayer.transforms);
-
-        applicants.push(session.activeSVGElement);
-        transformations.push(
-            drawingTransforms + layerTransforms,
-            layerTransforms
-        );
-    } else {
-        transformations.push(drawingTransforms);
-    }
-
-    applicants.forEach((a, i) => a.setAttribute('transform', transformations[i]));
-}
 
 /**
  * Compares two objects by stringifying them.
@@ -77,7 +50,7 @@ function configClone(template) {
  */
 function configElement(element, keyValPairs) {
     Object.keys(keyValPairs).forEach((key) => {
-        if (exceptions.includes(key)) {
+        if (exceptions.has(key)) {
             element[key] = keyValPairs[key];
         } else {
             element.setAttribute(key, keyValPairs[key]);
@@ -85,6 +58,25 @@ function configElement(element, keyValPairs) {
     });
 
     return element;
+}
+
+function configInput(input, value) {
+    input.value = value;
+
+    if (input.type === 'range') {
+        configRangeInputLabel(input, value);
+    }
+}
+
+function configForm(formElements, conf) {
+    Object.entries(conf).forEach(([key, val]) => {
+        configInput(formElements[key], val);
+    });
+}
+
+/** Display the value of range inputs behind their labels. */
+function configRangeInputLabel(target, value) {
+    target.previousElementSibling.dataset.value = ` (${value})`;
 }
 
 /**

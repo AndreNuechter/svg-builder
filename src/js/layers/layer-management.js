@@ -9,7 +9,6 @@ import {
 } from '../dom-selections';
 import { setFillAndStrokeConfig } from '../form-handling';
 import {
-    applyTransforms,
     configClone,
     configElement,
     getRelevantConfiguredStyles,
@@ -21,6 +20,7 @@ import drawing, { save } from '../drawing/drawing';
 import session from '../session';
 import { Layer } from './layer-handling';
 import { defaults } from '../constants';
+import { applyTransforms } from '../transform-handling';
 
 export {
     addLayer,

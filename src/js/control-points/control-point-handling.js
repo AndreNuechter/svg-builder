@@ -24,6 +24,9 @@ const {
     ry,
 } = controlPointTypes;
 const slopeObserverOptions = { attributes: true, attributeFilter: ['cx', 'cy'] };
+const cmdsWithRegularCp = new Set(['M', 'L', 'Q', 'C', 'A', 'S', 'T']);
+const cmdsWithFirstCp = new Set(['Q', 'C', 'S']);
+const cmdsWithSlopeBetweenMainAndFirstCp = new Set(['Q', 'S']);
 
 export {
     createControlPoints,
@@ -154,10 +157,10 @@ function mkControlPoints(layer, layerId, point, pointId) {
     // we branch based on the mode, which we tell by duck-typing:
     // the cmd-prop implies path, 'width' rect and 'cx' ellipse
     if ('cmd' in point) {
-        if (['M', 'L', 'Q', 'C', 'A', 'S', 'T'].includes(point.cmd)) {
+        if (cmdsWithRegularCp.has(point.cmd)) {
             const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
 
-            if (['Q', 'C', 'S'].includes(point.cmd)) {
+            if (cmdsWithFirstCp.has(point.cmd)) {
                 const firstCP = ControlPoint(
                     point.x1,
                     point.y1,
@@ -185,7 +188,7 @@ function mkControlPoints(layer, layerId, point, pointId) {
                     addedControlPointsAndSlopes.push(secondCP, mkSlope(mainCP, secondCP));
                 }
 
-                if (['Q', 'S'].includes(point.cmd)) {
+                if (cmdsWithSlopeBetweenMainAndFirstCp.has(point.cmd)) {
                     addedControlPointsAndSlopes.push(mkSlope(mainCP, firstCP));
                 }
             }
@@ -225,7 +228,7 @@ function mkControlPoints(layer, layerId, point, pointId) {
 function remLastControlPoint(cmd) {
     last(controlPoints).remove();
 
-    if (['Q', 'C', 'S'].includes(cmd)) {
+    if (cmdsWithFirstCp.has(cmd)) {
         const slopeCount = cmd === 'S' ? 1 : 2;
 
         for (let i = 0; i < slopeCount; i += 1) {

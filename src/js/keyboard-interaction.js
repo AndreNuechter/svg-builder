@@ -1,8 +1,8 @@
 import drawing, { redo, save, undo } from './drawing/drawing';
-import { applyTransforms } from './helper-functions';
 import { duplicateLayer } from './layers/layer-management';
 import { cmdTags } from './layers/path-commands';
 import session from './session';
+import { applyTransforms } from './transform-handling';
 
 const ctrlActions = {
     C: duplicateLayer,

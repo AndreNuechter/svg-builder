@@ -18,19 +18,15 @@ import {
 } from './dom-selections.js';
 import {
     addPoint,
-    centerRotation,
     changeBackgroundGridSize,
     configOutput,
     copyDataURIToClipboard,
     finalizeShape,
     copyMarkupToClipboard,
     redo,
-    resetTransforms,
     setCmd,
     setFillOrStroke,
     setMode,
-    setTransform,
-    setTransformTarget,
     togglePathClosing,
     triggerDownload,
 } from './user-actions.js';
@@ -49,8 +45,9 @@ import {
 } from './layers/layer-management.js';
 import initializeCanvas from './drawing/initialize-canvas.js';
 import { arrowKeyup, pressKey } from './keyboard-interaction.js';
+import { centerRotation, resetTransforms, setTransform, setTransformTarget } from './transform-handling.js';
 
-// FIXME clearing canvas doesnt clear activelayer config
+// FIXME clearing the canvas or deleting a layer doesnt clear activelayer config...what would be appropriate defaults when a layer is empty?
 
 cmdSelect.addEventListener('change', setCmd);
 document.addEventListener('initializeCanvas', initializeCanvas);
