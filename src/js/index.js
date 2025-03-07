@@ -19,18 +19,16 @@ import {
 import {
     addPoint,
     changeBackgroundGridSize,
-    configOutput,
-    copyDataURIToClipboard,
     finalizeShape,
-    copyMarkupToClipboard,
     redo,
     setCmd,
     setFillOrStroke,
     setMode,
     togglePathClosing,
-    triggerDownload,
 } from './user-actions.js';
-import { centerViewBox, switchToOutputTab } from './drawing/drawing-output-config.js';
+import {
+    centerViewBox, configOutput, copyDataURIToClipboard, copyMarkupToClipboard, switchToOutputTab, triggerDownload
+} from './output-handling.js';
 import { clearDrawing, save, undo } from './drawing/drawing.js';
 import { initializeSession } from './session.js';
 import {

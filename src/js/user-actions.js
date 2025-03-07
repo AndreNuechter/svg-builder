@@ -13,48 +13,34 @@ import {
     last,
     lastId,
 } from './helper-functions.js';
-import {
-    canvas,
-    downloadLink,
-    dummyImg,
-    svgTemplates,
-} from './dom-creations.js';
+import { svgTemplates } from './dom-creations.js';
 import {
     controlPointContainer,
     svg,
 } from './dom-selections.js';
 import { mkControlPoints } from './control-points/control-point-handling.js';
-import drawing, {
+import {
     redo,
     save,
 } from './drawing/drawing.js';
 import session from './session.js';
 import layerTypes from './layers/layer-types.js';
 import { addLayer } from './layers/layer-management.js';
-import { generateDataURI, generateMarkUp, updateViewBox } from './drawing/drawing-output-config.js';
 import { setActiveLayerConfig } from './layers/active-layer-config.js';
 
 // TODO split this module up
 
-const ctx = canvas.getContext('2d');
-let dummyImageIsSetUp = false;
-
 export {
     addPoint,
     changeBackgroundGridSize,
-    configOutput,
-    copyDataURIToClipboard,
-    copyMarkupToClipboard,
     finalizeShape,
     redo,
     setCmd,
     setFillOrStroke,
     setMode,
     togglePathClosing,
-    triggerDownload,
 };
 
-// TODO mv to drawing?
 function addPoint(event) {
     if (!session.activeLayer) addLayer();
 
@@ -97,30 +83,6 @@ function changeBackgroundGridSize({ deltaY }) {
     );
 }
 
-// TODO mv to formhandling
-function configOutput({ target: { name, value } }) {
-    drawing.outputConfig[name] = value;
-    updateViewBox();
-    save('configOutput');
-}
-
-function copyDataURIToClipboard() {
-    writeToClipboard(generateDataURI());
-}
-
-function copyMarkupToClipboard() {
-    writeToClipboard(generateMarkUp());
-}
-
-function download(url) {
-    Object.assign(downloadLink, {
-        // TODO use drawing title if it is set
-        download: `My_SVG.${drawing.outputConfig['file-format']}`,
-        href: url,
-    });
-    downloadLink.click();
-}
-
 /** Finalize drawing a rect or ellipse, which started by adding a point to the active layer. */
 function finalizeShape(event) {
     if (!session.drawingShape) return;
@@ -156,12 +118,10 @@ function finalizeShape(event) {
     svg.onpointermove = null;
 }
 
-// TODO mv to formhandling
 function setCmd({ target: { value } }) {
     session.cmd = value;
 }
 
-// TODO mv to formhandling...cant close over session there
 function setFillOrStroke({ target: { name, value } }) {
     if (!session.activeLayer) return;
 
@@ -175,7 +135,6 @@ function setFillOrStroke({ target: { name, value } }) {
     styleLayer(session.layerId);
 }
 
-// TODO mv to formhandling
 function setMode({ target: { value }, currentTarget }) {
     if (session.drawingShape) {
         currentTarget.modes.value = session.mode;
@@ -213,38 +172,10 @@ function setMode({ target: { value }, currentTarget }) {
     }
 }
 
-// TODO mv to formhandling? activeLayerConfig?
+// TODO mv to activeLayerConfig?
 function togglePathClosing({ target }) {
     if (!session.activeLayer) return;
 
     session.activeLayer.closePath = target.checked;
     drawLayer(session.layerId);
-}
-
-function triggerDownload() {
-    const svgDataURI = generateDataURI();
-
-    if (drawing.outputConfig['file-format'] === 'svg') {
-        download(svgDataURI);
-    } else {
-        dummyImg.src = svgDataURI;
-
-        if (dummyImageIsSetUp) return;
-
-        dummyImageIsSetUp = true;
-
-        dummyImg.addEventListener('load', () => {
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            Object.assign(ctx.canvas, {
-                width: drawing.outputConfig.width,
-                height: drawing.outputConfig.height,
-            });
-            ctx.drawImage(dummyImg, 0, 0);
-            download(canvas.toDataURL());
-        });
-    }
-}
-
-function writeToClipboard(text) {
-    window.navigator.clipboard.writeText(text);
 }
