@@ -2,6 +2,7 @@ import { updateControlPoints } from '../control-points/control-point-handling';
 import { cpCountPerCmd } from '../control-points/control-point-types';
 import { activeLayerConfigForm, controlPoints } from '../dom-selections';
 import { save } from '../drawing/drawing';
+import { last } from '../helper-functions';
 import session from '../session';
 import { drawLayer } from './layer-handling';
 import { cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd, mkDefaultPoint } from './path-commands';
@@ -33,7 +34,12 @@ activeLayerConfigForm.addEventListener('change', () => save('changed active laye
 activeLayerConfigForm.addEventListener('input', configActiveLayer);
 activeLayerConfigForm.addEventListener('click', addOrDeletePathPoint);
 
-export { setActiveLayerConfig };
+export {
+    setActiveLayerConfig,
+    setCmd,
+    setCmdConfig,
+    togglePathClosing
+};
 
 /** Handle clicks on the buttons in the path config fieldsets. */
 function addOrDeletePathPoint({ target }) {
@@ -296,6 +302,18 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
     }
 }
 
+function setCmd({ target: { value } }) {
+    session.cmd = value;
+}
+
+function setCmdConfig(session) {
+    if (!session.activeLayer || session.activeLayer.mode !== 'path') return;
+
+    session.cmd = session.activeLayer.points.length
+        ? last(session.activeLayer.points).cmd
+        : 'M';
+}
+
 /** Represent one path cmd in a fieldset. */
 function setPathCmdConfig(config, point, dataset) {
     switch (point.cmd) {
@@ -337,4 +355,11 @@ function setPathCmdConfig(config, point, dataset) {
     }
 
     Object.assign(config.dataset, dataset);
+}
+
+function togglePathClosing({ target }) {
+    if (!session.activeLayer) return;
+
+    session.activeLayer.closePath = target.checked;
+    drawLayer(session.layerId);
 }

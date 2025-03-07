@@ -7,17 +7,14 @@ import {
     pathClosingToggle,
     transformTargetSwitch
 } from '../dom-selections';
-import {
-    setCmdConfig,
-    setFillAndStrokeConfig,
-    setOutputConfig,
-} from '../form-handling';
 import { configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
 import { addLayerSelector, deleteLayerSelectors } from '../layers/layer-management';
 import drawing from './drawing';
 import session from '../session';
-import { setActiveLayerConfig } from '../layers/active-layer-config';
+import { setActiveLayerConfig, setCmdConfig } from '../layers/active-layer-config';
 import { applyTransforms, setTransformsConfig } from '../transform-handling';
+import { setOutputConfig } from '../output-handling';
+import { setFillAndStrokeConfig } from '../user-actions';
 
 export default initializeCanvas;
 

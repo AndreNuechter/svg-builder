@@ -7,15 +7,12 @@ import {
     pathClosingToggle,
     transformTargetSwitch,
 } from './dom-selections.js';
-import {
-    setCmdConfig,
-    setFillAndStrokeConfig,
-} from './form-handling.js';
 import drawing from './drawing/drawing.js';
 import layerTypes from './layers/layer-types.js';
-import { setActiveLayerConfig } from './layers/active-layer-config.js';
+import { setActiveLayerConfig, setCmdConfig } from './layers/active-layer-config.js';
 import { cmdTags } from './layers/path-commands.js';
 import { applyTransforms, setTransformsConfig } from './transform-handling.js';
+import { setFillAndStrokeConfig } from './user-actions.js';
 
 let cmd;
 let drawingShape = false;

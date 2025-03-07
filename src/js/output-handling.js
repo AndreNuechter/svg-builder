@@ -17,6 +17,7 @@ export {
     copyDataURIToClipboard,
     copyMarkupToClipboard,
     triggerDownload,
+    setOutputConfig,
     switchToOutputTab,
 };
 

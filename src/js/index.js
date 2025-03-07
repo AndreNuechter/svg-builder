@@ -21,10 +21,8 @@ import {
     changeBackgroundGridSize,
     finalizeShape,
     redo,
-    setCmd,
     setFillOrStroke,
     setMode,
-    togglePathClosing,
 } from './user-actions.js';
 import {
     centerViewBox, configOutput, copyDataURIToClipboard, copyMarkupToClipboard, switchToOutputTab, triggerDownload
@@ -44,6 +42,8 @@ import {
 import initializeCanvas from './drawing/initialize-canvas.js';
 import { arrowKeyup, pressKey } from './keyboard-interaction.js';
 import { centerRotation, resetTransforms, setTransform, setTransformTarget } from './transform-handling.js';
+import { configRangeInputLabel } from './helper-functions.js';
+import { setCmd, togglePathClosing } from './layers/active-layer-config.js';
 
 // FIXME clearing the canvas or deleting a layer doesnt clear activelayer config...what would be appropriate defaults when a layer is empty?
 
@@ -58,6 +58,11 @@ document.getElementById('add-layer').addEventListener('click', addLayer);
 document.getElementById('clear-all').addEventListener('click', clearDrawing);
 document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
+document.querySelectorAll('input[type="range"]').forEach((slider) => {
+    slider.addEventListener('input', ({ target }) => {
+        configRangeInputLabel(target, target.value);
+    });
+});
 downloadBtn.addEventListener('click', triggerDownload);
 fillAndStrokeForm.addEventListener('input', setFillOrStroke);
 fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));
@@ -83,3 +88,4 @@ window.addEventListener('keydown', pressKey);
 window.addEventListener('keyup', arrowKeyup);
 window.addEventListener('DOMContentLoaded', initializeSession, { once: true });
 window.addEventListener('DOMContentLoaded', initializeCanvas, { once: true });
+window.addEventListener('submit', (event) => event.preventDefault());

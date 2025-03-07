@@ -8,6 +8,7 @@ import {
 } from './constants.js';
 import {
     configClone,
+    configForm,
     getRelevantConfiguredStyles,
     getSVGCoords,
     last,
@@ -16,6 +17,7 @@ import {
 import { svgTemplates } from './dom-creations.js';
 import {
     controlPointContainer,
+    fillAndStrokeFields,
     svg,
 } from './dom-selections.js';
 import { mkControlPoints } from './control-points/control-point-handling.js';
@@ -35,10 +37,9 @@ export {
     changeBackgroundGridSize,
     finalizeShape,
     redo,
-    setCmd,
+    setFillAndStrokeConfig,
     setFillOrStroke,
     setMode,
-    togglePathClosing,
 };
 
 function addPoint(event) {
@@ -74,9 +75,7 @@ function changeBackgroundGridSize({ deltaY }) {
     // acceptable range for gridsize is (x: 10 >= x <= 80)
     if ((scalingDirection === -1 && currentValue === 10)
         || (scalingDirection === 1 && currentValue === 80)
-    ) {
-        return;
-    }
+    ) return;
 
     document.documentElement.style.setProperty(
         '--bg-grid-size', `${currentValue + backgroundGridStepsize * scalingDirection}px`,
@@ -118,8 +117,12 @@ function finalizeShape(event) {
     svg.onpointermove = null;
 }
 
-function setCmd({ target: { value } }) {
-    session.cmd = value;
+/**
+ * Adjusts the Fill & Stroke fieldset to a given style config.
+ * @param { Object } style The config to be applied.
+ */
+function setFillAndStrokeConfig(style) {
+    configForm(fillAndStrokeFields, style);
 }
 
 function setFillOrStroke({ target: { name, value } }) {
@@ -170,12 +173,4 @@ function setMode({ target: { value }, currentTarget }) {
         Object.assign(session.activeLayer.style, getRelevantConfiguredStyles(session.mode));
         save('setMode');
     }
-}
-
-// TODO mv to activeLayerConfig?
-function togglePathClosing({ target }) {
-    if (!session.activeLayer) return;
-
-    session.activeLayer.closePath = target.checked;
-    drawLayer(session.layerId);
 }
