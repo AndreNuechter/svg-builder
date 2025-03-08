@@ -4,11 +4,14 @@ import { svgTemplates } from '../dom-creations';
 import {
     drawingContent,
     drawingTitle,
+    layers,
+    layerSelect,
+    layerSelectors,
     pathClosingToggle,
     transformTargetSwitch
 } from '../dom-selections';
 import { configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
-import { addLayerSelector, deleteLayerSelectors } from '../layers/layer-management';
+import { addLayerSelector } from '../layers/layer-management';
 import drawing from './drawing';
 import session from '../session';
 import { setActiveLayerConfig, setCmdConfig } from '../layers/active-layer-config';
@@ -46,11 +49,22 @@ function initializeCanvas() {
     // rm and create cps
     updateControlPoints(session);
     // rm layerselectors
-    deleteLayerSelectors();
+    layerSelect.replaceChildren();
     // create layerselectors
     drawing.layers.forEach((_, index) => addLayerSelector(index));
+
+    // possibly check the now active layer's selector
+    // NOTE: this is a quickfix for undoing a deletion
+    if (session.layerId === -1 && layers.length > 0) {
+        session.layerId = 0;
+        layerSelectors[session.layerId].checked = true;
+    }
+
+    // set the mode
+    session.mode = session.activeLayer?.mode;
+
     // config the rest of the ui
-    pathClosingToggle.checked = session.activeLayer && session.activeLayer.closePath;
+    pathClosingToggle.checked = session.activeLayer?.closePath;
     drawingTitle.textContent = drawing.name || 'Unnamed drawing';
     transformTargetSwitch.checked = session.transformLayerNotDrawing;
     setCmdConfig(session);

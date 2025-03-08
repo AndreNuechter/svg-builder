@@ -26,7 +26,6 @@ export {
     addLayer,
     addLayerSelector,
     changeLayerLabel,
-    deleteLayerSelectors,
     dragLayerSelector,
     dragLayerSelectorOver,
     duplicateLayer,
@@ -76,60 +75,47 @@ function changeLayerLabel({ target }) {
 }
 
 function deleteLayer(id) {
+    const userDeletedActiveLayer = id === session.layerId;
+
     // delete the data
     drawing.layers.splice(id, 1);
     save('deleteLayer');
     // delete the svg element
     layers[id].remove();
     // delete the layer selector
-    deleteLayerSelectors();
+    layerSelect.children[id].remove();
 
-    if (id === session.layerId || layers.length === 0) {
-        // NOTE: might have been called before as `deleteLayerSelectors` can change the layerId
+    if (layers.length === 0) {
+        // all layers have been deleted, so we...
+        // reset the layerId,
+        session.layerId = -1;
+        // show the no-layers message and
+        vacancyMsgStyle.display = 'initial';
+        // rm the cps
         remControlPoints();
-        setActiveLayerConfig();
 
-        if (layers.length === 0) return;
-
-        // NOTE: this needs to happen now because deleting the last layer,
-        // before `deleteLayerSelectors` had a chance to correct the layerId,
-        // would cause an invalid lookup
-        session.mode = session.activeLayer.mode;
-    }
-}
-
-// TODO can we keep this local or get rid of it?...in here it's only used in deleteLayer and outside in initCanvas
-function deleteLayerSelectors() {
-    const layersCount = layers.length;
-
-    vacancyMsgStyle.display = layersCount ? 'none' : 'initial';
-
-    while (layerSelect.childElementCount > layersCount) {
-        layerSelect.lastChild.remove();
+        return;
     }
 
-    if (layersCount === 0) {
-        session.layerId = undefined;
-    } else if (session.layerId === layersCount) {
+    // the user deleted a layer before the active layer, so we need to decrement layerId
+    if (id < session.layerId || session.layerId === layers.length) {
         session.layerId -= 1;
-    } else {
-        // NOTE: quickfix for undoing deletion
-        // TODO: restore active layer?!...in resetCanvas()?
-        if (session.layerId === undefined) {
-            session.layerId = 0;
-        }
+    }
 
+    // the active layer changed, so we adjust drawing and ui to the new one
+    if (userDeletedActiveLayer) {
         applyTransforms(drawing, session);
-        reorderLayerSelectors(session.layerId);
+        setActiveLayerConfig();
         setFillAndStrokeConfig(session.activeLayer.style);
         updateControlPoints(session);
-        session.mode = session.activeLayer.mode;
     }
 
-    // check the active layer's selector
-    if (layerSelectors[session.layerId]) {
-        layerSelectors[session.layerId].checked = true;
-    }
+    // update the following layer selector labels
+    reorderLayerSelectors(id);
+    // check the now active layer's selector
+    layerSelectors[session.layerId].checked = true;
+    // select the mode of the now active layer
+    session.mode = session.activeLayer.mode;
 }
 
 function dragLayerSelector(event) {
@@ -137,7 +123,7 @@ function dragLayerSelector(event) {
     event.dataTransfer.effectAllowed = 'move';
 }
 
-// NOTE: this handler is just here so that the container is properly designated as a dropzone
+// NOTE: this handler does only exist so that the container is properly designated as a dropzone
 function dragLayerSelectorOver(event) {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -217,7 +203,7 @@ function selectOrDeleteLayer({ target }) {
 
     // user clicked the delete btn
     if (target.classList.contains('layer-selector__delete-btn')) {
-        deleteLayer(label.dataset.layerId);
+        deleteLayer(Number(label.dataset.layerId));
         return;
     }
 
