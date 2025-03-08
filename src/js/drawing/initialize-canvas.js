@@ -14,7 +14,7 @@ import session from '../session';
 import { setActiveLayerConfig, setCmdConfig } from '../layers/active-layer-config';
 import { applyTransforms, setTransformsConfig } from '../transform-handling';
 import { setOutputConfig } from '../output-handling';
-import { setFillAndStrokeConfig } from '../user-actions';
+import { setFillAndStrokeConfig } from '../fill-and-stroke-handling';
 
 export default initializeCanvas;
 

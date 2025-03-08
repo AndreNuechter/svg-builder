@@ -12,7 +12,7 @@ import layerTypes from './layers/layer-types.js';
 import { setActiveLayerConfig, setCmdConfig } from './layers/active-layer-config.js';
 import { cmdTags } from './layers/path-commands.js';
 import { applyTransforms, setTransformsConfig } from './transform-handling.js';
-import { setFillAndStrokeConfig } from './user-actions.js';
+import { setFillAndStrokeConfig } from './fill-and-stroke-handling.js';
 
 let cmd;
 let drawingShape = false;

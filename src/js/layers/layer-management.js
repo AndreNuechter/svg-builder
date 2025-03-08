@@ -20,7 +20,7 @@ import session from '../session';
 import { Layer } from './layer-handling';
 import { defaults } from '../constants';
 import { applyTransforms } from '../transform-handling';
-import { setFillAndStrokeConfig } from '../user-actions';
+import { setFillAndStrokeConfig } from '../fill-and-stroke-handling';
 
 export {
     addLayer,

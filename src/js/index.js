@@ -16,18 +16,16 @@ import {
     undoBtn,
     redoBtn,
 } from './dom-selections.js';
+import changeBackgroundGridSize from './change-background-grid-size.js';
 import {
-    addPoint,
-    changeBackgroundGridSize,
-    finalizeShape,
-    redo,
-    setFillOrStroke,
-    setMode,
-} from './user-actions.js';
-import {
-    centerViewBox, configOutput, copyDataURIToClipboard, copyMarkupToClipboard, switchToOutputTab, triggerDownload
+    centerViewBox,
+    configOutput,
+    copyDataURIToClipboard,
+    copyMarkupToClipboard,
+    switchToOutputTab,
+    triggerDownload
 } from './output-handling.js';
-import { clearDrawing, save, undo } from './drawing/drawing.js';
+import { clearDrawing, redo, save, undo } from './drawing/drawing.js';
 import { initializeSession } from './session.js';
 import {
     addLayer,
@@ -41,9 +39,18 @@ import {
 } from './layers/layer-management.js';
 import initializeCanvas from './drawing/initialize-canvas.js';
 import { arrowKeyup, pressKey } from './keyboard-interaction.js';
-import { centerRotation, resetTransforms, setTransform, setTransformTarget } from './transform-handling.js';
+import {
+    centerRotation,
+    resetTransforms,
+    setTransform,
+    setTransformTarget
+} from './transform-handling.js';
 import { configRangeInputLabel } from './helper-functions.js';
 import { setCmd, togglePathClosing } from './layers/active-layer-config.js';
+import { setFillOrStroke } from './fill-and-stroke-handling.js';
+import addPoint from './layers/add-point.js';
+import finalizeShape from './layers/finalize-shape.js';
+import setMode from './set-mode.js';
 
 // FIXME clearing the canvas or deleting a layer doesnt clear activelayer config...what would be appropriate defaults when a layer is empty?
 
