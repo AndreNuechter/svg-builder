@@ -2,7 +2,7 @@ import { defaults } from './constants';
 import { svgTemplates } from './dom-creations';
 import { save } from './drawing/drawing';
 import { configClone, getRelevantConfiguredStyles } from './helper-functions';
-import { addLayer } from './layers/layer-management';
+import { addLayer } from './layers/layer-handling';
 import session from './session';
 
 export default function setMode({ target: { value } }) {

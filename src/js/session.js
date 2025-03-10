@@ -84,5 +84,6 @@ function initializeSession() {
         cmd: 'M',
         layerId: drawing.layers.length ? 0 : -1,
         mode: drawing.layers[0]?.mode || defaults.mode,
+        transformLayerNotDrawing: false
     });
 }

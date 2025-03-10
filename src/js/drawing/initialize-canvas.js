@@ -12,7 +12,7 @@ import {
     vacancyMsgStyle
 } from '../dom-selections';
 import { configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
-import { addLayerSelector } from '../layers/layer-management';
+import { addLayerSelector } from '../layers/layer-handling';
 import drawing from './drawing';
 import session from '../session';
 import { setActiveLayerConfig, setCmdConfig } from '../layers/active-layer-config';

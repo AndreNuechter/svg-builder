@@ -1,5 +1,5 @@
 import drawing, { redo, save, undo } from './drawing/drawing';
-import { duplicateLayer } from './layers/layer-management';
+import { duplicateLayer } from './layers/layer-handling';
 import { cmdTags } from './layers/path-commands';
 import session from './session';
 import { applyTransforms } from './transform-handling';

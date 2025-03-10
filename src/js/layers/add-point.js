@@ -2,7 +2,7 @@ import { controlPointContainer } from '../dom-selections';
 import { getSVGCoords } from '../helper-functions';
 import session from '../session';
 import { drawLayer, styleLayer } from './layer-handling';
-import { addLayer } from './layer-management';
+import { addLayer } from './layer-handling';
 import layerTypes from './layer-types';
 
 export default function addPoint(event) {

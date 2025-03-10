@@ -36,7 +36,7 @@ import {
     reorderLayers,
     selectOrDeleteLayer,
     startDraggingLayerSelector
-} from './layers/layer-management.js';
+} from './layers/layer-handling.js';
 import initializeCanvas from './drawing/initialize-canvas.js';
 import { arrowKeyup, pressKey } from './keyboard-interaction.js';
 import {
