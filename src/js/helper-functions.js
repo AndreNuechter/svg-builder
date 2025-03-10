@@ -64,7 +64,7 @@ function configInput(input, value) {
     input.value = value;
 
     if (input.type === 'range') {
-        configRangeInputLabel(input, value);
+        configRangeInputLabel(input);
     }
 }
 
@@ -75,8 +75,8 @@ function configForm(formElements, conf) {
 }
 
 /** Display the value of range inputs behind their labels. */
-function configRangeInputLabel(target, value) {
-    target.previousElementSibling.dataset.value = ` (${value})`;
+function configRangeInputLabel(target) {
+    target.previousElementSibling.dataset.value = ` (${target.value})`;
 }
 
 /**

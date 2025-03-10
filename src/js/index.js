@@ -49,7 +49,6 @@ import { configRangeInputLabel } from './helper-functions.js';
 import { setCmd, togglePathClosing } from './layers/active-layer-config.js';
 import { setFillOrStroke } from './fill-and-stroke-handling.js';
 import addPoint from './layers/add-point.js';
-import finalizeShape from './layers/finalize-shape.js';
 import setMode from './set-mode.js';
 
 // FIXME clearing the canvas or deleting a layer doesnt clear activelayer config...what would be appropriate defaults when a layer is empty?
@@ -65,11 +64,8 @@ document.getElementById('add-layer').addEventListener('click', addLayer);
 document.getElementById('clear-all').addEventListener('click', clearDrawing);
 document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
-document.querySelectorAll('input[type="range"]').forEach((slider) => {
-    slider.addEventListener('input', ({ target }) => {
-        configRangeInputLabel(target, target.value);
-    });
-});
+document.querySelectorAll('input[type="range"]')
+    .forEach((slider) => slider.addEventListener('input', ({ target }) => configRangeInputLabel(target)));
 downloadBtn.addEventListener('click', triggerDownload);
 fillAndStrokeForm.addEventListener('input', setFillOrStroke);
 fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));
@@ -85,8 +81,6 @@ pathClosingToggle.addEventListener('change', togglePathClosing);
 redoBtn.addEventListener('click', redo);
 svg.addEventListener('wheel', changeBackgroundGridSize);
 svg.addEventListener('pointerdown', addPoint);
-svg.addEventListener('pointerleave', finalizeShape);
-svg.addEventListener('pointerup', finalizeShape);
 transformsForm.addEventListener('input', setTransform);
 transformsForm.addEventListener('change', () => save('setTransform'));
 transformTargetSwitch.addEventListener('change', setTransformTarget);

@@ -15,7 +15,6 @@ import { applyTransforms, setTransformsConfig } from './transform-handling.js';
 import { setFillAndStrokeConfig } from './fill-and-stroke-handling.js';
 
 let cmd;
-let drawingShape = false;
 let layerId = -1;
 let mode;
 let transformLayerNotDrawing = false;
@@ -34,12 +33,6 @@ const session = {
         val = cmdTags.has(val) ? val : 'M';
         cmd = val;
         cmdSelect.value = val;
-    },
-    get drawingShape() {
-        return drawingShape;
-    },
-    set drawingShape(val) {
-        drawingShape = val;
     },
     get layerId() {
         return layerId;
@@ -70,7 +63,6 @@ const session = {
         modesForm.modes.value = val;
         document.body.dataset.mode = val;
     },
-    shapeStart: {},
     get transformLayerNotDrawing() {
         return transformLayerNotDrawing;
     },

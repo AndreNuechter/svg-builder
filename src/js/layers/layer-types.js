@@ -1,43 +1,30 @@
 import { mkControlPoints, remLastControlPoint } from '../control-points/control-point-handling.js';
-import { svg } from '../dom-selections.js';
+import { save } from '../drawing/drawing.js';
 import {
     configElement,
-    drawShape,
     last,
     lastId,
     pointToMarkup,
 } from '../helper-functions.js';
+import { setActiveLayerConfig } from './active-layer-config.js';
 import { cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd, mkDefaultPoint } from './path-commands.js';
 
-const shaperFuncs = {
-    rect: (x, y) => (x1, y1) => ({
-        x: Math.min(x, x1),
-        y: Math.min(y, y1),
-        width: Math.abs(x - x1),
-        height: Math.abs(y - y1),
-    }),
-    ellipse: (x, y) => (x1, y1) => ({
-        rx: Math.abs(x - x1),
-        ry: Math.abs(y - y1),
-    }),
-};
+const defaults = { rect: 100, ellipse: 50 };
 const layerTypes = {
     rect: LayerType(
         (session, points, x, y) => {
             if (points[0]) return;
 
             const rect = session.activeSVGElement;
-            points.push({ x, y });
-            configElement(rect, points[0]);
-            session.drawingShape = true;
-            Object.assign(session.shapeStart, { x, y });
-            svg.onpointermove = drawShape(rect, shaperFuncs.rect(x, y));
+            const newPoint = { x, y, width: defaults.rect, height: defaults.rect };
+
+            drawShape(points, newPoint, rect, session);
         },
         ({ points: [point] }) => ({
             x: point.x,
             y: point.y,
-            width: point.width || 0,
-            height: point.height || 0,
+            width: point.width || defaults.rect,
+            height: point.height || defaults.rect,
         }),
     ),
     ellipse: LayerType(
@@ -45,19 +32,15 @@ const layerTypes = {
             if (points[0]) return;
 
             const ellipse = session.activeSVGElement;
-            const newPoint = { cx: x, cy: y };
+            const newPoint = { cx: x, cy: y, rx: defaults.ellipse, ry: defaults.ellipse };
 
-            points.push(newPoint);
-            configElement(ellipse, newPoint);
-            session.drawingShape = true;
-            Object.assign(session.shapeStart, { x, y });
-            svg.onpointermove = drawShape(ellipse, shaperFuncs.ellipse(x, y));
+            drawShape(points, newPoint, ellipse, session);
         },
         ({ points: [point] }) => ({
             cx: point.cx,
             cy: point.cy,
-            rx: point.rx || 0,
-            ry: point.ry || 0,
+            rx: point.rx || defaults.ellipse,
+            ry: point.ry || defaults.ellipse,
         }),
     ),
     path: LayerType(
@@ -108,11 +91,24 @@ export default layerTypes;
 
 /**
  * @param { Function } mkPoint Executed when a point for this type of layer has been added.
- * Configs the layers HTML, data and possibly session (the drawingShape bit).
+ * Configs the layers HTML and data.
  * @param { Function } geometryProps Exectuted when a layer of this type is drawn.
  * Returns an object of geometry-props relevant for that type of layer paired w the respective layers config.
  * @returns {{ mkPoint: Function, geometryProps: Function }}
  */
 function LayerType(mkPoint, geometryProps) {
     return { mkPoint, geometryProps };
+}
+
+function drawShape(points, data, shape, session) {
+    points.push(data);
+    configElement(shape, data);
+    save('drawShape');
+    setActiveLayerConfig();
+    mkControlPoints(
+        session.activeLayer,
+        session.layerId,
+        last(points),
+        lastId(points)
+    );
 }

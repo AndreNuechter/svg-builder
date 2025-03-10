@@ -5,12 +5,7 @@ import { configClone, getRelevantConfiguredStyles } from './helper-functions';
 import { addLayer } from './layers/layer-management';
 import session from './session';
 
-export default function setMode({ target: { value }, currentTarget }) {
-    if (session.drawingShape) {
-        currentTarget.modes.value = session.mode;
-        return;
-    }
-
+export default function setMode({ target: { value } }) {
     session.mode = value;
 
     if (!session.activeLayer) return;
