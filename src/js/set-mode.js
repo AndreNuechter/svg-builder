@@ -16,10 +16,13 @@ export default function setMode({ target: { value } }) {
         addLayer();
     } else {
         session.activeLayer.mode = session.mode;
-        const shape = configClone(svgTemplates[session.mode])({
-            'data-layer-id': session.layerId,
-        });
+
+        const shape = configClone(
+            svgTemplates[session.mode],
+            { 'data-layer-id': session.layerId }
+        );
         const oldLayer = session.activeSVGElement;
+
         oldLayer.replaceWith(shape);
         oldLayer.remove();
         // remove mode-specific style-props of old mode

@@ -38,8 +38,8 @@ function areObjectsEqual(a, b) {
  * @param { Node } template The element to be cloned.
  * @returns { Function }
  */
-function configClone(template) {
-    return (attrs) => configElement(template.cloneNode(false), attrs);
+function configClone(template, attrs) {
+    return configElement(template.cloneNode(false), attrs);
 }
 
 /**

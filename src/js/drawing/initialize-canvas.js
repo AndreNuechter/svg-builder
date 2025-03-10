@@ -38,12 +38,15 @@ function initializeCanvas() {
                 : layer.points[0] || {};
 
             // return a configured svg element representing this layer
-            return configClone(shape)({
-                'data-layer-id': index,
-                ...layer.style,
-                ...geometryProps,
-                transform: stringifyTransforms(layer.transforms),
-            });
+            return configClone(
+                shape,
+                {
+                    'data-layer-id': index,
+                    ...layer.style,
+                    ...geometryProps,
+                    transform: stringifyTransforms(layer.transforms),
+                }
+            );
         })
     );
     // rm and create cps

@@ -63,7 +63,8 @@ function startDragging(layer, pointId, controlPointType) {
 }
 
 function mkSlope(startPoint, endPoint) {
-    const slope = configClone(lineTemplate)(
+    const slope = configClone(
+        lineTemplate,
         {
             x1: startPoint.getAttribute('cx'),
             y1: startPoint.getAttribute('cy'),
@@ -96,12 +97,15 @@ function mkSlope(startPoint, endPoint) {
  * @returns { SVGCircleElement } A preconfigured cp.
  */
 function ControlPoint(cx, cy, pointId, controlPointType, layerId) {
-    return configClone(circleTemplate)({
-        class: `control-point ${controlPointType.CSSClass}`,
-        cx,
-        cy,
-        onpointerdown: startDragging(layerId, pointId, controlPointType),
-    });
+    return configClone(
+        circleTemplate,
+        {
+            class: `control-point ${controlPointType.CSSClass}`,
+            cx,
+            cy,
+            onpointerdown: startDragging(layerId, pointId, controlPointType),
+        }
+    );
 }
 
 /**

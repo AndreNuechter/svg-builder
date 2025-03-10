@@ -44,9 +44,12 @@ function addLayer() {
         structuredClone(defaults.transforms),
     ));
     session.layerId = lastId(drawing.layers);
-    drawingContent.append(configClone(svgTemplates[session.mode])({
-        'data-layer-id': session.layerId,
-    }));
+    drawingContent.append(
+        configClone(
+            svgTemplates[session.mode],
+            { 'data-layer-id': session.layerId }
+        )
+    );
     addLayerSelector(session.layerId);
 }
 
