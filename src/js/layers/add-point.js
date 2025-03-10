@@ -19,10 +19,12 @@ export default function addPoint(event) {
             y
         );
 
-    // enable dragging the newly created path-point wo having to release the pointer
-    if (session.mode === 'path') {
-        controlPointContainer.lastElementChild.dispatchEvent(new Event('pointerdown'));
-    }
+    // enable dragging the new point wo having to release the pointer
+    const createdPoint = session.mode === 'path'
+        ? controlPointContainer.lastElementChild
+        : controlPointContainer.firstElementChild;
+
+    createdPoint.dispatchEvent(new Event('pointerdown'));
 
     styleLayer(session.layerId);
     drawLayer(session.layerId);
