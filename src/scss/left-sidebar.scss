@@ -75,6 +75,9 @@
 #output-configuration {
     grid-area: leftSidebar;
     margin: 0 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 
     >fieldset {
         display: flex;

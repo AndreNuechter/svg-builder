@@ -1,40 +1,44 @@
 form#fill-and-stroke
     fieldset.collapsable
         legend Fill &amp; Stroke
-        label.for-all
-            span Stroke
-            input(type="color" name="stroke")
-        label.for-all
-            span Stroke-opacity
-            input(type="range" min=0 max=1 step=0.1 value=1 name="stroke-opacity")
-        label.for-all
-            span Stroke-width
-            input(type="range" min=0 max=50 step=0.1 value=2 name="stroke-width")
-        label.for-path
-            span Stroke-linecap
-            select(name="stroke-linecap")
-                option butt
-                option round
-                option square
-        label.for-path.for-rect
-            span Stroke-linejoin
-            select(name="stroke-linejoin")
-                option arcs
-                option bevel
-                option miter
-                option miter-clip
-                option round
-        label.for-path.for-rect
-            span Stroke-miterlimit
-            input(type="number" min=1 step=0.1 value=1 name="stroke-miterlimit")
-        label.for-all
-            span Fill
-            input(type="color" name="fill")
-        label.for-all
-            span Fill-opacity
-            input(type="range" min=0 max=1 step=0.1 value=1 name="fill-opacity")
-        label.for-path
-            span Fill-rule
-            select(name="fill-rule")
-                option evenodd
-                option nonzero
+        fieldset
+            legend Fill
+            label.for-all
+                span Fill
+                input(type="color" name="fill")
+            label.for-all
+                span Fill-opacity
+                input(type="range" min=0 max=1 step=0.1 value=1 name="fill-opacity")
+            label.for-path
+                span Fill-rule
+                select(name="fill-rule")
+                    option evenodd
+                    option nonzero
+        fieldset
+            legend Stroke
+            label.for-all
+                span Stroke
+                input(type="color" name="stroke")
+            label.for-all
+                span Stroke-opacity
+                input(type="range" min=0 max=1 step=0.1 value=1 name="stroke-opacity")
+            label.for-all
+                span Stroke-width
+                input(type="range" min=0 max=50 step=0.1 value=2 name="stroke-width")
+            label.for-path
+                span Stroke-linecap
+                select(name="stroke-linecap")
+                    option butt
+                    option round
+                    option square
+            label.for-path.for-rect
+                span Stroke-linejoin
+                select(name="stroke-linejoin")
+                    option arcs
+                    option bevel
+                    option miter
+                    option miter-clip
+                    option round
+            label.for-path.for-rect
+                span Stroke-miterlimit
+                input(type="number" min=1 step=0.1 value=1 name="stroke-miterlimit")

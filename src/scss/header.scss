@@ -23,8 +23,6 @@ header {
 .tab-link {
     display: inline-block;
     color: var(--sub-bg-color);
-    // TODO rework this...it kinda looks like the inactive tab is active
-    background: var(--sub-highlight-color);
     border-right: var(--tab-border);
     height: var(--tab-links-height);
     padding: 4px 8px;
@@ -32,6 +30,7 @@ header {
 
     &.active {
         background: var(--main-bg-color);
+        font-weight: bold;
         // TODO find better way to hide container border on active tab
         border-bottom: 20px solid var(--main-bg-color);
     }
