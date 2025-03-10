@@ -8,7 +8,8 @@ import {
     layerSelect,
     layerSelectors,
     pathClosingToggle,
-    transformTargetSwitch
+    transformTargetSwitch,
+    vacancyMsgStyle
 } from '../dom-selections';
 import { configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
 import { addLayerSelector } from '../layers/layer-management';
@@ -62,6 +63,11 @@ function initializeCanvas() {
         session.layerId = 0;
         layerSelectors[session.layerId].checked = true;
     }
+
+    // hide or show the no-layer message
+    vacancyMsgStyle.display = layers.length > 0
+        ? 'none'
+        : 'initial';
 
     // set the mode
     session.mode = session.activeLayer?.mode;
