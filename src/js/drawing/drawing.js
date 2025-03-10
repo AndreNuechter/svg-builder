@@ -26,6 +26,8 @@ export {
 };
 
 function clearDrawing() {
+    if (drawing.layers.length === 0) return;
+
     Object.assign(drawing, {
         name: '',
         layers: [],

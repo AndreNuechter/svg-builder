@@ -150,6 +150,8 @@ function drawLayer(
 }
 
 function duplicateLayer() {
+    if (!session.activeSVGElement) return;
+
     drawing.layers.splice(session.layerId, 0, structuredClone(session.activeLayer));
     session.activeSVGElement.after(session.activeSVGElement.cloneNode(true));
     session.layerId += 1;

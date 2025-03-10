@@ -51,8 +51,6 @@ import { setFillOrStroke } from './fill-and-stroke-handling.js';
 import addPoint from './layers/add-point.js';
 import setMode from './set-mode.js';
 
-// FIXME clearing the canvas or deleting a layer doesnt clear activelayer config...what would be appropriate defaults when a layer is empty?
-
 cmdSelect.addEventListener('change', setCmd);
 document.addEventListener('initializeCanvas', initializeCanvas);
 document.getElementById('reset-transforms').addEventListener('click', resetTransforms);
@@ -65,7 +63,9 @@ document.getElementById('clear-all').addEventListener('click', clearDrawing);
 document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
 document.querySelectorAll('input[type="range"]')
-    .forEach((slider) => slider.addEventListener('input', ({ target }) => configRangeInputLabel(target)));
+    .forEach(
+        (slider) => slider.addEventListener('input', ({ target }) => configRangeInputLabel(target))
+    );
 downloadBtn.addEventListener('click', triggerDownload);
 fillAndStrokeForm.addEventListener('input', setFillOrStroke);
 fillAndStrokeForm.addEventListener('change', () => save('setFillOrStroke'));

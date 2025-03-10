@@ -8,6 +8,10 @@
     .for-rect {
         flex-direction: column;
     }
+
+    .empty {
+        display: none;
+    }
 }
 
 #path-config__misc select {

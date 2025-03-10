@@ -29,6 +29,7 @@ const pathCmdTmpls = {
     H: document.getElementById('h-cmd-config-tmpl').content,
     A: document.getElementById('a-cmd-config-tmpl').content,
 };
+const noLayerMsg = document.getElementById('no-layer-msg2');
 
 activeLayerConfigForm.addEventListener('change', () => save('changed active layer via fieldset'));
 activeLayerConfigForm.addEventListener('input', configActiveLayer);
@@ -225,7 +226,6 @@ function configPathLayer(updatedInput) {
             break;
         case 'y2':
             controlPoints[firstCpAt + 1].setAttribute('cy', point.y2);
-            break;
     }
 }
 
@@ -259,7 +259,24 @@ function mkPathCmdConfig(cmd) {
 // TODO is called twice on start, once when setting the current layer and again when the canvas is initialized...can we change that?
 /** Represent the active layer in the fieldset. */
 function setActiveLayerConfig(activeLayer = session.activeLayer) {
-    if (!activeLayer) return;
+    // we dont want to show stale data in the config
+    if (activeLayer === undefined || activeLayer.points.length === 0) {
+        if (activeLayer?.mode === 'path') {
+            // these inputs are dynamically created and therefore rm'd now
+            pathCmdConfigsContainer.replaceChildren();
+        } else {
+            // these inputs are static and therefore hidden
+            ellipseConfig.classList.add('empty');
+            rectConfig.classList.add('empty');
+        }
+
+        noLayerMsg.style.display = 'block';
+
+        return;
+    }
+
+    // we now know there's layer data
+    noLayerMsg.style.display = 'none';
 
     if (activeLayer.mode === 'path') {
         let indexOfFirstCp = 0;
@@ -283,22 +300,25 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
         return;
     }
 
+    // show the relevant config again
+    ellipseConfig.classList.remove('empty');
+    rectConfig.classList.remove('empty');
+
     // NOTE: ellipse or rect layers have only one point
-    const firstPoint = activeLayer.points[0] || {};
+    const firstPoint = activeLayer.points[0];
 
     switch (activeLayer.mode) {
         case 'ellipse':
-            ellipseConfigCx.value = firstPoint.cx || 0;
-            ellipseConfigCy.value = firstPoint.cy || 0;
-            ellipseConfigRx.value = firstPoint.rx || 0;
-            ellipseConfigRy.value = firstPoint.ry || 0;
+            ellipseConfigCx.value = firstPoint.cx;
+            ellipseConfigCy.value = firstPoint.cy;
+            ellipseConfigRx.value = firstPoint.rx;
+            ellipseConfigRy.value = firstPoint.ry;
             break;
         case 'rect':
-            rectConfigCx.value = firstPoint.x || 0;
-            rectConfigCy.value = firstPoint.y || 0;
-            rectConfigWidth.value = firstPoint.width || 0;
-            rectConfigHeight.value = firstPoint.height || 0;
-            break;
+            rectConfigCx.value = firstPoint.x;
+            rectConfigCy.value = firstPoint.y;
+            rectConfigWidth.value = firstPoint.width;
+            rectConfigHeight.value = firstPoint.height;
     }
 }
 
