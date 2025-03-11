@@ -55,11 +55,12 @@ function copyMarkupToClipboard() {
     writeToClipboard(generateMarkUp());
 }
 
-function download(url) {
+function download(href) {
+    const fileName = drawing.name || 'My_SVG';
+
     Object.assign(downloadLink, {
-        // TODO use drawing title if it is set
-        download: `My_SVG.${drawing.outputConfig['file-format']}`,
-        href: url,
+        download: `${fileName}.${drawing.outputConfig['file-format']}`,
+        href,
     });
     downloadLink.click();
 }
