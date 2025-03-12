@@ -11,12 +11,12 @@ import {
     transformTargetSwitch,
     vacancyMsgStyle
 } from '../dom-selections';
-import { configClone, pointToMarkup, stringifyTransforms } from '../helper-functions';
+import { configClone, pointToMarkup } from '../helper-functions';
 import { addLayerSelector } from '../layers/layer-handling';
 import drawing from './drawing';
 import session from '../session';
 import { setActiveLayerConfig, setCmdConfig } from '../layers/active-layer-config';
-import { applyTransforms, setTransformsConfig } from '../transform-handling';
+import { applyTransforms, setTransformsConfig, stringifyTransforms } from '../transform-handling';
 import { setOutputConfig } from '../output-handling';
 import { setFillAndStrokeConfig } from '../fill-and-stroke-handling';
 

@@ -4,6 +4,14 @@ fieldset#transforms.collapsable
         span Just active layer
         input(type="checkbox" name="transform-layer-only" title="Check this to transform only the active layer")
     form#transformations
+        fieldset(name="translate")
+            legend Translate
+            label
+                span x
+                input.transform-config(type="number" step=1 value=1 data-id=0 data-transform="translate")
+            label
+                span y
+                input.transform-config(type="number" step=1 value=1 data-id=1 data-transform="translate")
         fieldset(name="scale")
             legend Scale
             label

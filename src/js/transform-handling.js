@@ -12,7 +12,8 @@ export {
     resetTransforms,
     setTransform,
     setTransformsConfig,
-    setTransformTarget
+    setTransformTarget,
+    stringifyTransforms
 };
 
 /**
@@ -77,10 +78,11 @@ function setCenterOfRotation(element, transformTarget) {
 }
 
 function setTransform({ target: { classList, dataset, name, value } }) {
-    // NOTE: 'rotate' and 'scale' have more than one param
+    // NOTE: transforms w this class have more than one param and associated input
     if (classList.contains('transform-config')) {
         const { transform, id } = dataset;
-        session.transformTarget[transform][+id] = value;
+
+        session.transformTarget[transform][Number(id)] = value;
     } else {
         session.transformTarget[name] = value;
     }
@@ -94,8 +96,6 @@ function setTransform({ target: { classList, dataset, name, value } }) {
  */
 function setTransformsConfig(conf) {
     Object.entries(conf)
-        // NOTE: we manage translations via arrow-keys and not via the form
-        .filter(([key]) => key !== 'translate')
         .forEach(([key, val]) => {
             if (complexTransforms[key]) {
                 val.forEach((v, i) => configInput(complexTransforms[key][i], v));

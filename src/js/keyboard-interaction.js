@@ -9,6 +9,7 @@ const ctrlActions = {
     Z: undo,
     Y: redo,
 };
+// TODO delete this since translation now happens via the fieldset?
 const arrowKeyActions = Object.freeze({
     ARROWUP: Object.freeze({ affectedAxis: 1, translation: decrementByOne }),
     ARROWDOWN: Object.freeze({ affectedAxis: 1, translation: incrementByOne }),

@@ -20,6 +20,7 @@ const svg = document.getElementById('svg-canvas');
 const transformsForm = document.getElementById('transformations');
 const transformFields = transformsForm.elements;
 const rotateInputs = transformFields.rotate.getElementsByTagName('input');
+const translateInputs = transformFields.translate.getElementsByTagName('input');
 const scaleInputs = transformFields.scale.getElementsByTagName('input');
 const slopes = controlPointContainer.getElementsByTagName('line');
 const [transformTargetSwitch] = document.getElementsByName('transform-layer-only');
@@ -63,6 +64,7 @@ export {
     transformFields,
     transformsForm,
     transformTargetSwitch,
+    translateInputs,
     undoBtn,
     vacancyMsgStyle,
 };

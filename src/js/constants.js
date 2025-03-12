@@ -1,8 +1,9 @@
-import { rotateInputs, scaleInputs } from './dom-selections.js';
+import { rotateInputs, scaleInputs, translateInputs } from './dom-selections.js';
 
 const complexTransforms = Object.freeze({
     scale: scaleInputs,
     rotate: rotateInputs,
+    translate: translateInputs
 });
 const defaults = Object.freeze({
     mode: 'path',
@@ -19,8 +20,7 @@ const defaults = Object.freeze({
         'file-format': 'svg',
     }),
     transforms: Object.freeze({
-        // NOTE: translate is made up of numbers instead of strs like the other transforms as these values are changed via the `moves` obj from below
-        translate: Object.freeze([0, 0]),
+        translate: Object.freeze(['0', '0']),
         scale: Object.freeze(['1', '1']),
         rotate: Object.freeze(['0', '0', '0']),
         skewX: '0',

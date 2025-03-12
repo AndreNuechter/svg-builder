@@ -2,7 +2,8 @@ import { optimize } from 'svgo';
 import { canvas, downloadLink, dummyImg } from './dom-creations';
 import { drawingContent, outputConfig, preview } from './dom-selections';
 import drawing, { save } from './drawing/drawing';
-import { configElement, configForm, stringifyTransforms } from './helper-functions';
+import { configElement, configForm } from './helper-functions';
+import { stringifyTransforms } from './transform-handling';
 
 const ctx = canvas.getContext('2d');
 const layerIdRe = / data-layer-id="\d+"/g;

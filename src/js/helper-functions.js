@@ -12,15 +12,12 @@ export {
     configForm,
     configInput,
     configRangeInputLabel,
-    drawShape,
-    isBoolean,
     last,
     lastId,
     getRelevantConfiguredStyles,
     getRelevantDefaultStyles,
     getSVGCoords,
     pointToMarkup,
-    stringifyTransforms,
 };
 
 /**
@@ -79,19 +76,6 @@ function configRangeInputLabel(target) {
     target.previousElementSibling.dataset.value = ` (${target.value})`;
 }
 
-/**
- * A helper for initializing ellipses and rects.
- * @param { SVGEllipseElement | SVGRectElement } shape The shape being drawn.
- * @param { Function } getAttrs A lambda determining the new geometry of the shape based on the current pointer-position.
- * @returns { Function } An eventHandler for drawing a shape (ellipse or rect).
- */
-function drawShape(shape, getAttrs) {
-    return (event) => {
-        const [x1, y1] = getSVGCoords(event);
-        configElement(shape, getAttrs(x1, y1));
-    };
-}
-
 function getRelevantConfiguredStyles(mode) {
     return getModeSpecificStyleNames(mode)
         .reduce(
@@ -128,10 +112,6 @@ function getSVGCoords({ x, y }) {
     return [svgX, svgY];
 }
 
-function isBoolean(val) {
-    return typeof val === 'boolean';
-}
-
 function last(arr) {
     return arr[lastId(arr)];
 }
@@ -147,23 +127,4 @@ function lastId(arr) {
  */
 function pointToMarkup(point) {
     return `${point.cmd}${pathCmds[point.cmd](point)}`;
-}
-
-/**
- * Reduces an object of svg-transforms into a string, readily inserted into HTML.
- * @param { Object } transformData The transforms to be stringified.
- * @returns { string } The stringified transforms.
- */
-function stringifyTransforms(transformData) {
-    return Object
-        .entries(transformData)
-        .reduce(
-            (str, [key, val]) => `${str}${key}(${
-                // NOTE: scale and rotate take more than 1 param, of which some may be ''
-                typeof val === 'object'
-                    ? val.filter((val) => val !== '')
-                    : val
-            })`,
-            ''
-        );
 }
