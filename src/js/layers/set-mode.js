@@ -1,9 +1,9 @@
-import { defaults } from './constants';
-import { svgTemplates } from './dom-creations';
-import { save } from './drawing/drawing';
-import { configClone, getRelevantConfiguredStyles } from './helper-functions';
-import { addLayer } from './layers/layer-handling';
-import session from './session';
+import { defaults } from '../constants';
+import { svgTemplates } from '../dom-creations';
+import { save } from '../drawing/drawing';
+import { configClone, getRelevantConfiguredStyles } from '../helper-functions';
+import session from '../session';
+import { addLayer } from './layer-handling';
 
 export default function setMode({ target: { value } }) {
     session.mode = value;

@@ -30,7 +30,6 @@ export {
     dragLayerSelectorOver,
     drawLayer,
     duplicateLayer,
-    Layer,
     reorderLayers,
     selectOrDeleteLayer,
     startDraggingLayerSelector,
@@ -38,14 +37,16 @@ export {
 };
 
 function addLayer() {
-    drawing.layers.push(Layer(
-        session.mode,
-        (!session.activeLayer
-            ? getRelevantConfiguredStyles
-            : getRelevantDefaultStyles)(session.mode),
-        // TODO see above for styles. Should we use the previously configured transform values on a blank canvas?
-        structuredClone(defaults.transforms),
-    ));
+    drawing.layers.push(
+        Layer(
+            session.mode,
+            (session.activeLayer
+                ? getRelevantDefaultStyles
+                : getRelevantConfiguredStyles)(session.mode),
+            // TODO see above for styles. Should we use the previously configured transform values on a blank canvas?
+            structuredClone(defaults.transforms),
+        )
+    );
     session.layerId = lastId(drawing.layers);
     drawingContent.append(
         configClone(

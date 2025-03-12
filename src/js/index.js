@@ -49,7 +49,7 @@ import { configRangeInputLabel } from './helper-functions.js';
 import { setCmd, togglePathClosing } from './layers/active-layer-config.js';
 import { setFillOrStroke } from './fill-and-stroke-handling.js';
 import addPoint from './layers/add-point.js';
-import setMode from './set-mode.js';
+import setMode from './layers/set-mode.js';
 
 cmdSelect.addEventListener('change', setCmd);
 document.addEventListener('initializeCanvas', initializeCanvas);
