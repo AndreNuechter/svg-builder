@@ -1,28 +1,7 @@
 import { configElement } from './helper-functions.js';
 
 const ns = 'http://www.w3.org/2000/svg';
-export const layerSelectorTemplate = (() => {
-    const wrapper = configElement(document.createElement('label'), { class: 'layer-selector' });
-    const handle = configElement(document.createElement('span'), {
-        class: 'layer-selector__handle',
-    });
-    const labelTextContainer = configElement(document.createElement('input'), {
-        class: 'layer-selector__label'
-    });
-    const selector = configElement(document.createElement('input'), {
-        type: 'radio',
-        name: 'layer-selector',
-    });
-    const deleteBtn = configElement(document.createElement('button'), {
-        class: 'layer-selector__delete-btn',
-        textContent: 'x',
-        title: 'Delete layer'
-    });
-
-    wrapper.append(handle, labelTextContainer, selector, deleteBtn);
-
-    return wrapper;
-})();
+export const layerSelectorTemplate = document.getElementById('layer-selector-tmpl').content.firstElementChild;
 export const svgTemplates = {
     path: document.createElementNS(ns, 'path'),
     rect: document.createElementNS(ns, 'rect'),

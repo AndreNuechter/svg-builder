@@ -1,0 +1,10 @@
+template#layer-selector-tmpl
+    label.layer-selector
+        span.layer-selector__handle
+            svg.icon
+                use(href="#drag-handle")
+        input.layer-selector__label
+        input(type="radio" name="layer-selector")
+        button.layer-selector__delete-btn(title="Delete layer")
+            svg.icon
+                use(href="#delete")
