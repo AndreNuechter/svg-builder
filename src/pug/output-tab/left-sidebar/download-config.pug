@@ -1,5 +1,10 @@
 fieldset#download
     legend Download
+    #copy-btns
+        button#get-markup(title="Copy Markup to clipboard")
+            svg.icon
+                use(href="#markup")
+        button#get-data-uri(title="Copy Data URI to clipboard") <code>data:...</code>
     fieldset
         legend Fileformat
         label
@@ -8,6 +13,6 @@ fieldset#download
         label
             span PNG
             input(type="radio" name="file-format" value="png")
-    button#download-btn Download
-    button#get-markup(title="...copied to clipboard") Get Markup
-    button#get-data-uri(title="...copied to clipboard") Get Data URI
+    button#download-btn
+        svg.icon
+            use(href="#download-icon")

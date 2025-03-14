@@ -44,12 +44,14 @@ export {
 
 /** Handle clicks on the buttons in the path config fieldsets. */
 function addOrDeletePathPoint({ target }) {
-    if (target.classList.contains('cmd-config__add-point-btn')) {
-        addPathPoint(target.parentElement);
-    } else if (target.classList.contains('cmd-config__delete-point-btn')) {
-        deletePathPoint(target.parentElement);
-    } else {
-        return;
+    const cmdConfig = target.closest('.cmd-config');
+
+    if (!cmdConfig) return;
+
+    if (target.closest('.cmd-config__add-point-btn')) {
+        addPathPoint(cmdConfig);
+    } else if (target.closest('.cmd-config__delete-point-btn')) {
+        deletePathPoint(cmdConfig);
     }
 
     // redraw cps and slopes

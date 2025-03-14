@@ -1,12 +1,15 @@
 form#modes
     fieldset
         legend Mode
-        label
-            span Path
+        label(title="Path")
+            svg.icon
+                use(href="#path")
             input(type="radio" name="modes" value="path" checked)
-        label
-            span Rectangle
+        label(title="Rect")
+            svg.icon
+                use(href="#rect")
             input(type="radio" name="modes" value="rect")
-        label
-            span Ellipse
+        label(title="Ellipse")
+            svg.icon
+                use(href="#ellipse")
             input(type="radio" name="modes" value="ellipse")

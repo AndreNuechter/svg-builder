@@ -241,7 +241,7 @@ function selectOrDeleteLayer({ target }) {
     if (!label) return;
 
     // user clicked the delete btn
-    if (target.classList.contains('layer-selector__delete-btn')) {
+    if (target.closest('.layer-selector__delete-btn')) {
         deleteLayer(Number(label.dataset.layerId));
         return;
     }
@@ -257,9 +257,11 @@ function selectOrDeleteLayer({ target }) {
 
 /** Enable dragging a layerselector when the handle receives a pointerdown event. */
 function startDraggingLayerSelector({ target }) {
-    if (!target.classList.contains('layer-selector__handle')) return;
+    const dragHandle = target.closest('.layer-selector__handle');
 
-    target.parentElement.draggable = true;
+    if (!dragHandle) return;
+
+    dragHandle.parentElement.draggable = true;
 }
 
 /**

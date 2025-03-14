@@ -4,6 +4,12 @@ fieldset#layer-management
     #no-layer-msg No layer, yet...
     #layer-select
     #layer-controls
-        button#add-layer Add Layer
-        button#duplicate-layer(title="Duplicate the active layer") Duplicate Layer
-        button#clear-all Clear Canvas
+        button#add-layer(title="Add Layer")
+            svg.icon
+                use(href="#add")
+        button#duplicate-layer(title="Duplicate the active Layer")
+            svg.icon
+                use(href="#duplicate")
+        button#clear-all(title="Clear the entire Canvas")
+            svg.icon
+                use(href="#trashcan")

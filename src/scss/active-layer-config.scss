@@ -26,7 +26,13 @@
         background-color: var(--main-bg-color);
         color: var(--main-heading-color);
         position: absolute;
-        width: 40px;
+        width: 24px;
+        padding: 0;
+        margin: 0;
+    }
+
+    .icon {
+        stroke: var(--main-text-color);
     }
 
     // the first point of a path shouldnt be deleted
@@ -38,11 +44,11 @@
 }
 
 .cmd-config__delete-point-btn {
-    top: -24px;
-    right: 0;
+    top: -19px;
+    right: 4px;
 }
 
 .cmd-config__add-point-btn {
-    bottom: -15px;
-    right: 35%;
+    bottom: -16px;
+    right: 40%;
 }

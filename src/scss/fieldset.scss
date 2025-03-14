@@ -37,13 +37,10 @@ fieldset.collapsable {
         cursor: pointer;
         width: 100%;
 
-        &::after {
-            content: '▼';
+        .icon {
             position: absolute;
-            right: 0;
-            width: 16px;
-            height: 16px;
-            display: inline-block;
+            right: 3px;
+            stroke: var(--main-heading-color);
             transition: transform 0.3s;
         }
     }
@@ -51,7 +48,7 @@ fieldset.collapsable {
     &.open {
         height: max-content;
 
-        >legend::after {
+        .icon {
             transform: rotate(180deg);
         }
 

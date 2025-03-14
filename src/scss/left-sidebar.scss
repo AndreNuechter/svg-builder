@@ -29,11 +29,15 @@
     .layer-selector {
         * {
             color: var(--main-text-color);
+            fill: var(--main-text-color);
+            stroke: var(--main-text-color);
         }
 
         &:has(input:checked) * {
             background-color: white;
             color: var(--sub-text-color);
+            fill: var(--sub-text-color);
+            stroke: var(--sub-text-color);
         }
     }
 
@@ -41,12 +45,9 @@
         width: 16%;
         height: 100%;
         cursor: grab;
-
-        &::after {
-            // TODO use better icon
-            content: '#';
-            line-height: 32px;
-        }
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .layer-selector__label {
@@ -57,6 +58,10 @@
         background-color: transparent;
         width: 24px;
         margin-top: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 }
 
@@ -66,6 +71,15 @@
     flex-direction: column;
     gap: 4px;
 }
+
+#layer-controls {
+    flex-direction: row;
+
+    button {
+        width: 33%;
+    }
+}
+
 
 #transforms:not(.open) {
     // for some reason, this element doesnt leave enough space when closed

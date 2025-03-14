@@ -14,4 +14,9 @@ button {
     a {
         color: var(--sub-text-color);
     }
+
+    .icon {
+        stroke: var(--sub-text-color);
+        fill: var(--sub-text-color);
+    }
 }
