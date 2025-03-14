@@ -149,6 +149,7 @@ projectManagementOverlay.addEventListener('submit', (event) => {
         case 'select-type-of-new-project-form':
             switch (event.submitter.dataset.btnRole) {
                 case 'select-fresh-start':
+                    clearWorkspace();
                     projectManagementOverlay.close();
                     break;
                 case 'select-a-base':
