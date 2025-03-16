@@ -2,6 +2,7 @@ import './components/collapsable-fieldsets.js';
 import './components/coords-display.js';
 import './components/tabs.js';
 import './drawing/project-management.js';
+import './drawing/viewbox-config.js';
 import {
     cmdSelect,
     downloadBtn,
