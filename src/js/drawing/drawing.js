@@ -13,12 +13,11 @@ const drawing = Object.assign(
         transforms: drawingData.transforms || structuredClone(defaults.transforms),
     }
 );
-const { createBackup, redo, undo } = timeTravel(drawing, commitDrawingToStorage);
+const { createBackup, redo, undo } = timeTravel(drawing);
 
 export default drawing;
 export {
     clearDrawing,
-    commitDrawingToStorage,
     isDrawingUntouched,
     redo,
     save,
@@ -38,10 +37,6 @@ function clearDrawing() {
     document.dispatchEvent(new Event('initializeCanvas'));
 }
 
-function commitDrawingToStorage() {
-    window.localStorage.setItem('drawing', JSON.stringify(drawing));
-}
-
 function isDrawingUntouched() {
     return drawing.layers.length === 0 &&
         areObjectsEqual(drawing.outputConfig, defaults.outputConfig) &&
@@ -49,15 +44,21 @@ function isDrawingUntouched() {
 }
 
 /**
- * Creates a backup of drawing and saves it to localStorage.
+ * Creates a backup of drawing and saves it to localStorage when called wo a msg.
  */
 function save(msg) {
+    // NOTE: is only called wo a msg when the window is hidden
+    if (msg === undefined) {
+        window.localStorage.setItem('drawing', JSON.stringify(drawing));
+        return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(msg);
+
     createBackup({
         layers: structuredClone(drawing.layers),
         transforms: structuredClone(drawing.transforms)
     });
-    // eslint-disable-next-line no-console
-    console.log(msg);
     document.dispatchEvent(new Event('saveDrawing'));
-    commitDrawingToStorage();
 }

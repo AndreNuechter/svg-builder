@@ -6,7 +6,7 @@ import {
     layerSelectors,
     deleteDrawingBtn
 } from '../dom-selections';
-import drawing, { clearDrawing, commitDrawingToStorage, isDrawingUntouched } from './drawing';
+import drawing, { clearDrawing, isDrawingUntouched } from './drawing';
 import session from '../session';
 
 // TODO improve error handling (add a toast element and briefly show a relevant message!?)
@@ -196,8 +196,6 @@ function loadAndApplyDrawing(name) {
             layerId: 0,
             mode: layersData[0].mode
         });
-        // store the loaded drawing in localStorage
-        commitDrawingToStorage();
         // update btn state
         toggleButtons();
         // trigger update of the workspace
@@ -252,7 +250,6 @@ function deleteDrawing(name) {
 
     // the drawing will remain in localStorage, but wo a name
     drawing.name = '';
-    commitDrawingToStorage();
     document.dispatchEvent(new Event('initializeCanvas'));
 
     // delete the option once the drawing is deleted

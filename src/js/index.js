@@ -62,6 +62,10 @@ document.getElementById('add-layer').addEventListener('click', addLayer);
 document.getElementById('clear-all').addEventListener('click', clearDrawing);
 document.getElementById('duplicate-layer').addEventListener('click', duplicateLayer);
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'hidden') return;
+    save();
+});
 document.querySelectorAll('input[type="range"]')
     .forEach(
         (slider) => slider.addEventListener('input', ({ target }) => configRangeInputLabel(target))

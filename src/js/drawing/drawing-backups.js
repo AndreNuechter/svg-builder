@@ -4,7 +4,7 @@ import {
 } from '../dom-selections.js';
 import { lastId } from '../helper-functions.js';
 
-export default (drawing, commitDrawingToStorage) => {
+export default (drawing) => {
     const drawingBackups = [structuredClone(drawing)];
     let currentIndex = 0;
 
@@ -50,7 +50,6 @@ export default (drawing, commitDrawingToStorage) => {
             layers: structuredClone(layersData),
             transforms: structuredClone(transforms)
         });
-        commitDrawingToStorage();
         document.dispatchEvent(new Event('initializeCanvas'));
     }
 
