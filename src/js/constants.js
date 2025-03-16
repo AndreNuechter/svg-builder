@@ -9,7 +9,7 @@ const defaults = Object.freeze({
     mode: 'path',
     closePath: false,
     outputConfig: Object.freeze({
-        width: '320',
+        width: '180',
         height: '180',
         'vb-min-x': '0',
         'vb-min-y': '0',
