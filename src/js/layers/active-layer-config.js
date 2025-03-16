@@ -82,8 +82,10 @@ function addPathPoint(previousConfig) {
     })();
 
     // create a new point
-    // TODO use sensible defaults for x and y instead of 0, 0 (avg between the previous point and the next?)
-    const newPoint = Object.assign({ cmd: session.cmd }, mkDefaultPoint(session.cmd, 0, 0, prevPointData));
+    const newPoint = Object.assign(
+        { cmd: session.cmd },
+        mkDefaultPoint(session.cmd, prevPointData.x + 10, prevPointData.y + 10, prevPointData)
+    );
 
     // add the new point to this layer after the one belonging to the config clicked on
     points.splice(pointId + 1, 0, newPoint);
