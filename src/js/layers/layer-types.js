@@ -7,7 +7,7 @@ import {
     pointToMarkup,
 } from '../helper-functions.js';
 import { setActiveLayerConfig } from './active-layer-config.js';
-import { cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd, mkDefaultPoint } from './path-commands.js';
+import { cmdsThatShouldNotRepeat, mkDefaultPoint } from './path-commands.js';
 
 const defaults = { rect: 100, ellipse: 50 };
 const layerTypes = {
@@ -46,13 +46,12 @@ const layerTypes = {
     path: LayerType(
         (session, points, x, y) => {
             const lastPoint = last(points);
-            let lastPointData;
 
             // prevent using the same point multiple times in a row
             if (lastPoint?.x === x && lastPoint?.y === y) return;
 
-            // ensure first command of a path is a moveTo
-            if (!points.length) session.cmd = 'M';
+            // ensure the first command of a path is a moveTo
+            if (lastPoint === undefined) session.cmd = 'M';
 
             // prevent consecutive M, V or H commands
             if (lastPoint?.cmd === session.cmd && cmdsThatShouldNotRepeat.has(session.cmd)) {
@@ -63,18 +62,16 @@ const layerTypes = {
             // NOTE: because V and H dont have both x and y components,
             // one may be undefined causing invalid values for the cps of the next cmd
             // which is why we then look at the point before that
-            if (cmdsWithCpsDependingOnThePreviousCmd.has(session.cmd)) {
-                lastPointData = (({ cmd }) => {
-                    switch (cmd) {
-                        case 'V':
-                            return { y: lastPoint.y, x: points[lastId(points) - 1].x };
-                        case 'H':
-                            return { x: lastPoint.x, y: points[lastId(points) - 1].y };
-                        default:
-                            return lastPoint;
-                    }
-                })(lastPoint);
-            }
+            const lastPointData = (({ cmd }) => {
+                switch (cmd) {
+                    case 'V':
+                        return { y: lastPoint.y, x: points[lastId(points) - 1].x };
+                    case 'H':
+                        return { x: lastPoint.x, y: points[lastId(points) - 1].y };
+                    default:
+                        return lastPoint;
+                }
+            })(lastPoint);
 
             const newPoint = Object.assign({ cmd: session.cmd }, mkDefaultPoint(session.cmd, x, y, lastPointData));
 

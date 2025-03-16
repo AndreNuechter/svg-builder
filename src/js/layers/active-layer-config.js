@@ -5,7 +5,7 @@ import { save } from '../drawing/drawing';
 import { last } from '../helper-functions';
 import session from '../session';
 import { drawLayer } from './layer-handling';
-import { cmdsThatShouldNotRepeat, cmdsWithCpsDependingOnThePreviousCmd, mkDefaultPoint } from './path-commands';
+import { cmdsThatShouldNotRepeat, mkDefaultPoint } from './path-commands';
 
 const ellipseConfig = document.getElementById('ellipse-config');
 const ellipseConfigCx = ellipseConfig.querySelector('[name=cx]');
@@ -70,20 +70,16 @@ function addPathPoint(previousConfig) {
     // prevent repeated M, V or H cmds
     if (prevPoint.cmd === session.cmd && cmdsThatShouldNotRepeat.has(session.cmd)) return;
 
-    let prevPointData;
-
-    if (cmdsWithCpsDependingOnThePreviousCmd.has(session.cmd)) {
-        prevPointData = (() => {
-            switch (prevPoint.cmd) {
-                case 'V':
-                    return { y: prevPoint.y, x: points[pointId - 1].x };
-                case 'H':
-                    return { x: prevPoint.x, y: points[pointId - 1].y };
-                default:
-                    return prevPoint;
-            }
-        })();
-    }
+    const prevPointData = (() => {
+        switch (prevPoint.cmd) {
+            case 'V':
+                return { y: prevPoint.y, x: points[pointId - 1].x };
+            case 'H':
+                return { x: prevPoint.x, y: points[pointId - 1].y };
+            default:
+                return prevPoint;
+        }
+    })();
 
     // create a new point
     // TODO use sensible defaults for x and y instead of 0, 0 (avg between the previous point and the next?)
@@ -106,10 +102,17 @@ function addPathPoint(previousConfig) {
     previousConfig.after(newConfig);
 
     // update the dataset on the following configs
-    [...pathCmdConfigsContainer.children].slice(pointId).forEach((configFieldset, index) => {
-        configFieldset.dataset.pointId = pointId + index + 1;
-        configFieldset.dataset.firstCpAt = Number(configFieldset.dataset.firstCpAt) + cpCountPerCmd[session.cmd];
-    });
+    [...pathCmdConfigsContainer.children]
+        .slice(pointId + 2)
+        .forEach((configFieldset, index) => {
+            Object.assign(
+                configFieldset.dataset,
+                {
+                    pointId: pointId + 2 + index,
+                    firstCpAt: Number(configFieldset.dataset.firstCpAt) + cpCountPerCmd[session.cmd]
+                }
+            );
+        });
 }
 
 /** Update the active layer after input in the fieldset. */

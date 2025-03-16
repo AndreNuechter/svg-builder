@@ -27,13 +27,11 @@ const pathCmds = {
 };
 const cmdTags = new Set(Object.keys(pathCmds));
 const cmdsThatShouldNotRepeat = new Set(['M', 'V', 'H']);
-const cmdsWithCpsDependingOnThePreviousCmd = new Set(['Q', 'S', 'C']);
 
 export default pathCmds;
 export {
     cmdTags,
     cmdsThatShouldNotRepeat,
-    cmdsWithCpsDependingOnThePreviousCmd,
     mkDefaultPoint,
 };
 
