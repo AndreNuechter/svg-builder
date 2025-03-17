@@ -18,6 +18,7 @@ const { createBackup, redo, undo } = timeTravel(drawing);
 export default drawing;
 export {
     clearDrawing,
+    commitDrawingToStorage,
     isDrawingUntouched,
     redo,
     save,
@@ -37,6 +38,10 @@ function clearDrawing() {
     document.dispatchEvent(new Event('initializeCanvas'));
 }
 
+function commitDrawingToStorage() {
+    window.localStorage.setItem('drawing', JSON.stringify(drawing));
+}
+
 function isDrawingUntouched() {
     return drawing.layers.length === 0 &&
         areObjectsEqual(drawing.outputConfig, defaults.outputConfig) &&
@@ -44,15 +49,9 @@ function isDrawingUntouched() {
 }
 
 /**
- * Creates a backup of drawing and saves it to localStorage when called wo a msg.
+ * Creates a backup of drawing.
  */
 function save(msg) {
-    // NOTE: is only called wo a msg when the window is hidden
-    if (msg === undefined) {
-        window.localStorage.setItem('drawing', JSON.stringify(drawing));
-        return;
-    }
-
     // eslint-disable-next-line no-console
     console.log(msg);
 

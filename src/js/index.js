@@ -26,7 +26,13 @@ import {
     switchToOutputTab,
     triggerDownload
 } from './output-handling.js';
-import { clearDrawing, redo, save, undo } from './drawing/drawing.js';
+import {
+    clearDrawing,
+    commitDrawingToStorage,
+    redo,
+    save,
+    undo
+} from './drawing/drawing.js';
 import { initializeSession } from './session.js';
 import {
     addLayer,
@@ -65,7 +71,7 @@ document.getElementById('duplicate-layer').addEventListener('click', duplicateLa
 document.querySelector('a[data-linked-tab="output"]').addEventListener('click', switchToOutputTab);
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'hidden') return;
-    save();
+    commitDrawingToStorage();
 });
 document.querySelectorAll('input[type="range"]')
     .forEach(
