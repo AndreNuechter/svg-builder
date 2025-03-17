@@ -1,9 +1,11 @@
 fieldset {
+    padding: 5px 8px 8px;
     border: 1px solid var(--main-text-color);
     box-shadow: 2px 3px 3px var(--sub-text-color), inset 3px 4px 4px var(--sub-highlight-color);
     background: linear-gradient(135deg, var(--main-bg-color), 95%, var(--sub-highlight-color));
 
     fieldset {
+        padding: 3px 6px 8px;
         margin-bottom: 4px;
         background: var(--main-bg-color);
         box-shadow: none;
