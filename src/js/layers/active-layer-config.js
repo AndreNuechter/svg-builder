@@ -17,6 +17,8 @@ const rectConfigCx = rectConfig.querySelector('[name=x]');
 const rectConfigCy = rectConfig.querySelector('[name=y]');
 const rectConfigWidth = rectConfig.querySelector('[name=width]');
 const rectConfigHeight = rectConfig.querySelector('[name=height]');
+const rectConfigRx = rectConfig.querySelector('[name=rx]');
+const rectConfigRy = rectConfig.querySelector('[name=ry]');
 const pathCmdConfigsContainer = document.getElementById('path-config__cmds');
 const pathCmdTmpls = {
     L: document.getElementById('l-cmd-config-tmpl').content,
@@ -161,6 +163,7 @@ function configActiveLayer({ target }) {
             firstPoint[target.name] = Number(target.value);
             // update the svg element
             session.activeSVGElement.setAttribute(target.name, target.value);
+            // TODO adjust cps when rx or ry change (if the value is > 1/2 width or height it will be treated as if it were eq to that)...also init cps properly on start (c mkControlPoints)
             // update the cps
             // NOTE: control-point-handling/mkControlPoints tells us that 2 cps are added for a rect, first top-left (which changes position) and then bottom-right (which changes width and/or height)
             // changing x or y via the form affects both cps; changing width or height affects only the bottom-right one
@@ -326,6 +329,8 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
             rectConfigCy.value = firstPoint.y;
             rectConfigWidth.value = firstPoint.width;
             rectConfigHeight.value = firstPoint.height;
+            rectConfigRx.value = firstPoint.rx;
+            rectConfigRy.value = firstPoint.ry;
     }
 }
 

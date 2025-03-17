@@ -57,7 +57,7 @@ function initializeCanvas() {
     // create layerselectors
     drawing.layers.forEach((_, index) => addLayerSelector(index));
 
-    // possibly check the now active layer's selector
+    // possibly check the active layer's selector
     // NOTE: this is a quickfix for undoing a deletion
     if (session.layerId === -1 && layers.length > 0) {
         session.layerId = 0;

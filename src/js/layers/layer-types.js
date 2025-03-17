@@ -16,7 +16,14 @@ const layerTypes = {
             if (points[0]) return;
 
             const rect = session.activeSVGElement;
-            const newPoint = { x, y, width: defaults.rect, height: defaults.rect };
+            const newPoint = {
+                x,
+                y,
+                width: defaults.rect,
+                height: defaults.rect,
+                rx: 0,
+                ry: 0
+            };
 
             drawShape(points, newPoint, rect, session);
         },
