@@ -44,10 +44,8 @@ const defaults = Object.freeze({
         'fill-rule': 'path',
     })
 });
-const backgroundGridStepsize = 5;
 
 export {
-    backgroundGridStepsize,
     complexTransforms,
     defaults,
 };

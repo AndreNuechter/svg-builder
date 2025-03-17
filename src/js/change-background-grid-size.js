@@ -1,9 +1,8 @@
-import { backgroundGridStepsize } from './constants.js';
+const backgroundGridStepsize = 10;
+const documentStyle = document.documentElement.style;
 
 export default function changeBackgroundGridSize({ deltaY }) {
-    const currentValue = Number(
-        document.documentElement.style.getPropertyValue('--bg-grid-size').replace('px', '') || 40,
-    );
+    const currentValue = Number(documentStyle.getPropertyValue('--bg-grid-size').replace('px', '')) || 40;
     // deltaY is negative when scrolling up
     const scalingDirection = deltaY < 0 ? -1 : 1;
 
@@ -12,7 +11,7 @@ export default function changeBackgroundGridSize({ deltaY }) {
         || (scalingDirection === 1 && currentValue === 80)
     ) return;
 
-    document.documentElement.style.setProperty(
+    documentStyle.setProperty(
         '--bg-grid-size', `${currentValue + backgroundGridStepsize * scalingDirection}px`,
     );
 }
