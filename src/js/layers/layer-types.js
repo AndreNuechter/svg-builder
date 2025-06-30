@@ -69,16 +69,18 @@ const layerTypes = {
             // NOTE: because V and H dont have both x and y components,
             // one may be undefined causing invalid values for the cps of the next cmd
             // which is why we then look at the point before that
-            const lastPointData = (({ cmd }) => {
-                switch (cmd) {
-                    case 'V':
-                        return { y: lastPoint.y, x: points[lastId(points) - 1].x };
-                    case 'H':
-                        return { x: lastPoint.x, y: points[lastId(points) - 1].y };
-                    default:
-                        return lastPoint;
-                }
-            })(lastPoint);
+            const lastPointData = lastPoint === undefined
+                ? lastPoint
+                : (({ cmd, x, y }) => {
+                    switch (cmd) {
+                        case 'V':
+                            return { y, x: points[lastId(points) - 1].x };
+                        case 'H':
+                            return { x, y: points[lastId(points) - 1].y };
+                        default:
+                            return lastPoint;
+                    }
+                })(lastPoint);
 
             const newPoint = Object.assign({ cmd: session.cmd }, mkDefaultPoint(session.cmd, x, y, lastPointData));
 
