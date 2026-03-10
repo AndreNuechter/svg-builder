@@ -56,8 +56,7 @@ line {
 
     label {
         justify-content: center;
-        height: 43px;
-        width: 33%;
+        height: 30px;
 
         &:has(:checked) {
             stroke: var(--sub-text-color);

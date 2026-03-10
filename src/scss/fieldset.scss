@@ -37,6 +37,7 @@ fieldset.collapsable {
     >legend {
         position: relative;
         cursor: pointer;
+        line-height: initial;
         width: 100%;
 
         .icon {
