@@ -28,6 +28,8 @@ const cmdsWithRegularCp = new Set(['M', 'L', 'Q', 'C', 'A', 'S', 'T']);
 const cmdsWithFirstCp = new Set(['Q', 'C', 'S']);
 const cmdsWithSlopeBetweenMainAndFirstCp = new Set(['Q', 'S']);
 
+// BUG dragging the lower bottom cp of a rect fast over the x/y of the top one: the cp will go to the edge but the shape wont; dragging the cp a new moves the edge then
+
 export {
     createControlPoints,
     mkControlPoints,
@@ -110,7 +112,7 @@ function ControlPoint(cx, cy, pointId, controlPointType, layerId) {
 
 /**
  * A factory for creating pointermove-handlers enabling dragging a controlpoint.
- * The canvas will use the returned function to change the position of the cp and adjust the drawing.
+ * The returned handler will be attached to the canvas and change the position of the cp and adjust the drawing.
  * @param { number } layerId The ordinal of the layer-data the dragged cp affects.
  * @param { number } pointId The ordinal of the point within the layer the dragged cp belongs to.
  * @param { Object } controlPointType The type of cp we're dealing with.
@@ -159,7 +161,7 @@ function mkControlPoints(layer, layerId, point, pointId) {
     const addedControlPointsAndSlopes = [];
 
     // we branch based on the mode, which we tell by duck-typing:
-    // the cmd-prop implies path, 'width' rect and 'cx' ellipse
+    // the cmd-prop implies path, 'width' rect, 'cx' ellipse and else it's text
     if ('cmd' in point) {
         if (cmdsWithRegularCp.has(point.cmd)) {
             const mainCP = ControlPoint(point.x, point.y, pointId, regularPoint, layerId);
@@ -218,6 +220,10 @@ function mkControlPoints(layer, layerId, point, pointId) {
             ControlPoint(point.cx, point.cy, pointId, ellipseCenter, layerId),
             ControlPoint(point.cx - point.rx, point.cy, pointId, rx, layerId),
             ControlPoint(point.cx, point.cy - point.ry, pointId, ry, layerId),
+        );
+    } else {
+        addedControlPointsAndSlopes.push(
+            ControlPoint(point.x, point.y, pointId, regularPoint, layerId),
         );
     }
 

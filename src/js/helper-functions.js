@@ -24,7 +24,7 @@ export {
  * Compares two objects by stringifying them.
  * @param { Object } a
  * @param { Object } b
- * @returns Boolean
+ * @returns {Boolean}
  */
 function areObjectsEqual(a, b) {
     return JSON.stringify(a) === JSON.stringify(b);

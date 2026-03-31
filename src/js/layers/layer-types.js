@@ -91,6 +91,17 @@ const layerTypes = {
             d: `${points.map(pointToMarkup).join('')}${closePath ? ' Z' : ''}`,
         }),
     ),
+    text: LayerType(
+        (session, points, x, y) => {
+            if (points[0]) return;
+
+            const ellipse = session.activeSVGElement;
+            const newPoint = { x, y };
+
+            drawShape(points, newPoint, ellipse, session);
+        },
+        ({ points: [{ x, y }] }) => ({ x, y }),
+    )
 };
 
 export default layerTypes;

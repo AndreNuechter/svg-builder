@@ -6,6 +6,7 @@ export const svgTemplates = {
     path: document.createElementNS(ns, 'path'),
     rect: document.createElementNS(ns, 'rect'),
     ellipse: document.createElementNS(ns, 'ellipse'),
+    text: document.createElementNS(ns, 'text')
 };
 export const lineTemplate = document.createElementNS(ns, 'line');
 export const circleTemplate = configElement(document.createElementNS(ns, 'circle'), { r: 3 });

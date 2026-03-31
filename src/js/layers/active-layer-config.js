@@ -19,6 +19,15 @@ const rectConfigWidth = rectConfig.querySelector('[name=width]');
 const rectConfigHeight = rectConfig.querySelector('[name=height]');
 const rectConfigRx = rectConfig.querySelector('[name=rx]');
 const rectConfigRy = rectConfig.querySelector('[name=ry]');
+const textConfig = document.getElementById('text-config');
+const textConfigContent = textConfig.querySelector('[name=textContent]');
+const textConfigX = textConfig.querySelector('[name=x]');
+const textConfigY = textConfig.querySelector('[name=y]');
+const textConfigDx = textConfig.querySelector('[name=dx]');
+const textConfigDy = textConfig.querySelector('[name=dy]');
+const textConfigRotate = textConfig.querySelector('[name=rotate]');
+const textConfigLengthAdjust = textConfig.querySelector('[name=lengthAdjust]');
+const textConfigTextLength = textConfig.querySelector('[name=textLength]');
 const pathCmdConfigsContainer = document.getElementById('path-config__cmds');
 const pathCmdTmpls = {
     L: document.getElementById('l-cmd-config-tmpl').content,
@@ -182,6 +191,27 @@ function configActiveLayer({ target }) {
                 case 'height':
                     controlPoints[1].setAttribute('cy', firstPoint.y + firstPoint.height);
             }
+
+            break;
+        case 'text':
+            /* TODO
+            - allow setting css font (restrict to font-family?)
+            - content is too close to the cp
+            - some values are undefined on start (content, rotate, dx, dy...)
+            */
+            // set data
+            firstPoint[target.name] = target.value;
+            // set svg element and possibly cp
+            if (target.name === 'textContent') {
+                session.activeSVGElement.textContent = target.value;
+                break;
+            } else if (target.name === 'x') {
+                controlPoints[0].setAttribute('cx', firstPoint.x);
+            } else if (target.name === 'y') {
+                controlPoints[0].setAttribute('cy', firstPoint.y);
+            }
+
+            session.activeSVGElement.setAttribute(target.name, target.value);
     }
 }
 
@@ -314,7 +344,7 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
     ellipseConfig.classList.remove('empty');
     rectConfig.classList.remove('empty');
 
-    // NOTE: ellipse or rect layers have only one point
+    // NOTE: ellipse, rect and text layers have only one point
     const firstPoint = activeLayer.points[0];
 
     switch (activeLayer.mode) {
@@ -331,6 +361,16 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
             rectConfigHeight.value = firstPoint.height;
             rectConfigRx.value = firstPoint.rx;
             rectConfigRy.value = firstPoint.ry;
+            break;
+        case 'text':
+            textConfigContent.value = firstPoint.textContent;
+            textConfigX.value = firstPoint.x;
+            textConfigY.value = firstPoint.y;
+            textConfigDx.value = firstPoint.dx;
+            textConfigDy.value = firstPoint.dy;
+            textConfigRotate.value = firstPoint.rotate;
+            textConfigLengthAdjust.value = firstPoint.lengthAdjust;
+            textConfigTextLength.value = firstPoint.textLength;
     }
 }
 

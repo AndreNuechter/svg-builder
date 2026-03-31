@@ -58,6 +58,8 @@ import { setFillOrStroke } from './fill-and-stroke-handling.js';
 import addPoint from './layers/add-point.js';
 import setMode from './layers/set-mode.js';
 
+// FIXME Fill and Stroke config isnt properly synced; is transforms? no-layer-msg2 sometimes shows when it shouldnt be...
+
 cmdSelect.addEventListener('change', setCmd);
 document.addEventListener('initializeCanvas', initializeCanvas);
 document.getElementById('reset-transforms').addEventListener('click', resetTransforms);

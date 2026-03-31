@@ -51,3 +51,28 @@ form#active-layer-config
                         span Close path
                         input#close-path-toggle(type="checkbox" checked)
             #path-config__cmds
+        fieldset#text-config.for-text
+            label
+                input(name="textContent")
+            label
+                span X
+                input(type="number" name="x" step=1)
+            label
+                span Y
+                input(type="number" name="y" step=1)
+            label
+                span Dx
+                input(name="dx" pattern="[ 0-9]*")
+            label
+                span Dy
+                input(name="dy" pattern="[ 0-9]*")
+            label
+                span Rotate
+                input(name="rotate" pattern="[ 0-9]*")
+            label LengthAdjust
+                select(name="lengthAdjust")
+                    option(selected="selected") spacing
+                    option spacingAndGlyphs
+            label
+                span TextLength
+                input(type="number" name="textLength" step=1)

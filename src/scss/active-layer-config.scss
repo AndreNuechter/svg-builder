@@ -5,7 +5,8 @@
     }
 
     .for-path,
-    .for-rect {
+    .for-rect,
+    .for-text {
         flex-direction: column;
     }
 
@@ -21,6 +22,7 @@
 
 .cmd-config {
     position: relative;
+    margin-top: 0.5rem;
 
     button {
         background-color: var(--main-bg-color);
@@ -51,4 +53,12 @@
 .cmd-config__add-point-btn {
     bottom: -16px;
     right: 40%;
+}
+
+#text-config {
+
+    input:not([type]),
+    select {
+        width: 100%;
+    }
 }

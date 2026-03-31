@@ -7,7 +7,8 @@ body {
 
     .for-path,
     .for-rect,
-    .for-ellipse {
+    .for-ellipse,
+    .for-text {
         display: none;
     }
 
@@ -27,6 +28,12 @@ body {
         .for-ellipse {
             display: flex;
             flex-direction: column;
+        }
+    }
+
+    &[data-mode="text"] {
+        .for-text {
+            display: flex;
         }
     }
 }

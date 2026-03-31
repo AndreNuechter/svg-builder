@@ -42,4 +42,8 @@ input {
             color: var(--sub-text-color);
         }
     }
+
+    &:invalid {
+        outline: 1px solid red;
+    }
 }
