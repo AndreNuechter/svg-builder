@@ -95,10 +95,18 @@ const layerTypes = {
         (session, points, x, y) => {
             if (points[0]) return;
 
-            const ellipse = session.activeSVGElement;
-            const newPoint = { x, y };
+            const text = session.activeSVGElement;
+            const newPoint = {
+                textContent: 'Default',
+                x,
+                y,
+                dx: 0,
+                dy: 0,
+                rotate: 0,
+                lengthAdjust: 'spacing',
+            };
 
-            drawShape(points, newPoint, ellipse, session);
+            drawShape(points, newPoint, text, session);
         },
         ({ points: [{ x, y }] }) => ({ x, y }),
     )

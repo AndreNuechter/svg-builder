@@ -195,9 +195,8 @@ function configActiveLayer({ target }) {
             break;
         case 'text':
             /* TODO
-            - allow setting css font (restrict to font-family?)
+            - allow setting font-family (text), font-size (number), font-weight (list), text-anchor (?), letter-spacing (number), writing-mode (list)
             - content is too close to the cp
-            - some values are undefined on start (content, rotate, dx, dy...)
             */
             // set data
             firstPoint[target.name] = target.value;
