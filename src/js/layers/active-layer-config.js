@@ -195,8 +195,7 @@ function configActiveLayer({ target }) {
             break;
         case 'text':
             /* TODO
-            - allow setting font-family (text), font-size (number), font-weight (list), text-anchor (?), letter-spacing (number), writing-mode (list)
-            - content is too close to the cp
+            - allow setting font-family (text), font-size (number), font-weight (list), text-anchor (?), letter-spacing (number), writing-mode (list)...how to store this and how to apply it?
             */
             // set data
             firstPoint[target.name] = target.value;
@@ -307,6 +306,7 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
             // these inputs are static and therefore hidden
             ellipseConfig.classList.add('empty');
             rectConfig.classList.add('empty');
+            textConfig.classList.add('empty');
         }
 
         noLayerMsg.style.display = 'block';
@@ -342,6 +342,7 @@ function setActiveLayerConfig(activeLayer = session.activeLayer) {
     // show the relevant config again
     ellipseConfig.classList.remove('empty');
     rectConfig.classList.remove('empty');
+    textConfig.classList.remove('empty');
 
     // NOTE: ellipse, rect and text layers have only one point
     const firstPoint = activeLayer.points[0];
